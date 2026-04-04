@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dulce y Jaleo — Iniciar Sesión</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* === Variables de tema === */
+        :root {
+            --bg: #FFFFFF;
+            --card-bg: #FFFFFF;
+            --card-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            --input-bg: #F5F5F5;
+            --text-primary: #1A1A1A;
+            --text-secondary: #6B6B6B;
+            --text-muted: #999999;
+            --accent-gold: #C8860A;
+            --accent-mint: #00C896;
+            --error-red: #E25C5C;
+            --shimmer-base: #F0F0F0;
+            --shimmer-shine: #E0E0E0;
+        }
+
+        body.dark-theme {
+            --bg: #0F0F0F;
+            --card-bg: #1A1A1A;
+            --card-shadow: 0 4px 24px rgba(0,0,0,0.4);
+            --input-bg: #2A2A2A;
+            --text-primary: #FFFFFF;
+            --text-secondary: #AAAAAA;
+            --text-muted: #666666;
+            --shimmer-base: #2A2A2A;
+            --shimmer-shine: #333333;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-font-smoothing: antialiased;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        .login-wrapper {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: var(--card-shadow);
+            position: relative;
+            overflow: hidden;
+            transition: background 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        /* === Logo / Branding === */
+        .login-logo {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-logo .logo-emoji {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .login-logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.3px;
+        }
+
+        .login-logo p {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* === Formulario === */
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            background: var(--input-bg);
+            color: var(--text-primary);
+            border: 1.5px solid transparent;
+            border-radius: 12px;
+            outline: none;
+            transition: border-color 0.15s ease, background 0.3s ease;
+        }
+
+        .input-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-group input:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
+            color: #FFFFFF;
+            background: var(--accent-gold);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: opacity 0.12s ease, transform 0.12s ease;
+            margin-top: 8px;
+        }
+
+        .btn-login:hover {
+            opacity: 0.85;
+        }
+
+        .btn-login:active {
+            transform: scale(0.97);
+        }
+
+        .btn-login:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* === Mensaje de error === */
+        .login-error {
+            font-size: 13px;
+            color: var(--error-red);
+            text-align: center;
+            min-height: 20px;
+            margin-top: 4px;
+            transition: opacity 0.2s ease;
+        }
+
+        /* === Shimmer overlay === */
+        .shimmer-overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--card-bg);
+            border-radius: 20px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 40px;
+            z-index: 10;
+        }
+
+        .shimmer-overlay.active {
+            display: flex;
+        }
+
+        .shimmer-bar {
+            width: 100%;
+            height: 14px;
+            border-radius: 7px;
+            background: linear-gradient(90deg, var(--shimmer-base) 25%, var(--shimmer-shine) 50%, var(--shimmer-base) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite ease-in-out;
+        }
+
+        .shimmer-bar.short {
+            width: 60%;
+        }
+
+        .shimmer-bar.medium {
+            width: 80%;
+        }
+
+        .shimmer-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(90deg, var(--shimmer-base) 25%, var(--shimmer-shine) 50%, var(--shimmer-base) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite ease-in-out;
+            margin-bottom: 8px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* === Toggle de tema === */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            box-shadow: var(--card-shadow);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: opacity 0.12s ease, transform 0.12s ease;
+            z-index: 50;
+        }
+
+        .theme-toggle:hover {
+            opacity: 0.85;
+        }
+
+        .theme-toggle:active {
+            transform: scale(0.97);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Botón de tema -->
+    <button class="theme-toggle" id="themeToggle" title="Cambiar tema">
+        <span id="themeIcon">🌙</span>
+    </button>
+
+    <div class="login-wrapper">
+        <div class="login-card" id="loginCard">
+
+            <!-- Shimmer skeleton durante carga -->
+            <div class="shimmer-overlay" id="shimmerOverlay">
+                <div class="shimmer-circle"></div>
+                <div class="shimmer-bar"></div>
+                <div class="shimmer-bar medium"></div>
+                <div class="shimmer-bar short"></div>
+            </div>
+
+            <!-- Logo -->
+            <div class="login-logo">
+                <span class="logo-emoji">🥐</span>
+                <h1>Dulce y Jaleo</h1>
+                <p>Panel de Gestión</p>
+            </div>
+
+            <!-- Formulario -->
+            <form class="login-form" id="loginForm" autocomplete="on">
+                <div class="input-group">
+                    <label for="email">Correo electrónico</label>
+                    <input type="email" id="email" name="email" placeholder="tu@email.com" autocomplete="email" required>
+                </div>
+                <div class="input-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" placeholder="Tu contraseña" autocomplete="current-password" required>
+                </div>
+                <button type="submit" class="btn-login" id="btnLogin">Entrar</button>
+                <div class="login-error" id="loginError"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // === Constantes ===
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3001'
+            : 'https://dulce-y-jaleo-backend.xm1sa3.easypanel.host';
+
+        // === Aplicar tema guardado ===
+        (function applyTheme() {
+            const saved = localStorage.getItem('dulce_jaleo_theme');
+            if (saved === 'dark') {
+                document.body.classList.add('dark-theme');
+                document.getElementById('themeIcon').textContent = '☀️';
+            }
+        })();
+
+        // === Toggle tema ===
+        document.getElementById('themeToggle').addEventListener('click', function() {
+            const isDark = document.body.classList.toggle('dark-theme');
+            localStorage.setItem('dulce_jaleo_theme', isDark ? 'dark' : 'light');
+            document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+        });
+
+        // === Decodificar JWT (sin verificar firma) ===
+        function decodeJWT(token) {
+            try {
+                const parts = token.split('.');
+                if (parts.length !== 3) return null;
+                const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+                const decoded = atob(payload);
+                return JSON.parse(decoded);
+            } catch {
+                return null;
+            }
+        }
+
+        // === Verificar token existente al cargar ===
+        function checkExistingAuth() {
+            const token = localStorage.getItem('auth_token');
+            if (!token) return; // Sin token, mostrar formulario
+
+            const payload = decodeJWT(token);
+            if (!payload || !payload.exp) return;
+
+            // Verificar si expiró
+            const now = Math.floor(Date.now() / 1000);
+            if (payload.exp < now) {
+                localStorage.removeItem('auth_token');
+                return;
+            }
+
+            // Token válido — redirigir según rol
+            redirectByRole(payload.role);
+        }
+
+        // === Redirigir según rol ===
+        function redirectByRole(role) {
+            if (role === 'admin') {
+                window.location.href = '/admin.html';
+            } else {
+                window.location.href = '/index.html';
+            }
+        }
+
+        // === Mostrar / ocultar shimmer ===
+        function setLoading(loading) {
+            const shimmer = document.getElementById('shimmerOverlay');
+            const btn = document.getElementById('btnLogin');
+            if (loading) {
+                shimmer.classList.add('active');
+                btn.disabled = true;
+            } else {
+                shimmer.classList.remove('active');
+                btn.disabled = false;
+            }
+        }
+
+        // === Mostrar error ===
+        function showError(msg) {
+            document.getElementById('loginError').textContent = msg;
+        }
+
+        // === Enviar formulario ===
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            showError('');
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            if (!email || !password) {
+                showError('Completa todos los campos');
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                const res = await fetch(API_BASE + '/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showError(data.message || data.error || 'Credenciales incorrectas');
+                    setLoading(false);
+                    return;
+                }
+
+                // Guardar token y redirigir
+                const token = data.token || data.access_token;
+                if (!token) {
+                    showError('Respuesta del servidor sin token');
+                    setLoading(false);
+                    return;
+                }
+
+                localStorage.setItem('auth_token', token);
+                const payload = decodeJWT(token);
+                redirectByRole(payload ? payload.role : 'client');
+
+            } catch (err) {
+                showError('Error de conexión. Inténtalo de nuevo.');
+                setLoading(false);
+            }
+        });
+
+        // === Iniciar: verificar auth existente ===
+        checkExistingAuth();
+    </script>
+</body>
+</html>
