@@ -1,0 +1,2615 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Dulce Jaleo - Gestión Inteligente</title>
+    <meta name="description" content="App de gestión de facturas y documentos para Dulce Jaleo panadería artesanal">
+
+    <!-- PWA: Manifest -->
+    <link rel="manifest" href="manifest.json?v=3">
+    <meta name="theme-color" content="#0f0f14">
+
+    <!-- Universal PWA (Chrome, Brave, Android) -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="icon" sizes="192x192" href="icon-192.png?v=3">
+    <link rel="icon" sizes="512x512" href="icon-512.png?v=3">
+
+    <!-- Apple PWA (iOS Safari/Brave/Chrome) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Dulce Jaleo">
+    <link rel="apple-touch-icon" href="icon-512.png?v=3">
+    <!-- Icono redundante para asegurar detección en versiones antiguas de iOS -->
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-512.png?v=3">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ===================================================
+           DESIGN SYSTEM – Dulce Jaleo Minimal (Notion/Apple)
+           =================================================== */
+
+        /* --- DARK MODE (default) --- */
+        :root {
+            --bg:          #0A0A0F;
+            --surface:     rgba(20, 20, 25, 0.65);
+            --surface-2:   rgba(28, 28, 36, 0.5);
+            --border:      rgba(255, 255, 255, 0.05);
+            --divider:     rgba(255, 255, 255, 0.03);
+            --text:        #F1F1F4;
+            --text-2:      #A0A0B0;
+            --text-muted:  #6B7280;
+            --accent:      #D4AF37;
+            --accent-dim:  rgba(212, 175, 55, 0.15);
+            --accent-dark: #C5A059;
+            --success:     #10B981;
+            --danger:      #EF4444;
+            --info:        #3B82F6;
+            --shadow:      0 8px 32px rgba(0,0,0,0.25);
+            --shadow-md:   0 16px 48px rgba(0,0,0,0.4);
+            --radius:      16px;
+            --radius-sm:   12px;
+            --radius-xs:   8px;
+            --glass:       rgba(10, 10, 15, 0.60);
+        }
+
+        /* --- LIGHT MODE --- */
+        [data-theme="light"] {
+            --bg:          #F5F5F7;
+            --surface:     rgba(255, 255, 255, 0.65);
+            --surface-2:   rgba(255, 255, 255, 0.4);
+            --border:      rgba(255, 255, 255, 0.5);
+            --divider:     rgba(0, 0, 0, 0.03);
+            --text:        #111111;
+            --text-2:      #374151;
+            --text-muted:  #6B7280;
+            --accent:      #D4AF37;
+            --accent-dim:  rgba(212, 175, 55, 0.15);
+            --accent-dark: #C5A059;
+            --success:     #059669;
+            --danger:      #DC2626;
+            --info:        #2563EB;
+            --shadow:      0 4px 24px rgba(0,0,0,0.04);
+            --shadow-md:   0 8px 32px rgba(0,0,0,0.06);
+            --glass:       rgba(245, 245, 247, 0.60);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        html {
+            color-scheme: dark;
+            /* iOS bounce lock */
+            position: fixed;
+            overflow: hidden;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            overscroll-behavior: none;
+        }
+        [data-theme="light"] { color-scheme: light; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            position: fixed;
+            overflow: hidden;
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            -webkit-font-smoothing: antialiased;
+            overscroll-behavior: none;
+            transition: background 0.4s ease, color 0.4s ease;
+        }
+
+        /* ===== ANIMATED IOS MESH BACKGROUND ===== */
+        .bg-mesh {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            overflow: hidden;
+            background: var(--bg);
+            transition: background 0.4s ease;
+        }
+        .bg-mesh::before, .bg-mesh::after {
+            content: '';
+            position: absolute;
+            width: 70vw;
+            height: 70vw;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.5;
+            animation: drift 20s infinite alternate ease-in-out;
+        }
+        .bg-mesh::before {
+            top: -10vw;
+            left: -10vw;
+            background: rgba(212, 175, 55, 0.45); /* Champagne Gold Accent */
+        }
+        .bg-mesh::after {
+            bottom: -10vw;
+            right: -20vw;
+            background: rgba(197, 160, 89, 0.35); /* Darker Gold Accent */
+            animation-delay: -10s;
+        }
+        [data-theme="light"] .bg-mesh::before { 
+            background: rgba(212, 175, 55, 0.35); /* Champagne Amber */ 
+        }
+        [data-theme="light"] .bg-mesh::after { 
+            background: rgba(197, 160, 89, 0.25); /* Champagne Peach */ 
+        }
+
+        @keyframes drift {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(15vw, 15vh) scale(1.1); }
+        }
+
+        /* ===== SPLASH SCREEN ===== */
+        .splash-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .splash-screen.hide { opacity: 0; visibility: hidden; }
+        .splash-logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 22px;
+            animation: splashPulse 1.8s ease-in-out infinite;
+        }
+        @keyframes splashPulse {
+            0%,100% { transform:scale(1); opacity:0.85; }
+            50%      { transform:scale(1.06); opacity:1; }
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: calc(16px + env(safe-area-inset-top)) 20px 14px;
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logo-img-header {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        .logo-text h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.3px;
+            line-height: 1.1;
+        }
+        .logo-text span {
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 0.8px;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Theme Toggle Button */
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+            line-height: 1;
+        }
+        .theme-toggle:hover { border-color: var(--accent); }
+
+        /* Gear button */
+        .icon-btn-gear {
+            width: 36px;
+            height: 36px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            padding: 0;
+            opacity: 0.9;
+        }
+        .icon-btn-gear:hover { border-color: var(--accent); transform: rotate(45deg); }
+
+        /* Status pill */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--success);
+        }
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%,100% { opacity:1; transform:scale(1); }
+            50%      { opacity:0.4; transform:scale(0.8); }
+        }
+
+        /* ===== MAIN ===== */
+        .main {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 24px 16px 120px;
+            /* Scroll container: only this area scrolls */
+            position: fixed;
+            top: 70px;
+            top: calc(70px + env(safe-area-inset-top));
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            bottom: calc(65px + env(safe-area-inset-bottom));
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-y: contain;
+        }
+
+        .tab-content { display:none; animation:fadeUp 0.25s ease; }
+        .tab-content.active { display:block; }
+
+        @keyframes fadeUp {
+            from { opacity:0; transform:translateY(8px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+
+        /* ===== SECTION TITLES ===== */
+        .section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+        .section-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        /* ===== SCANNER ===== */
+        .scanner-area {
+            background: var(--surface);
+            border: 1.5px dashed var(--border);
+            border-radius: 20px;
+            padding: 48px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .scanner-area:hover, .scanner-area.drag-over {
+            border-color: var(--accent);
+            background: var(--surface-2);
+        }
+        .scanner-area.has-image {
+            border-style: solid;
+            border-color: var(--accent);
+            padding: 0;
+        }
+        .scanner-icon-wrap {
+            width: 68px;
+            height: 68px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin: 0 auto 18px;
+        }
+        .scanner-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+        .scanner-subtitle-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+        .scan-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .btn-scan {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-2);
+            padding: 9px 20px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .btn-scan:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .preview-img {
+            width: 100%;
+            max-height: 340px;
+            object-fit: contain;
+            border-radius: 18px;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 15px 28px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            letter-spacing: 0.1px;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--accent-dark);
+            transform: translateY(-1px);
+        }
+        .btn-primary:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-2);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background: var(--surface-2);
+            border-color: var(--accent);
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .btn-group .btn { flex:1; }
+
+        /* ===== RESULT CARD ===== */
+        .result-card {
+            margin-top: 20px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 22px;
+            border: 1px solid var(--border);
+        }
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .result-icon-wrap {
+            width: 44px;
+            height: 44px;
+            background: rgba(16,185,129,0.1);
+            border-radius: 11px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+        }
+        .result-title { font-size:16px; font-weight:700; color:var(--text); }
+        .result-subtitle { font-size:12px; color:var(--text-muted); margin-top:1px; }
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .result-item {
+            background: var(--bg);
+            padding: 12px 14px;
+            border-radius: var(--radius-xs);
+            border: 1px solid var(--border);
+        }
+        .result-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .result-value { font-size:15px; font-weight:700; color:var(--text); }
+        .result-value.amount { color:var(--accent); }
+
+        /* ===== PROCESSING OVERLAY ===== */
+        .processing-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(10,10,15,0.92);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            backdrop-filter: blur(8px);
+        }
+        [data-theme="light"] .processing-overlay {
+            background: rgba(250,250,250,0.92);
+        }
+        .processing-overlay.hidden { display:none; }
+        .spinner-track {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        .processing-bread {
+            font-size: 36px;
+            margin-bottom: 16px;
+            animation: float 2s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%,100% { transform:translateY(0); }
+            50%      { transform:translateY(-8px); }
+        }
+        .processing-text {
+            margin-top: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .processing-sub { margin-top:5px; font-size:13px; color:var(--text-muted); }
+
+        /* ===== STATS ROW ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .stats-row.stats-4 { grid-template-columns: repeat(2,1fr); }
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 12px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+            font-family: 'Outfit', sans-serif;
+        }
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            margin-top: 3px;
+            font-weight: 600;
+        }
+
+        /* ===== SUB-TABS ===== */
+        .sub-tabs {
+            display: flex;
+            background: var(--surface);
+            border-radius: 50px;
+            padding: 4px;
+            margin-bottom: 18px;
+            border: 1px solid var(--border);
+            gap: 2px;
+        }
+        .sub-tab-btn {
+            flex: 1;
+            padding: 8px 6px;
+            border-radius: 50px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .sub-tab-btn.active {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* ===== REFRESH BAR ===== */
+        .refresh-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .refresh-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-2);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+        .refresh-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+        /* ===== ERROR BANNER ===== */
+        .error-banner {
+            background: rgba(239,68,68,0.08);
+            border: 1px solid rgba(239,68,68,0.2);
+            border-left: 3px solid var(--danger);
+            border-radius: var(--radius-xs);
+            padding: 12px 16px;
+            color: var(--danger);
+            font-size: 13px;
+            margin-bottom: 14px;
+            display: none;
+        }
+
+        /* ===== TOTAL PERIODO ===== */
+        .total-periodo-banner {
+            background: var(--accent-dim);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: var(--radius-sm);
+            padding: 12px 18px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .total-periodo-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+        .total-periodo-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--accent);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* ===== FACTURA CARDS ===== */
+        .factura-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 8px;
+            transition: border-color 0.2s, transform 0.2s;
+            cursor: pointer;
+        }
+        .factura-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-1px);
+        }
+        .factura-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .factura-info { flex:1; min-width:0; }
+        .factura-proveedor {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+        .factura-total {
+            font-size: 19px;
+            font-weight: 800;
+            color: var(--accent);
+            font-family: 'Outfit', sans-serif;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+        .factura-meta {
+            display: flex;
+            gap: 10px;
+            font-size: 11px;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+        .factura-meta span { display:flex; align-items:center; gap:3px; }
+        .factura-badge {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+        .badge-factura { background:rgba(59,130,246,0.1); color:#60A5FA; border:1px solid rgba(59,130,246,0.2); }
+        .badge-albaran { background:rgba(139,92,246,0.1); color:#A78BFA; border:1px solid rgba(139,92,246,0.2); }
+        .badge-gastos  { background:var(--accent-dim); color:var(--accent); border:1px solid rgba(212,175,55,0.25); }
+        .factura-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--divider);
+        }
+        .factura-btn-view {
+            background: var(--accent-dim);
+            color: var(--accent);
+            border: none;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .factura-btn-view:hover { background:rgba(212,175,55,0.2); }
+
+        /* ===== EMPTY STATES ===== */
+        .empty-state {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 48px 28px;
+            text-align: center;
+            margin-top: 8px;
+        }
+        .empty-icon { font-size:44px; margin-bottom:14px; opacity:0.5; }
+        .empty-title { font-size:16px; font-weight:700; color:var(--text-2); margin-bottom:6px; }
+        .empty-desc { font-size:13px; color:var(--text-muted); line-height:1.5; }
+
+        /* ===== CONFIG PANEL ===== */
+        .config-section {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 14px;
+        }
+        .config-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-2);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 14px;
+        }
+        .config-field { margin-bottom:12px; }
+        .config-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 6px;
+            display: block;
+        }
+        .config-input {
+            width: 100%;
+            padding: 11px 14px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 13px;
+            transition: border-color 0.2s;
+        }
+        .config-input:focus { outline:none; border-color:var(--accent); }
+        .config-help { font-size:11px; color:var(--text-muted); line-height:1.5; margin-top:6px; }
+        .config-help a { color:var(--accent); text-decoration:none; }
+        .config-help a:hover { text-decoration:underline; }
+
+        /* ===== FACTURA MODAL ===== */
+        .factura-modal {
+            position: fixed;
+            top:0; left:0; right:0; bottom:0;
+            background: rgba(0,0,0,0.7);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(6px);
+            padding: 20px;
+        }
+        .factura-modal.active { opacity:1; visibility:visible; }
+        .factura-modal-content {
+            background: var(--surface);
+            width: 100%;
+            max-width: 500px;
+            max-height: 85vh;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            transform: scale(0.95) translateY(16px);
+            transition: all 0.25s ease;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .factura-modal.active .factura-modal-content { transform:scale(1) translateY(0); }
+        .factura-modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .factura-modal-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .factura-modal-close {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            display: flex; align-items:center; justify-content:center;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .factura-modal-close:hover { background:var(--danger); color:#fff; border-color:var(--danger); }
+        .factura-modal-body { padding:24px; overflow-y:auto; flex:1; }
+        .factura-modal-img {
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            max-height: 360px;
+            object-fit: contain;
+            display: none;
+        }
+        .factura-modal-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        .fm-field-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+        .fm-field-value { font-size:14px; color:var(--text); font-weight:600; }
+        .fm-total { font-size:22px; font-family:'Outfit',sans-serif; color:var(--accent); font-weight:800; }
+
+        /* ===== CONFIG MODAL (<span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span>) ===== */
+        .config-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 997;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 70px;
+            backdrop-filter: blur(8px);
+        }
+        .config-modal-overlay.open { display:flex; }
+        .config-modal-box {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 20px 28px;
+            width: calc(100% - 32px);
+            max-width: 440px;
+            box-shadow: var(--shadow-md);
+            animation: fadeDown 0.2s ease;
+        }
+        @keyframes fadeDown {
+            from { opacity:0; transform:translateY(-12px); }
+            to   { opacity:1; transform:translateY(0); }
+        }
+        .config-modal-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .config-modal-subtitle { font-size:12px; color:var(--text-muted); margin-bottom:20px; }
+
+        /* ===== ALERTS ===== */
+        .alert-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 8px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            transition: border-color 0.2s;
+        }
+        .alert-card.danger  { border-left:3px solid var(--danger); }
+        .alert-card.warning { border-left:3px solid var(--accent); }
+        .alert-card.info    { border-left:3px solid var(--info); }
+        .alert-icon { font-size:22px; flex-shrink:0; margin-top:2px; }
+        .alert-body { flex:1; min-width:0; }
+        .alert-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:3px; }
+        .alert-desc { font-size:12px; color:var(--text-muted); line-height:1.5; }
+        .alert-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+        .badge-danger  { background:rgba(239,68,68,0.1); color:var(--danger); border:1px solid rgba(239,68,68,0.2); }
+        .badge-warning { background:var(--accent-dim); color:var(--accent); border:1px solid rgba(212,175,55,0.2); }
+        .badge-ok      { background:rgba(16,185,129,0.1); color:var(--success); border:1px solid rgba(16,185,129,0.2); }
+        .alert-time { font-size:11px; color:var(--text-muted); flex-shrink:0; margin-top:3px; }
+
+        /* ===== MÁRGENES ===== */
+        .margin-hero {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px 24px;
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .margin-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .margin-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .margin-value.positive { color:var(--success); }
+        .margin-value.negative { color:var(--danger); }
+        .margin-value.neutral  { color:var(--text-muted); }
+        .margin-sub { font-size:13px; color:var(--text-muted); }
+        .margin-bar-wrap {
+            background: var(--surface-2);
+            border-radius: 99px;
+            height: 10px;
+            overflow: hidden;
+            margin: 14px 0 6px;
+        }
+        .margin-bar {
+            height: 100%;
+            border-radius: 99px;
+            background: var(--accent);
+            transition: width 0.8s ease;
+        }
+        .margin-config-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+        .icon-btn-gear-margin {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+            opacity: 0.6;
+            transition: opacity 0.2s, transform 0.3s;
+            padding: 4px;
+        }
+        .icon-btn-gear-margin:hover { opacity:1; transform:rotate(45deg); }
+
+        /* ===== AGENDA ===== */
+        .agenda-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 16px;
+        }
+        .agenda-count { font-size:12px; color:var(--text-muted); font-weight:500; }
+        .search-box { position:relative; margin-bottom:14px; }
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            opacity: 0.45;
+            pointer-events: none;
+        }
+        .search-input {
+            width: 100%;
+            padding: 11px 14px 11px 40px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+        .search-input::placeholder { color:var(--text-muted); }
+        .search-input:focus { outline:none; border-color:var(--accent); }
+        .agenda-sub-tabs {
+            display: flex;
+            background: var(--surface);
+            border-radius: 50px;
+            padding: 4px;
+            margin-bottom: 18px;
+            border: 1px solid var(--border);
+            gap: 2px;
+        }
+        .agenda-sub-btn {
+            flex: 1;
+            padding: 8px 6px;
+            border-radius: 50px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .agenda-sub-btn.active { background:var(--accent); color:#fff; }
+        .contact-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: border-color 0.2s;
+            cursor: pointer;
+        }
+        .contact-card:hover { border-color:var(--accent); }
+        .contact-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            flex-shrink: 0;
+            color: #fff;
+        }
+        .avatar-proveedor { background:var(--accent); }
+        .avatar-cliente   { background:var(--info); }
+        .contact-info { flex:1; min-width:0; }
+        .contact-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .contact-meta { font-size:12px; color:var(--text-muted); margin-top:2px; }
+        .contact-arrow { font-size:16px; color:var(--text-muted); opacity:0.4; }
+
+        /* ===== FAB ADD CONTACT ===== */
+        .fab-add {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: none;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(212,175,55,0.4);
+            z-index: 150;
+            transition: all 0.2s;
+            color: #fff;
+        }
+        .fab-add.visible { display:flex; }
+        .fab-add:hover { transform:scale(1.08); }
+
+        /* ===== CONTACT MODAL ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+            display: none;
+            align-items: flex-end;
+            backdrop-filter: blur(6px);
+        }
+        .modal-overlay.open { display:flex; }
+        .modal-sheet {
+            background: var(--surface);
+            border-radius: 24px 24px 0 0;
+            border: 1px solid var(--border);
+            padding: 20px 20px 40px;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            animation: slideUp 0.25s ease;
+        }
+        @keyframes slideUp {
+            from { transform:translateY(100%); opacity:0; }
+            to   { transform:translateY(0); opacity:1; }
+        }
+        .modal-handle {
+            width: 36px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+        .modal-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 18px;
+            text-align: center;
+        }
+        .modal-type-tabs { display:flex; gap:8px; margin-bottom:18px; }
+        .modal-type-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .modal-type-btn.active { border-color:var(--accent); color:var(--accent); background:var(--accent-dim); }
+        .modal-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 14px;
+            margin-bottom: 10px;
+            transition: border-color 0.2s;
+        }
+        .modal-input::placeholder { color:var(--text-muted); }
+        .modal-input:focus { outline:none; border-color:var(--accent); }
+
+        /* ===== BOTTOM NAV ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid var(--border);
+            padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+            z-index: 200;
+        }
+        .bottom-nav-inner {
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            border-radius: var(--radius-xs);
+            min-width: 56px;
+        }
+        .nav-icon {
+            font-size: 21px;
+            transition: transform 0.2s;
+            line-height: 1;
+        }
+        .nav-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.2px;
+            transition: color 0.2s;
+        }
+        .nav-btn.active .nav-label { color:var(--accent); }
+        .nav-btn.active .nav-icon  { transform:scale(1.1); }
+        /* Home button: slightly larger icon */
+        .nav-btn-home .nav-icon svg {
+            width: 28px;
+            height: 28px;
+        }
+        .nav-btn-home {
+            position: relative;
+            color: var(--text-muted);
+        }
+        .nav-btn-home.active {
+            color: var(--accent);
+        }
+        .nav-btn-home.active .nav-icon {
+            filter: drop-shadow(0 2px 6px rgba(212, 175, 55, 0.3));
+        }
+
+        .nav-btn-fab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            position: relative;
+            top: -12px;
+        }
+        .nav-fab-circle {
+            width: 58px;
+            height: 58px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 18px rgba(212,175,55,0.45);
+            transition: all 0.2s;
+            border: 3px solid var(--bg);
+        }
+        .nav-btn-fab:hover .nav-fab-circle { transform:scale(1.08); }
+        .nav-fab-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--accent);
+            letter-spacing: 0.2px;
+        }
+
+        /* ===== INFO ROWS ===== */
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--divider);
+        }
+        .info-row:last-child { border-bottom:none; }
+        .info-key { font-size:13px; color:var(--text-muted); }
+        .info-val { font-size:13px; font-weight:600; color:var(--text); }
+        .info-val.free { color:var(--success); }
+
+        input[type="file"] { display:none; }
+
+        /* ===== TAB CONTENT VISIBILITY ===== */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 380px) {
+            .stats-row { gap:7px; }
+            .stat-card  { padding:12px 8px; }
+            .stat-value { font-size:20px; }
+            .nav-btn    { min-width:46px; padding:4px 6px; }
+        }
+
+        /* ===== DASHBOARD CARD STYLES ===== */
+        .dash-welcome { margin-bottom: 24px; }
+        .dash-welcome h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+        .dash-welcome p { color: var(--text-muted); font-size: 14px; text-transform: capitalize; }
+        
+        .dash-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+        .dash-card {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+        }
+        .dash-card-title {
+            font-size: 13px;
+            color: var(--text-2);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .dash-card-value {
+            font-size: 24px;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+        }
+        .dash-trend {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(16,185,129,0.1);
+            color: var(--success);
+        }
+        .dash-trend.negative {
+            background: rgba(239,68,68,0.1);
+            color: var(--danger);
+        }
+        
+        .alert-card {
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            gap: 12px;
+        }
+        .alert-icon { font-size: 20px; }
+        .alert-content p { font-size: 14px; font-weight: 500; margin-bottom: 4px; line-height: 1.4; color: var(--text); }
+        .alert-content span { font-size: 12px; color: var(--text-muted); }
+    </style>
+    
+</head>
+
+<body>
+    <!-- BACKGROUND MESH -->
+    <div class="bg-mesh"></div>
+
+    <!-- SPLASH SCREEN PWA -->
+    <div class="splash-screen" id="splashScreen">
+        <img src="icon-512.png" alt="Dulce Jaleo" class="splash-logo">
+    </div>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <img src="icon-512.png?v=3" class="logo-img-header" alt="Logo Dulce Jaleo">
+                <div class="logo-text">
+                    <h1>Dulce Jaleo</h1>
+                    <span>Gestión Inteligente</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="status-pill">
+                    <div class="status-dot"></div>
+                    Online
+                </div>
+                <button class="theme-toggle" id="themeToggle" title="Cambiar tema"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span></button>
+                <button class="icon-btn-gear" id="gearBtn" title="Ajustes técnicos"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span></button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <!-- ===== TAB: DASHBOARD ===== -->
+        <div id="tab-dashboard" class="tab-content active">
+            
+            <div class="dash-welcome">
+                <h2 id="greeting">Hola, Ezequiel</h2>
+                <p id="current-date">Cargando fecha...</p>
+            </div>
+
+            <!-- Interactivity: Flip 3D Cards -->
+            <style>
+            .dash-grid {
+                perspective: 1000px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+                margin-bottom: 24px;
+            }
+            .flip-card {
+                background-color: transparent;
+                perspective: 1000px;
+                cursor: pointer;
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+            .flip-card-inner {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                text-align: center;
+                transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+                transform-style: preserve-3d;
+            }
+            .flip-card.flipped .flip-card-inner {
+                transform: rotateY(180deg);
+            }
+            .flip-card-front, .flip-card-back {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                -webkit-backface-visibility: hidden;
+                backface-visibility: hidden;
+                border-radius: 20px;
+                background: var(--surface);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+            }
+            .flip-card-back {
+                transform: rotateY(180deg);
+                background: linear-gradient(135deg, rgba(212, 175, 55, 0.1), rgba(0,0,0,0.5));
+            }
+            .flip-hint {
+                font-size: 10px;
+                color: var(--text-muted);
+                margin-top: 8px;
+                opacity: 0.7;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+            </style>
+
+            <div class="dash-grid">
+                <div class="dash-card flip-card" style="height: 120px;" onclick="this.classList.toggle('flipped')">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="dash-card-title">Margen Mes <span class="dash-trend">+5%</span></div>
+                            <div class="dash-card-value" id="dashMargen">68.5%</div>
+                            <div class="flip-hint">Toca para ver gráfico <span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></span></div>
+                        </div>
+                        <div class="flip-card-back">
+                            <div style="font-size:12px; color:var(--accent); font-weight:600;">Tendencia Alcista</div>
+                            <div style="font-size:10px; color:var(--text-muted); margin-top:4px;">Últimos 30 días</div>
+                            <div id="chartMargenMini"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dash-card flip-card" style="height: 120px;" onclick="this.classList.toggle('flipped')">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="dash-card-title">Gastos Fijos</div>
+                            <div class="dash-card-value" id="dashGastos">Cargando...</div>
+                            <div class="flip-hint">Toca para detalle <span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></span></div>
+                        </div>
+                        <div class="flip-card-back">
+                            <div style="font-size:12px; color:var(--text-1); font-weight:600;">Mayor partida:</div>
+                            <div style="font-size:13px; color:var(--accent); margin-top:8px;">Harinas y Manteca</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dash-card flip-card" style="height: 120px;" onclick="this.classList.toggle('flipped')">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="dash-card-title">
+                                Pendientes
+                                <div style="width:8px;height:8px;background:var(--danger);border-radius:50%;display:inline-block;margin-left:4px;"></div>
+                            </div>
+                            <div class="dash-card-value" id="dashPendientes">-</div>
+                            <div class="flip-hint">Escanear <span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></span></div>
+                        </div>
+                        <div class="flip-card-back" onclick="event.stopPropagation(); activateTab('scanner');" style="background: rgba(239, 68, 68, 0.1);">
+                            <div style="font-size:13px; color:var(--danger); font-weight:600; display:flex; align-items:center;"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></span> Escanear</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="dash-card flip-card" style="height: 120px;" onclick="this.classList.toggle('flipped')">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="dash-card-title">Tickets Hoy</div>
+                            <div class="dash-card-value" id="dashTickets">-</div>
+                            <div class="flip-hint">Ver listado <span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></span></div>
+                        </div>
+                        <div class="flip-card-back" onclick="event.stopPropagation(); activateTab('facturas');">
+                            <div style="font-size:13px; color:var(--text-1); display:flex; align-items:center;">Facturas <span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <style>
+            .accordion {
+                background-color: var(--surface);
+                color: var(--text-1);
+                cursor: pointer;
+                padding: 16px;
+                width: 100%;
+                border: 1px solid rgba(255, 255, 255, 0.05);
+                border-radius: 16px;
+                text-align: left;
+                outline: none;
+                font-size: 16px;
+                font-weight: 600;
+                transition: 0.4s;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+            }
+            .accordion.active, .accordion:hover {
+                background-color: rgba(255,255,255,0.05);
+            }
+            .panel {
+                padding: 0 16px;
+                background-color: transparent;
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.4s ease-out;
+            }
+            .horario-card {
+                background: var(--surface);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-radius: 16px;
+                border: 1px solid var(--border);
+                padding: 16px;
+                margin-top: 16px;
+                margin-bottom: 32px;
+                box-shadow: var(--shadow);
+            }
+            .horario-row {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 0;
+                border-bottom: 1px solid var(--divider);
+            }
+            .horario-row:last-child {
+                border-bottom: none;
+            }
+            </style>
+
+            <h3 class="section-title" style="font-size:20px;margin-bottom:12px;">Alertas Recientes</h3>
+            <button class="accordion" onclick="this.classList.toggle('active'); var panel = this.nextElementSibling; if (panel.style.maxHeight) { panel.style.maxHeight = null; } else { panel.style.maxHeight = panel.scrollHeight + 'px'; }">
+                <span style="display:flex; align-items:center;"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> 1 Alerta de Precios</span>
+                <span style="font-size:12px; color:var(--text-muted); display:flex; align-items:center;">Expandir <span style="display:inline-flex; align-items:center; justify-content:center; margin-left:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="m6 9 6 6 6-6"/></svg></span></span>
+            </button>
+            <div class="panel">
+                <div class="alert-card" style="margin-top:8px;">
+                    <div class="alert-icon"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span></div>
+                    <div class="alert-content">
+                        <p>Subida de precio en "Harina de Trigo Especial"</p>
+                        <span>Detectado hace 2 horas en factura de Harinas Gómez</span>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="section-title" style="font-size:20px;margin-top:24px;margin-bottom:12px; display:flex; align-items:center;"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span> Control de Horario</h3>
+            <div class="horario-card">
+                <div class="horario-row">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:32px;height:32px;border-radius:50%;background:rgba(212,175,55,0.2);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:bold;">LC</div>
+                        <div>
+                            <div style="font-weight:600;font-size:15px;color:var(--text-1);">Laura C.</div>
+                            <div style="font-size:12px;color:var(--text-muted);">Apertura - 06:15</div>
+                        </div>
+                    </div>
+                    <div class="alert-badge badge-success">Puntual</div>
+                </div>
+                <div class="horario-row">
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:32px;height:32px;border-radius:50%;background:rgba(239,68,68,0.2);color:var(--danger);display:flex;align-items:center;justify-content:center;font-weight:bold;">MP</div>
+                        <div>
+                            <div style="font-weight:600;font-size:15px;color:var(--text-1);">Mario P.</div>
+                            <div style="font-size:12px;color:var(--text-muted);">Turno Tarde - 15:00</div>
+                        </div>
+                    </div>
+                    <div class="alert-badge badge-warning">Retraso 15m</div>
+                </div>
+                <div style="text-align:center;margin-top:16px;">
+                    <button class="btn btn-secondary" style="font-size:13px;padding:8px 16px;">Ver Registro Completo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: ESCÁNER ===== -->
+        <div id="tab-scanner" class="tab-content">
+            <div class="section-title">Nuevo Documento</div>
+            <div class="section-subtitle">Fotografía una factura, albarán o gasto</div>
+
+            <div class="scanner-area" id="scannerArea">
+                <div id="scannerPlaceholder">
+                    <div class="scanner-icon-wrap"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span></div>
+                    <div class="scanner-title">Añadir Documento</div>
+                    <div class="scanner-subtitle-text">Arrastra una imagen aquí o<br>elige cómo quieres subirla</div>
+                    <div class="scan-options">
+                        <button class="btn-scan" id="btnCamera"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg></span> Cámara</button>
+                        <button class="btn-scan" id="btnGallery"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg></span> Galería</button>
+                    </div>
+                </div>
+                <img id="previewImg" class="preview-img" style="display:none" alt="Vista previa">
+            </div>
+
+            <!-- Inputs ocultos -->
+            <input type="file" id="fileInputCamera" accept="image/*" capture="environment">
+            <input type="file" id="fileInputGallery" accept="image/*">
+
+            <div class="btn-group">
+                <button class="btn btn-primary" id="sendBtn" disabled><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg></span> Enviar a Procesar</button>
+                <button class="btn btn-secondary" id="clearBtn" style="display:none; flex:0.3;"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span></button>
+            </div>
+
+            <div id="resultArea" style="display:none">
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="result-icon-wrap"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><polyline points="20 6 9 17 4 12"/></svg></span></div>
+                        <div>
+                            <div class="result-title">Documento Procesado</div>
+                            <div class="result-subtitle" id="resultCategoria"></div>
+                        </div>
+                    </div>
+                    <div class="result-grid" id="resultGrid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: MIS FACTURAS ===== -->
+        <div id="tab-facturas" class="tab-content">
+            <div class="section-title">Mis Facturas</div>
+            <div class="section-subtitle">Documentos procesados por la IA</div>
+
+            <div class="stats-row stats-4">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotal">-</div>
+                    <div class="stat-label">TOTAL</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statFacturas">-</div>
+                    <div class="stat-label">FACTURAS</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statAlbaranes">-</div>
+                    <div class="stat-label">ALBARANES</div>
+                    <button class="btn btn-secondary" id="btnManualEntry" style="padding: 6px 14px; font-size: 13px; border-radius: 8px;"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Nuevo Gasto</button>
+                    <button class="refresh-btn" id="refreshBtn"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></span> Actualizar</button>
+                </div>
+            </div>
+
+            <div id="errorBanner" class="error-banner"></div>
+            <div class="total-periodo-banner">
+                <span class="total-periodo-label"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><circle cx="12" cy="12" r="8"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M15 9h-4L9 11l2 2h2l2 2-2 2H9"/></svg></span> Total periodo</span>
+                <span class="total-periodo-value" id="totalPeriodoBanner">0.00 €</span>
+            </div>
+            <div id="facturasList"></div>
+        </div>
+
+        <!-- ===== TAB: AGENDA / CONTACTOS ===== -->
+        <div id="tab-agenda" class="tab-content">
+            <div class="agenda-header-row">
+                <div>
+                    <div class="section-title">Agenda</div>
+                    <div class="section-subtitle">Proveedores y clientes</div>
+                </div>
+                <div class="agenda-count" id="agendaCount">0 contactos</div>
+            </div>
+
+            <!-- Buscador -->
+            <div class="search-box">
+                <span class="search-icon"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span></span>
+                <input class="search-input" id="agendaSearch" type="text" placeholder="Nombre, teléfono o email...">
+            </div>
+
+            <!-- Sub-tabs -->
+            <div class="agenda-sub-tabs">
+                <button class="agenda-sub-btn active" data-agenda="all">Todos</button>
+                <button class="agenda-sub-btn" data-agenda="proveedor"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M14 14.76V3.5a1.5 1.5 0 0 0-3 0v11.26l-3.5-3.5a1.5 1.5 0 0 0-2.12 2.12l6 6a1.5 1.5 0 0 0 2.12 0l6-6a1.5 1.5 0 0 0-2.12-2.12z"/></svg></span> Proveedores</button>
+                <button class="agenda-sub-btn" data-agenda="cliente"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></span> Clientes</button>
+            </div>
+
+            <!-- Lista -->
+            <div id="contactList"></div>
+        </div>
+
+        <!-- ===== TAB: MÁRGENES ===== -->
+        <div id="tab-margenes" class="tab-content">
+            <div class="section-title">Márgenes y Analítica</div>
+            <div class="section-subtitle">Rentabilidad y control de gastos</div>
+
+            <!-- Hero margen -->
+            <div class="margin-hero">
+                <div class="margin-label">Margen bruto estimado</div>
+                <div class="margin-value neutral" id="margenValor">—</div>
+                <div class="margin-sub" id="margenSub">Cargando datos...</div>
+                <div class="margin-bar-wrap" style="margin-top:16px;">
+                    <div class="margin-bar" id="margenBar" style="width:0%;"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);">
+                    <span><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" stroke="#EF4444"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></span> Gastos</span><span>🟢 Ingresos estimados</span>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value" id="mGastos" style="font-size:20px">—</div>
+                    <div class="stat-label">Gastos mes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="mIngresos" style="font-size:20px">—</div>
+                    <div class="stat-label">Ingresos est.</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="mFacturas" style="font-size:20px">—</div>
+                    <div class="stat-label">Docs mes</div>
+                </div>
+            </div>
+
+            <!-- Analytics: Comparativa Mensual & Desglose -->
+            <div style="margin-top: 24px; display: grid; grid-template-columns: 1fr; gap: 16px;">
+                
+                <!-- Comparativa Mensual -->
+                <div class="glass-card" style="padding: 16px;">
+                    <div class="config-section-title" style="margin-bottom: 8px;"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span> Comparativa Mes a Mes</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-size: 13px; color: var(--text-2);">Gasto Mes Anterior</div>
+                            <div id="mGastosPrev" style="font-size: 18px; font-weight: 700;">—</div>
+                        </div>
+                        <div id="mComparativaBadge" class="alert-badge badge-neutral" style="font-size: 13px;">—</div>
+                    </div>
+                </div>
+
+                <!-- Desglose Categorías -->
+                <div class="glass-card" style="padding: 16px;">
+                    <div class="config-section-title" style="margin-bottom: 12px;"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Gasto por Tipo de Documento</div>
+                    <div id="catBreakdownList">
+                        <div style="text-align:center; font-size:13px; color:var(--text-muted);">Cargando desglose...</div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Config ingresos -->
+            <div class="config-section" style="margin-top: 24px;">
+                <div class="config-section-title"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Configurar venta semanal</div>
+                <div class="config-field">
+                    <label class="config-label">Venta media semanal (€)</label>
+                    <input class="config-input" id="ventaSemanalInput" type="number" placeholder="Ej: 4500" min="0" step="100">
+                    <div class="config-help">Introduce tu venta media semanal aproximada. Usaremos este dato para estimar tu margen hasta integrar las VENTAS REALES mediante el Agente IA de WhatsApp.</div>
+                </div>
+                <button class="btn btn-primary" id="saveVentaBtn" style="margin-top:4px"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></span> Guardar y recalcular</button>
+            </div>
+
+            <p class="margin-config-hint" style="margin-bottom: 40px;"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span> Estimación basada en gastos reales de Airtable. La Inteligencia Artificial calculará los ingresos exactos en la Fase 7.</p>
+        </div>
+
+        <!-- ===== TAB: ALERTAS ===== -->
+        <div id="tab-hojaruta" class="tab-content">
+            <div class="section-title">Hoja de Ruta</div>
+            <div class="section-subtitle">Alertas y seguimiento de tu negocio</div>
+
+            <!-- Lista de alertas (se renderiza con JS) -->
+            <div id="alertasList">
+                <!-- Alerta de ejemplo hasta integrar Airtable -->
+                <div class="alert-card warning">
+                    <div class="alert-icon"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></span></div>
+                    <div class="alert-body">
+                        <div class="alert-title">Sube el precio del trigo</div>
+                        <div class="alert-desc">La última factura de harina reflectó 1.35€/kg. El mes pasado pagabas 0.98€/kg. Revisa con tu proveedor.</div>
+                        <span class="alert-badge badge-warning">↑ +37% vs mes anterior</span>
+                    </div>
+                    <div class="alert-time">Hoy</div>
+                </div>
+
+                <div class="alert-card danger">
+                    <div class="alert-icon"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span></div>
+                    <div class="alert-body">
+                        <div class="alert-title">3 facturas sin revisar</div>
+                        <div class="alert-desc">Tienes facturas escaneadas esta semana que aún no han sido verificadas con tu gestor contable.</div>
+                        <span class="alert-badge badge-danger">Revisar pendientes</span>
+                    </div>
+                    <div class="alert-time">Esta semana</div>
+                </div>
+
+                <div class="alert-card info">
+                    <div class="alert-icon"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.9 1.2 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/></svg></span></div>
+                    <div class="alert-body">
+                        <div class="alert-title">Automatización activa</div>
+                        <div class="alert-desc">
+                            Cuando n8n detecte un cambio de precio ≥10% en un proveedor conocido de tu Agenda,
+                            aparecerá aquí como alerta roja automáticamente.
+                        </div>
+                        <span class="alert-badge badge-ok"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><polyline points="20 6 9 17 4 12"/></svg></span> Sistema listo</span>
+                    </div>
+                    <div class="alert-time"></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Config Técnica (desde header <span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span>) -->
+    <div class="config-modal-overlay" id="configModal">
+        <div class="config-modal-box">
+            <h2 class="config-modal-title"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg></span> Ajustes Técnicos</h2>
+            <p class="config-modal-desc" style="margin-bottom:20px;color:var(--text-muted);font-size:13px;">Configuración de integraciones — solo para administrador</p>
+            
+            <div class="config-field">
+                <label class="config-label"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg></span> Webhook URL (n8n)</label>
+                <input class="config-input" id="cfgWebhookUrl" type="url" placeholder="https://tu-n8n.com/webhook/..." required>
+            </div>
+            
+            <div class="config-field">
+                <label class="config-label"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4"/><path d="m21 2-9.6 9.6"/><circle cx="7.5" cy="15.5" r="5.5"/></svg></span> Airtable Personal Access Token</label>
+                <input class="config-input" id="cfgAirtableToken" type="password" placeholder="pat0XXXXX.XXXXX..." required>
+                <div class="config-help">Créalo en <a href="https://airtable.com/create/tokens" target="_blank">airtable.com/create/tokens</a></div>
+            </div>
+
+            <div class="config-actions" style="display:flex;gap:12px;margin-top:10px;">
+                <button class="btn btn-secondary" id="closeConfigModal" style="flex:1;">Cancelar</button>
+                <button class="btn btn-primary" id="saveConfigBtn" style="flex:2;"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></span> Guardar</button>
+            </div>
+
+            <div class="version-info" style="margin-top:24px;background:var(--surface-2);padding:12px;border-radius:12px;font-size:11px;color:var(--text-muted);border:1px solid var(--border);">
+                <strong>Estado:</strong> WebApp <span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><polyline points="20 6 9 17 4 12"/></svg></span> | n8n Self-hosted <span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><polyline points="20 6 9 17 4 12"/></svg></span> | Airtable Free <span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><polyline points="20 6 9 17 4 12"/></svg></span> | IA ~0.02€/imagen<br>
+                <strong>Versión:</strong> Dulce Jaleo 2.1
+            </div>
+        </div>
+    </div>
+
+    <!-- FAB Añadir Contacto -->
+    <button class="fab-add" id="fabAddContact" title="Añadir contacto"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></button>
+
+    <!-- Modal Añadir Contacto -->
+    <div class="modal-overlay" id="contactModal">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span> Nuevo Contacto</div>
+            <div class="modal-type-tabs">
+                <button class="modal-type-btn active" data-ctype="proveedor"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M14 14.76V3.5a1.5 1.5 0 0 0-3 0v11.26l-3.5-3.5a1.5 1.5 0 0 0-2.12 2.12l6 6a1.5 1.5 0 0 0 2.12 0l6-6a1.5 1.5 0 0 0-2.12-2.12z"/></svg></span> Proveedor</button>
+                <button class="modal-type-btn" data-ctype="cliente"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></span> Cliente</button>
+            </div>
+            <input class="modal-input" id="cNombre" type="text" placeholder="Nombre o empresa *">
+            <input class="modal-input" id="cTelefono" type="tel" placeholder="Teléfono">
+            <input class="modal-input" id="cEmail" type="email" placeholder="Email">
+            <input class="modal-input" id="cCategoria" type="text" placeholder="Categoría (ej: Harina, Café, Reparto...)">
+            <div style="display:flex;gap:10px;margin-top:6px;">
+                <button class="btn btn-secondary" id="closeModal" style="width:auto;padding:12px 24px;border-radius:10px;">Cancelar</button>
+                <button class="btn btn-primary" id="saveContact" style="border-radius:10px;">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Entrada Manual -->
+    <div class="modal-overlay" id="manualEntryModal">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></span> Nuevo Documento Manual</div>
+            <div class="modal-type-tabs" id="manualTypeTabs" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;">
+                <button class="modal-type-btn active" data-ctype="FACTURA" style="font-size:12px; padding:8px 4px;"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg></span> Factura</button>
+                <button class="modal-type-btn" data-ctype="ALBARAN" style="font-size:12px; padding:8px 4px;"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></span> Albarán</button>
+                <button class="modal-type-btn" data-ctype="GASTOS_VARIOS" style="font-size:12px; padding:8px 4px;"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><circle cx="12" cy="12" r="8"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M15 9h-4L9 11l2 2h2l2 2-2 2H9"/></svg></span> Gasto</button>
+            </div>
+            
+            <input class="modal-input" id="mProveedor" type="text" placeholder="Entidad / Proveedor *">
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <input class="modal-input" id="mTotal" type="number" step="0.01" placeholder="Total (€) *">
+                <input class="modal-input" id="mFecha" type="date">
+            </div>
+            
+            <input class="modal-input" id="mDetalles" type="text" placeholder="Concepto (ej: Bizum materiales)">
+
+            <div style="display:flex;gap:10px;margin-top:6px;">
+                <button class="btn btn-secondary" id="closeManualModal" style="width:auto;padding:12px 24px;border-radius:10px;">Cancelar</button>
+                <button class="btn btn-primary" id="saveManualBtn" style="border-radius:10px;"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg></span> Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROCESSING OVERLAY -->
+    <div class="processing-overlay hidden" id="processingOverlay">
+        <div class="processing-bread"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" stroke="currentColor"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/></svg></span></div>
+        <div class="spinner-track"></div>
+        <div class="processing-text">Procesando documento...</div>
+        <div class="processing-sub">La IA está analizando tu factura</div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav">
+        <div class="bottom-nav-inner">
+            <!-- 1. Inicio (izquierda, icono grande) -->
+            <button class="nav-btn nav-btn-home active" data-tab="dashboard">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>
+                <span class="nav-label">Inicio</span>
+            </button>
+
+            <!-- 2. Facturas -->
+            <button class="nav-btn" data-tab="facturas">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+                <span class="nav-label">Facturas</span>
+            </button>
+
+            <!-- 3. Márgenes -->
+            <button class="nav-btn" data-tab="margenes">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></span>
+                <span class="nav-label">Márgenes</span>
+            </button>
+
+            <!-- 4. Agenda -->
+            <button class="nav-btn" data-tab="agenda">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+                <span class="nav-label">Agenda</span>
+            </button>
+
+            <!-- 5. Hoja de Ruta -->
+            <button class="nav-btn" data-tab="hojaruta">
+                <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><circle cx="6" cy="19" r="3"/><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"/><circle cx="18" cy="5" r="3"/></svg></span>
+                <span class="nav-label">Ruta</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Modal Nueva Tarea -->
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2>Nueva Tarea</h2>
+                <button class="close-modal" id="closeTaskModal"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span></button>
+            </div>
+            <div class="input-group">
+                <label>Título de la tarea</label>
+                <input type="text" id="tTitulo" placeholder="Ej. Llamar al repartidor" style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255, 255, 255, 0.5); font-size: 14px; margin-top: 6px;">
+            </div>
+            <div class="input-group" style="margin-top: 16px;">
+                <label>Descripción (opcional)</label>
+                <textarea id="tDescripcion" placeholder="Detalles de la tarea..." style="width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(255, 255, 255, 0.5); font-size: 14px; margin-top: 6px; height:80px; resize:vertical; font-family:inherit;"></textarea>
+            </div>
+            <button class="save-btn" id="saveTaskBtn" style="width:100%; margin-top:24px;">Guardar Tarea</button>
+        </div>
+    </div>
+
+    <!-- Modal Previsualización de Factura -->
+    <div class="factura-modal" id="facturaModal">
+        <div class="factura-modal-content">
+            <div class="factura-modal-header">
+                <div class="factura-modal-title" id="fmTitle">Detalle del Documento</div>
+                <div class="factura-modal-close" onclick="closeFacturaModal()"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:4px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide" ><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span></div>
+            </div>
+            <div class="factura-modal-body">
+                <img id="fmImage" class="factura-modal-img" src="" alt="Documento escaneado">
+                
+                <div class="fm-total" id="fmTotal" style="margin-bottom: 24px; text-align: center;">0.00 €</div>
+
+                <div class="factura-modal-grid">
+                    <div>
+                        <div class="fm-field-label">Proveedor</div>
+                        <div class="fm-field-value" id="fmProveedor">-</div>
+                    </div>
+                    <div>
+                        <div class="fm-field-label">Fecha</div>
+                        <div class="fm-field-value" id="fmFecha">-</div>
+                    </div>
+                    <div>
+                        <div class="fm-field-label">Número de Documento</div>
+                        <div class="fm-field-value" id="fmDoc">-</div>
+                    </div>
+                    <div>
+                        <div class="fm-field-label">CIF / NIF</div>
+                        <div class="fm-field-value" id="fmCif">-</div>
+                    </div>
+                    <div>
+                        <div class="fm-field-label">Base Imponible</div>
+                        <div class="fm-field-value" id="fmBase">-</div>
+                    </div>
+                    <div>
+                        <div class="fm-field-label">IVA</div>
+                        <div class="fm-field-value" id="fmIva">-</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px;">
+                    <div class="fm-field-label">Detalles / Conceptos</div>
+                    <div class="fm-field-value" id="fmDetalles" style="font-size: 13px; color: var(--text-2); line-height: 1.5; white-space: pre-wrap;">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== TEMA OSCURO / CLARO =====
+        const THEME_KEY = 'dulce_jaleo_theme';
+        const htmlEl = document.documentElement;
+
+        function applyTheme(theme) {
+            htmlEl.setAttribute('data-theme', theme);
+            const btn = document.getElementById('themeToggle');
+            if (btn) btn.innerHTML = theme === 'dark' ? '🌙' : '☀️';
+        }
+
+        function initTheme() {
+            applyTheme('dark');
+        }
+
+        function toggleTheme() {
+            const current = htmlEl.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            applyTheme(next);
+            localStorage.setItem(THEME_KEY, next);
+        }
+
+        initTheme();
+
+        // ===== CONFIG =====
+        const CONFIG_KEY = 'dulce_jaleo_config';
+        const AIRTABLE_BASE = 'app7VJr4iHt5v1r5c';
+        const AIRTABLE_TABLES = {
+            FACTURAS: 'tblLC7oMOUQtRWkn7',
+            ALBARANES: 'tblX9EQUmwItNJCZI',
+            GASTOS_VARIOS: 'tblHzVIPEde7zWnUv'
+        };
+
+        function loadConfig() {
+            const saved = localStorage.getItem(CONFIG_KEY);
+            return saved ? JSON.parse(saved) : {
+                webhookUrl: 'https://dulce-y-jaleo-n8n.xm1sa3.easypanel.host/webhook/lovable-webhook',
+                airtableToken: ''
+            };
+        }
+
+        function saveConfig() {
+            const cfg = {
+                webhookUrl: document.getElementById('cfgWebhookUrl').value.trim(),
+                airtableToken: document.getElementById('cfgAirtableToken').value.trim()
+            };
+            localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+            config = cfg;
+            document.getElementById('configModal').classList.remove('open');
+            alert('Configuración guardada');
+        }
+
+        let config = loadConfig();
+
+        // ===== ESTADO GLOBAL =====
+        let globalStats = {
+            allRecords: [],
+            mesActual: '',
+            countTotal: 0,
+            sumTotal: 0,
+            totalGastosMes: 0,
+            totalGastosMesAnterior: 0,
+            breakdownMes: {},
+            loaded: false
+        };
+
+        async function fetchGlobalData() {
+            if (!config.airtableToken) return false;
+            const headers = { 'Authorization': 'Bearer ' + config.airtableToken };
+            const now = new Date();
+            globalStats.mesActual = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+            try {
+                const [fRes, aRes, gRes] = await Promise.all([
+                    fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLES.FACTURAS}?sort[0][field]=Fecha&sort[0][direction]=desc`, { headers }),
+                    fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLES.ALBARANES}?sort[0][field]=Fecha&sort[0][direction]=desc`, { headers }),
+                    fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLES.GASTOS_VARIOS}?sort[0][field]=Fecha&sort[0][direction]=desc`, { headers })
+                ]);
+
+                const [fD, aD, gD] = await Promise.all([fRes.json(), aRes.json(), gRes.json()]);
+                
+                globalStats.allRecords = [];
+                if (fD.records) globalStats.allRecords.push(...fD.records.map(r => normalizeRecord(r, 'FACTURA')));
+                if (aD.records) globalStats.allRecords.push(...aD.records.map(r => normalizeRecord(r, 'ALBARAN')));
+                if (gD.records) globalStats.allRecords.push(...gD.records.map(r => normalizeRecord(r, 'GASTO')));
+
+                globalStats.allRecords.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+                calculateGlobalStats();
+                globalStats.loaded = true;
+                return true;
+            } catch (e) {
+                console.error('Error fetching Airtable:', e);
+                return false;
+            }
+        }
+
+        function normalizeRecord(item, cat) {
+            const f = item.fields || item;
+            return {
+                proveedor: f['PROVEDOR/ TITULO'] || f.proveedor || 'Desconocido',
+                fecha: f.Fecha || f.fecha || '',
+                total: parseFloat(f.TOTAL || f.total || 0),
+                categoria: cat,
+                numero_doc: f['NUMERO DE DOC'] || f.numero_doc || '',
+                iva: parseFloat(f.IVA || f.iva || 0),
+                base: parseFloat(f['BASE IMPONIBLE'] || f.base_imponible || 0),
+                detalles: f['DETALLES DOC'] || f.detalles || ''
+            };
+        }
+
+        function calculateGlobalStats() {
+            const all = globalStats.allRecords;
+            const mes = globalStats.mesActual;
+            globalStats.countTotal = all.length;
+            globalStats.sumTotal = all.reduce((s, f) => s + (f.total || 0), 0);
+            
+            const delMes = all.filter(f => (f.fecha || '').startsWith(mes));
+            globalStats.totalGastosMes = delMes.reduce((s, f) => s + (f.total || 0), 0);
+            
+            globalStats.breakdownMes = {};
+            delMes.forEach(f => {
+                const t = f.categoria || 'OTROS';
+                globalStats.breakdownMes[t] = (globalStats.breakdownMes[t] || 0) + f.total;
+            });
+        }
+
+        // ===== NAVIGATION =====
+        function activateTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            const target = document.getElementById('tab-' + tabId);
+            if (target) target.classList.add('active');
+            
+            const btn = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+            if (btn) btn.classList.add('active');
+
+            if (tabId === 'facturas') loadFacturas();
+            if (tabId === 'margenes') loadMargenes();
+            if (tabId === 'agenda') renderContacts();
+            if (tabId === 'hojaruta') renderHojaRuta();
+
+            const fab = document.getElementById('fabAddContact');
+            if (fab) {
+                if (tabId === 'agenda') fab.classList.add('visible');
+                else fab.classList.remove('visible');
+            }
+        }
+
+        // ===== SCANNER =====
+        async function sendImage() {
+            const fileInput = document.getElementById('fileInputGallery');
+            if (!fileInput.files.length) return;
+            
+            const overlay = document.getElementById('processingOverlay');
+            overlay.classList.remove('hidden');
+            
+            const fd = new FormData();
+            fd.append('data', fileInput.files[0]);
+            
+            try {
+                const res = await fetch(config.webhookUrl, { method: 'POST', body: fd });
+                if (res.ok) {
+                    alert('Documento enviado con éxito');
+                    loadFacturas();
+                } else {
+                    alert('Error enviando al servidor');
+                }
+            } catch (e) {
+                alert('Error de red');
+            } finally {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        // ===== MODULES =====
+        let currentFacturaFilter = 'all';
+
+        async function loadFacturas(filter) {
+            if (filter !== undefined) currentFacturaFilter = filter;
+            const list = document.getElementById('facturasList');
+            if (!globalStats.loaded) {
+                list.innerHTML = '<div class="empty-state">Cargando...</div>';
+                await fetchGlobalData();
+            }
+            
+            let records = globalStats.allRecords;
+            if (currentFacturaFilter !== 'all') {
+                records = records.filter(f => f.categoria === currentFacturaFilter);
+            }
+
+            if (!records.length) {
+                list.innerHTML = '<div class="empty-state">No hay documentos en esta categoría</div>';
+            } else {
+                list.innerHTML = records.map(f => `
+                    <div class="factura-card">
+                        <div style="display:flex; justify-content:space-between; font-weight:600;">
+                            <span>${f.proveedor}</span>
+                            <span>${f.total.toFixed(2)}€</span>
+                        </div>
+                        <div style="font-size:12px; color:var(--text-2); margin-top:4px;">
+                            ${f.fecha} · ${f.categoria}
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // Update stats
+            const all = globalStats.allRecords;
+            document.getElementById('statTotal').textContent = all.length;
+            document.getElementById('statFacturas').textContent = all.filter(f => f.categoria === 'FACTURA').length;
+            document.getElementById('statAlbaranes').textContent = all.filter(f => f.categoria === 'ALBARAN').length;
+            document.getElementById('statGastos').textContent = all.filter(f => f.categoria === 'GASTO').length;
+
+            // Update total periodo
+            const totalPeriodo = records.reduce((s, f) => s + f.total, 0);
+            const tpEl = document.getElementById('totalPeriodoBanner');
+            if (tpEl) tpEl.textContent = totalPeriodo.toFixed(2) + ' €';
+        }
+
+        // ===== CONTACTS =====
+        const CONTACTS_KEY = 'dulce_jaleo_contactos';
+        let currentAgendaFilter = 'all';
+        let currentAgendaSearch = '';
+        
+        function getContacts() { return JSON.parse(localStorage.getItem(CONTACTS_KEY) || '[]'); }
+        function saveContacts(c) { localStorage.setItem(CONTACTS_KEY, JSON.stringify(c)); }
+        
+        function renderContacts(filter, search) {
+            if (filter !== undefined) currentAgendaFilter = filter;
+            if (search !== undefined) currentAgendaSearch = search;
+            
+            const list = document.getElementById('contactList');
+            let contacts = getContacts();
+            
+            // Filter by type
+            if (currentAgendaFilter !== 'all') {
+                contacts = contacts.filter(c => c.tipo === currentAgendaFilter);
+            }
+            // Filter by search
+            if (currentAgendaSearch) {
+                const q = currentAgendaSearch.toLowerCase();
+                contacts = contacts.filter(c => 
+                    (c.nombre || '').toLowerCase().includes(q) ||
+                    (c.telefono || '').toLowerCase().includes(q) ||
+                    (c.email || '').toLowerCase().includes(q)
+                );
+            }
+            
+            if (!contacts.length) {
+                list.innerHTML = '<div class="empty-state">No hay contactos</div>';
+            } else {
+                list.innerHTML = contacts.map((c, i) => {
+                    const realIndex = getContacts().findIndex(orig => orig.nombre === c.nombre && orig.tipo === c.tipo);
+                    const initials = (c.nombre || 'N').substring(0, 2).toUpperCase();
+                    const isProveedor = c.tipo === 'proveedor';
+                    const badgeColor = isProveedor ? 'rgba(59,130,246,0.15)' : 'rgba(16,185,129,0.15)';
+                    const badgeText = isProveedor ? 'rgba(59,130,246,1)' : 'rgba(16,185,129,1)';
+                    return `
+                    <div class="contact-card" style="display:flex; justify-content:space-between; align-items:center; padding:14px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-sm); margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:12px;">
+                            <div style="width:38px;height:38px;border-radius:50%;background:var(--accent-dim);color:var(--accent);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;">${initials}</div>
+                            <div>
+                                <div style="font-weight:600; color:var(--text);">${c.nombre}</div>
+                                <div style="display:flex; gap:6px; align-items:center; margin-top:2px;">
+                                    <span style="font-size:11px; padding:2px 8px; border-radius:4px; background:${badgeColor}; color:${badgeText}; font-weight:600;">${c.tipo}</span>
+                                    ${c.telefono ? '<span style="font-size:11px; color:var(--text-muted);">' + c.telefono + '</span>' : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="deleteContact(${realIndex})" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:8px;" title="Eliminar">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                        </button>
+                    </div>`;
+                }).join('');
+            }
+            
+            const allContacts = getContacts();
+            document.getElementById('agendaCount').textContent = allContacts.length + ' contactos';
+        }
+
+        function deleteContact(i) {
+            if (i < 0) return;
+            const c = getContacts();
+            c.splice(i, 1);
+            saveContacts(c);
+            renderContacts();
+        }
+
+        // ===== MARGENES =====
+        const VENTA_KEY = 'dulce_jaleo_venta_semanal';
+        async function loadMargenes() {
+            if (!globalStats.loaded) await fetchGlobalData();
+            const v = parseFloat(localStorage.getItem(VENTA_KEY) || 0);
+            const g = globalStats.totalGastosMes;
+            const i = v * 4.33;
+            const m = i > 0 ? ((i - g) / i * 100) : 0;
+            
+            document.getElementById('margenValor').textContent = m.toFixed(1) + '%';
+            document.getElementById('mGastos').textContent = g.toFixed(0) + '€';
+            document.getElementById('mIngresos').textContent = i.toFixed(0) + '€';
+            
+            const dashG = document.getElementById('dashGastos');
+            if (dashG) dashG.textContent = g.toFixed(0) + ' €';
+        }
+
+        // ===== HOJA DE RUTA =====
+        const TASKS_KEY = 'dulce_jaleo_tareas';
+        function getTasks() { return JSON.parse(localStorage.getItem(TASKS_KEY) || '[]'); }
+        function saveTasks(t) { localStorage.setItem(TASKS_KEY, JSON.stringify(t)); }
+
+        function renderHojaRuta() {
+            const list = document.getElementById('alertasList');
+            const tasks = getTasks();
+            
+            let html = '';
+            
+            // Manual tasks section
+            html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">';
+            html += '<div style="font-size:15px; font-weight:700; color:var(--text);">Mis Tareas</div>';
+            html += '<button onclick="promptNewTask()" style="background:var(--accent); color:#fff; border:none; border-radius:8px; padding:6px 14px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:4px;">';
+            html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Nueva Tarea</button>';
+            html += '</div>';
+
+            if (tasks.length) {
+                tasks.forEach((t, i) => {
+                    const checked = t.done ? 'checked' : '';
+                    const lineThrough = t.done ? 'text-decoration:line-through; opacity:0.5;' : '';
+                    html += `
+                    <div class="alert-card" style="display:flex; align-items:center; gap:12px; padding:14px; margin-bottom:8px;">
+                        <input type="checkbox" ${checked} onchange="toggleTask(${i})" style="width:20px; height:20px; accent-color:var(--accent); cursor:pointer;">
+                        <div style="flex:1; ${lineThrough}">
+                            <div style="font-weight:600; font-size:14px; color:var(--text);">${t.titulo}</div>
+                            ${t.descripcion ? '<div style="font-size:12px; color:var(--text-muted); margin-top:2px;">' + t.descripcion + '</div>' : ''}
+                        </div>
+                        <button onclick="deleteTask(${i})" style="background:none; border:none; color:var(--text-muted); cursor:pointer; padding:4px;">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>`;
+                });
+            } else {
+                html += '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:13px;">No hay tareas pendientes. ¡Añade una!</div>';
+            }
+
+            list.innerHTML = html;
+        }
+
+        function promptNewTask() {
+            document.getElementById('taskModal').classList.add('open');
+            document.getElementById('tTitulo').focus();
+        }
+
+        function toggleTask(i) {
+            const tasks = getTasks();
+            tasks[i].done = !tasks[i].done;
+            saveTasks(tasks);
+            renderHojaRuta();
+        }
+
+        function deleteTask(i) {
+            const tasks = getTasks();
+            tasks.splice(i, 1);
+            saveTasks(tasks);
+            renderHojaRuta();
+        }
+
+        // ===== INIT =====
+        document.addEventListener('DOMContentLoaded', () => {
+            // Theme toggle
+            const themeBtn = document.getElementById('themeToggle');
+            if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+
+            // Nav buttons
+            document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => {
+                btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+            });
+
+            // Config
+            document.getElementById('gearBtn').addEventListener('click', () => {
+                const cfg = loadConfig();
+                document.getElementById('cfgWebhookUrl').value = cfg.webhookUrl;
+                document.getElementById('cfgAirtableToken').value = cfg.airtableToken;
+                document.getElementById('configModal').classList.add('open');
+            });
+            document.getElementById('closeConfigModal').addEventListener('click', () => document.getElementById('configModal').classList.remove('open'));
+            document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
+
+            // Manual entries
+            document.getElementById('btnManualEntry').addEventListener('click', () => document.getElementById('manualEntryModal').classList.add('open'));
+            document.getElementById('closeManualModal').addEventListener('click', () => document.getElementById('manualEntryModal').classList.remove('open'));
+            
+            // Manual type tabs
+            let manualDocType = 'FACTURA';
+            document.querySelectorAll('#manualTypeTabs .modal-type-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#manualTypeTabs .modal-type-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    manualDocType = btn.dataset.ctype;
+                });
+            });
+
+            document.getElementById('saveManualBtn').addEventListener('click', async () => {
+                const prov = document.getElementById('mProveedor').value.trim();
+                const total = parseFloat(document.getElementById('mTotal').value);
+                const fecha = document.getElementById('mFecha').value || new Date().toISOString().split('T')[0];
+                const detalles = document.getElementById('mDetalles').value.trim();
+                if (!prov || isNaN(total)) return alert('Rellena Proveedor y Total');
+                
+                if (!config.airtableToken) {
+                    alert('Configura tu token de Airtable en Ajustes primero.');
+                    return;
+                }
+
+                let tableId = AIRTABLE_TABLES.FACTURAS;
+                if (manualDocType === 'ALBARAN') tableId = AIRTABLE_TABLES.ALBARANES;
+                else if (manualDocType === 'GASTOS_VARIOS') tableId = AIRTABLE_TABLES.GASTOS_VARIOS;
+
+                const btn = document.getElementById('saveManualBtn');
+                btn.disabled = true;
+                btn.textContent = 'Guardando...';
+
+                try {
+                    const res = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${tableId}`, {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + config.airtableToken, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ records: [{ fields: { "PROVEDOR/ TITULO": prov, "TOTAL": total, "Fecha": fecha, "DETALLES DOC": detalles || "Manual" } }] })
+                    });
+                    if (!res.ok) throw new Error('Error ' + res.status);
+                    btn.textContent = '¡Guardado!';
+                    setTimeout(() => {
+                        document.getElementById('manualEntryModal').classList.remove('open');
+                        btn.disabled = false;
+                        btn.textContent = 'Guardar';
+                        document.getElementById('mProveedor').value = '';
+                        document.getElementById('mTotal').value = '';
+                        document.getElementById('mDetalles').value = '';
+                        loadFacturas();
+                    }, 800);
+                } catch (e) {
+                    alert('Error: ' + e.message);
+                    btn.disabled = false;
+                    btn.textContent = 'Guardar';
+                }
+            });
+
+            // Facturas filter buttons
+            document.querySelectorAll('#filterContainer .sub-tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#filterContainer .sub-tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    loadFacturas(btn.dataset.filter);
+                });
+            });
+
+            // Refresh button
+            const refreshBtn = document.getElementById('refreshBtn');
+            if (refreshBtn) refreshBtn.addEventListener('click', () => {
+                globalStats.loaded = false;
+                loadFacturas();
+            });
+
+            // Scanner
+            document.getElementById('btnGallery').addEventListener('click', () => document.getElementById('fileInputGallery').click());
+            document.getElementById('fileInputGallery').addEventListener('change', e => {
+                if (e.target.files.length) {
+                    const reader = new FileReader();
+                    reader.onload = ev => {
+                        document.getElementById('previewImg').src = ev.target.result;
+                        document.getElementById('previewImg').style.display = 'block';
+                        document.getElementById('scannerPlaceholder').style.display = 'none';
+                        document.getElementById('sendBtn').disabled = false;
+                    };
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+            document.getElementById('sendBtn').addEventListener('click', sendImage);
+
+            // Agenda FAB + contact type
+            let contactType = 'proveedor';
+            document.getElementById('fabAddContact').addEventListener('click', () => document.getElementById('contactModal').classList.add('open'));
+            document.getElementById('closeModal').addEventListener('click', () => document.getElementById('contactModal').classList.remove('open'));
+
+            // Contact type tabs
+            document.querySelectorAll('#contactModal .modal-type-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('#contactModal .modal-type-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    contactType = btn.dataset.ctype;
+                });
+            });
+
+            document.getElementById('saveContact').addEventListener('click', () => {
+                const name = document.getElementById('cNombre').value.trim();
+                if (!name) return;
+                const c = getContacts();
+                c.push({
+                    nombre: name,
+                    tipo: contactType,
+                    telefono: document.getElementById('cTelefono').value.trim(),
+                    email: document.getElementById('cEmail').value.trim(),
+                    categoria: document.getElementById('cCategoria').value.trim()
+                });
+                saveContacts(c);
+                document.getElementById('contactModal').classList.remove('open');
+                document.getElementById('cNombre').value = '';
+                document.getElementById('cTelefono').value = '';
+                document.getElementById('cEmail').value = '';
+                document.getElementById('cCategoria').value = '';
+                renderContacts();
+            });
+
+            // Agenda filter buttons
+            document.querySelectorAll('.agenda-sub-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.agenda-sub-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderContacts(btn.dataset.agenda);
+                });
+            });
+
+            // Agenda search
+            const agendaSearchInput = document.getElementById('agendaSearch');
+            if (agendaSearchInput) {
+                agendaSearchInput.addEventListener('input', (e) => {
+                    renderContacts(undefined, e.target.value);
+                });
+            }
+
+            // Margenes
+            document.getElementById('saveVentaBtn').addEventListener('click', () => {
+                const v = document.getElementById('ventaSemanalInput').value;
+                localStorage.setItem(VENTA_KEY, v);
+                loadMargenes();
+            });
+
+            // Tareas UI
+            document.getElementById('closeTaskModal').addEventListener('click', () => {
+                document.getElementById('taskModal').classList.remove('open');
+            });
+
+            document.getElementById('saveTaskBtn').addEventListener('click', () => {
+                const titulo = document.getElementById('tTitulo').value.trim();
+                const descripcion = document.getElementById('tDescripcion').value.trim();
+                if (!titulo) return alert('El título es obligatorio');
+                
+                const tasks = getTasks();
+                tasks.push({ titulo, descripcion, done: false, fecha: new Date().toISOString().split('T')[0] });
+                saveTasks(tasks);
+                renderHojaRuta();
+                
+                document.getElementById('taskModal').classList.remove('open');
+                document.getElementById('tTitulo').value = '';
+                document.getElementById('tDescripcion').value = '';
+            });
+
+            // Dashboard Init
+            const dateOptions = { weekday: 'long', month: 'long', day: 'numeric' };
+            const dateEl = document.getElementById('current-date');
+            if (dateEl) dateEl.textContent = new Date().toLocaleDateString('es-ES', dateOptions);
+
+            activateTab('dashboard');
+            loadMargenes();
+
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                if (splash) splash.classList.add('hide');
+            }, 800);
+        });
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Blueprint - Dulce Jaleo Master Manual</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --glass: rgba(255, 255, 255, 0.05);
+            --gold: #D4AF37;
+            --rose: #f59e0b;
+            --text: #ffffff;
+            --text-muted: #888888;
+            --accent: #E5B23E;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 8px;
+            background: linear-gradient(45deg, var(--gold), #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 { color: var(--gold); border-bottom: 1px solid rgba(212, 175, 55, 0.2); padding-bottom: 10px; margin-top: 0; }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 18px;
+            margin-bottom: 40px;
+        }
+
+        .blueprint-img {
+            width: 100%;
+            border-radius: 16px;
+            border: 1px solid var(--gold);
+            margin-bottom: 40px;
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.2);
+            background: #111;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .feature-item {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            border-left: 4px solid var(--gold);
+        }
+
+        .rule-card {
+            background: rgba(255, 7, 58, 0.05);
+            border: 1px solid rgba(255, 7, 58, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .color-circle {
+            width: 40px; height: 40px; border-radius: 50%; display: inline-block; vertical-align: middle; margin-right: 10px; border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .zone-box {
+            border: 2px dashed #444; padding: 15px; margin-bottom: 10px; text-align: center; border-radius: 12px; transition: 0.3s;
+        }
+        .zone-box:hover { border-color: var(--gold); background: rgba(212, 175, 55, 0.05); }
+
+        .cta {
+            text-align: center;
+            margin-top: 40px;
+            padding: 30px;
+            border-radius: 20px;
+            background: rgba(212, 175, 55, 0.1);
+            border: 2px dashed var(--gold);
+        }
+
+        /* --- LIVE DEMO STYLES (HEADER PHASE 2) --- */
+        .demo-container {
+            background: #000;
+            border-radius: 20px;
+            padding: 40px 20px;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #333;
+        }
+
+        .luxury-header-demo {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .lh-left { display: flex; align-items: center; gap: 12px; }
+        .lh-avatar { 
+            width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--gold); 
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+            object-fit: cover;
+        }
+        .lh-greeting { font-family: 'Outfit', sans-serif; text-align: left; }
+        .lh-greeting .small { font-size: 11px; color: #888; display: block; line-height: 1; }
+        .lh-greeting .name { font-size: 16px; font-weight: 700; color: #fff; }
+
+        .lh-center { flex: 1; display: flex; justify-content: center; padding: 0 20px; }
+        .lh-search-capsule {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 25px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            max-width: 250px;
+        }
+        .lh-search-capsule input {
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            width: 100%;
+        }
+
+        .lh-right { display: flex; align-items: center; gap: 18px; color: var(--gold); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Centro de Mando: Dulce Jaleo</h1>
+        <p class="subtitle">Guía Técnica y Estética de Alta Resolución</p>
+
+        <!-- VISION -->
+        <div class="glass-card">
+            <h2>🖼️ Visión Final (El Blueprint)</h2>
+            <p style="color:var(--text-muted); margin-bottom:20px;">Este es el objetivo visual. Cada píxel debe respirar "Lujo Profesional".</p>
+            <div style="text-align:center;">
+                <img src="blueprint_preview.png" alt="Blueprint" class="blueprint-img">
+            </div>
+        </div>
+
+        <!-- ZONAS -->
+        <div class="glass-card">
+            <h2>🧭 Mapa de Coordenadas (Zonas)</h2>
+            <div class="grid-2">
+                <div class="zone-box" style="border-color: var(--gold);">
+                    <div style="font-weight:700; color:var(--gold)">ZONA ALTA</div>
+                    <div style="font-size:11px; color:#888;">Greetings, Profile, Settings</div>
+                </div>
+                <div class="zone-box" style="grid-row: span 2; display:flex; align-items:center; justify-content:center;">
+                    <div>
+                        <div style="font-weight:700;">ZONA CENTRAL</div>
+                        <div style="font-size:11px; color:#888;">Stage & Main Content</div>
+                    </div>
+                </div>
+                <div class="zone-box" style="border-color: var(--gold);">
+                    <div style="font-weight:700; color:var(--gold)">ZONA BAJA</div>
+                    <div style="font-size:11px; color:#888;">5-Tab Navigation</div>
+                </div>
+            </div>
+            <p style="font-size:13px; color:#888; text-align:center;">🛸 <strong>ZONA FLOTANTE:</strong> Modales y Popups que "vuelan" sobre el resto.</p>
+        </div>
+
+        <!-- DEMO EN VIVO: FASE 2 -->
+        <div class="glass-card" style="border-color: #f59e0b; background: rgba(245, 158, 11, 0.05);">
+            <h2 style="color:#f59e0b; border-color: rgba(245, 158, 11, 0.2);">🚀 Demo en Vivo: Zona Alta (Fase 2)</h2>
+            <p style="color:var(--text-muted); margin-bottom:20px;">Este es un ejemplo REAL de lo que estoy programando ahora mismo. Es interactivo:</p>
+            
+            <div class="demo-container">
+                <header class="luxury-header-demo">
+                    <div class="lh-left">
+                        <img src="https://i.pravatar.cc/100?u=ezequiel" class="lh-avatar" alt="Avatar">
+                        <div class="lh-greeting">
+                            <span class="small">Bienvenido,</span>
+                            <span class="name">Ezequiel</span>
+                        </div>
+                    </div>
+                    <div class="lh-center">
+                        <div class="lh-search-capsule">
+                            <i data-lucide="search" style="width:16px; height:16px; color:#888;"></i>
+                            <input type="text" placeholder="Buscar...">
+                        </div>
+                    </div>
+                    <div class="lh-right">
+                        <i data-lucide="settings" style="width:20px; height:20px;"></i>
+                    </div>
+                </header>
+                <div style="height:100px; display:flex; align-items:center; justify-content:center; color:#444; font-size:12px;">
+                    (Simulación de contenido del Dashboard)
+                </div>
+            </div>
+            <p style="font-size:12px; color:#f59e0b; text-align:center;">✨ Esto es lo que verás en tu App en la siguiente fase.</p>
+        </div>
+
+        <!-- REGLAS DE ORO -->
+        <div class="glass-card">
+            <h2>🏆 Reglas de Oro (Innegociables)</h2>
+            <div class="grid-2">
+                <div class="feature-item">
+                    <div style="color:var(--gold); font-weight:700">1. IDs Intocables</div>
+                    <div style="font-size:13px; color:#888;">Nunca cambies `scanner-tab`, `agendaList` o `saveContact`. Romperás la conexión con Airtable.</div>
+                </div>
+                <div class="feature-item">
+                    <div style="color:var(--gold); font-weight:700">2. CSS Semántico</div>
+                    <div style="font-size:13px; color:#888;">Prohibido `background: red;`. Usa siempre `var(--rose)` o `var(--gold)`.</div>
+                </div>
+                <div class="feature-item">
+                    <div style="color:var(--gold); font-weight:700">3. Iconografía Lucide</div>
+                    <div style="font-size:13px; color:#888;">Usa `data-lucide`. Standard: `stroke-width: 2`, `size: 24px`.</div>
+                </div>
+                <div class="feature-item">
+                    <div style="color:var(--gold); font-weight:700">4. Layout Fluido</div>
+                    <div style="font-size:13px; color:#888;">Nada de `width: 400px;`. Siempre `%`, `vh` o `flex/grid`.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PALETA DE COLORES -->
+        <div class="glass-card">
+            <h2>🎨 Definición de Color (Luxury HSL)</h2>
+            <div style="display:flex; flex-direction:column; gap:15px;">
+                <div><div class="color-circle" style="background:#D4AF37;"></div> <strong>ORO DULCE</strong> - `#D4AF37` (Acentos y Títulos)</div>
+                <div><div class="color-circle" style="background:#0a0a0a;"></div> <strong>NEGRO PITCH</strong> - `#0a0a0a` (Fondo de Inmersión)</div>
+                <div><div class="color-circle" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);"></div> <strong>CRISTAL LUX</strong> - `rgba(255,255,255,0.05)` (Paneles Glass)</div>
+            </div>
+        </div>
+
+        <!-- CATALOGO DE COMPONENTES REALES -->
+        <div class="glass-card">
+            <h2>🛠️ Catálogo de Componentes Reales (Fase 2 & 3)</h2>
+            <p style="color:var(--text-muted); margin-bottom:20px;">Basado en tus referencias. Estos son los módulos que puedo configurar con exactitud:</p>
+            
+            <div style="display:flex; flex-direction:column; gap:24px;">
+                <!-- 1. TOP BAR LUXURY -->
+                <div class="feature-item">
+                    <div style="color:var(--gold); font-weight:700">1. Top Bar Luxury Config</div>
+                    <div style="font-size:13px; color:#ccc; margin-top:5px;">
+                        • <strong>Izquierda:</strong> Avatar circular + Saludo ("Hola, Alex").<br>
+                        • <strong>Centro/Derecha:</strong> Buscador tipo cápsula (Lupa integrada).<br>
+                        • <strong>Extremo Derecho:</strong> Icono de acción (Ajustes o Notificaciones).
+                    </div>
+                </div>
+
+                <!-- 2. HERO SUMMARY -->
+                <div class="feature-item">
+                    <div style="color:var(--gold); font-weight:700">2. Hero Summary (Impacto)</div>
+                    <div style="font-size:13px; color:#ccc; margin-top:5px;">
+                        • <strong>Tipografía:</strong> Números extra-grandes (ej: 3.540,00 €).<br>
+                        • <strong>Micro-Info:</strong> Sub-indicador de estado (ej: "Default" o "En curso").<br>
+                        • <strong>Botón Acción:</strong> Botón tipo cápsula para acceso rápido (ej: "Ver Facturas").
+                    </div>
+                </div>
+
+                <!-- 3. ACTION MATRIX -->
+                <div class="feature-item">
+                    <div style="color:var(--gold); font-weight:700">3. Action Matrix (Iconos Rápidos)</div>
+                    <div style="font-size:13px; color:#ccc; margin-top:5px;">
+                        • <strong>Diseño:</strong> Fila de botones circulares con fondo `glass-mild`.<br>
+                        • <strong>Feedback:</strong> Animación de escala al pulsar (Haptic feeling).<br>
+                        • <strong>Etiquetas:</strong> Texto corto inferior para máxima claridad.
+                    </div>
+                </div>
+
+                <!-- 4. SMART LIST CARDS -->
+                <div class="feature-item">
+                    <div style="color:var(--gold); font-weight:700">4. Smart List Cards</div>
+                    <div style="font-size:13px; color:#ccc; margin-top:5px;">
+                        • <strong>Icono Lateral:</strong> Icono con color de estado (Verde=Ok, Rojo=Alerta).<br>
+                        • <strong>Multi-línea:</strong> Título principal + Fecha/Categoría debajo.<br>
+                        • <strong>Valor Derecha:</strong> Importe o estado alineado a la derecha.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="cta">
+            <h3 style="margin-top:0">🚀 Siguiente Paso: Ejecución Real (Phase 2)</h3>
+            <p>Ya tenemos el manual completo y sin "maquillaje". Estamos listos para aplicar estos componentes a la <strong>ZONA ALTA</strong>.</p>
+        </div>
+    </div>
+</body>
+</html>

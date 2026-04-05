@@ -1,0 +1,2971 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Dulce Jaleo - Gestión Inteligente</title>
+    <meta name="description" content="App de gestión de facturas y documentos para Dulce Jaleo panadería artesanal">
+
+    <!-- PWA: Manifest -->
+    <link rel="manifest" href="manifest.json?v=3">
+    <meta name="theme-color" content="#0f0f14">
+
+    <!-- Universal PWA (Chrome, Brave, Android) -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="icon" sizes="192x192" href="icon-192.png?v=3">
+    <link rel="icon" sizes="512x512" href="icon-512.png?v=3">
+
+    <!-- Apple PWA (iOS Safari/Brave/Chrome) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Dulce Jaleo">
+    <link rel="apple-touch-icon" href="icon-512.png?v=3">
+    <!-- Icono redundante para asegurar detección en versiones antiguas de iOS -->
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-512.png?v=3">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Paleta Oscura Premium */
+            --cream:      #0f0f14;
+            --cream-dark: #13131a;
+            --white:      #1a1a24;
+            --warm-100:   #22222e;
+            --warm-200:   #2a2a38;
+            --warm-300:   #35354a;
+
+            /* Acentos ámbar/dorado */
+            --rose:       #f59e0b;
+            --rose-light: #fbbf24;
+            --rose-dark:  #d97706;
+            --rose-glow:  rgba(245, 158, 11, 0.15);
+            --gold:       #f59e0b;
+            --gold-light: #fde68a;
+
+            /* Texto */
+            --text-primary:   #f1f1f4;
+            --text-secondary: #a8a8b8;
+            --text-muted:     #6b6b80;
+
+            /* Bordes */
+            --border:     #2d2d3a;
+            --border-soft:#252530;
+
+            /* Estados */
+            --success:    #10b981;
+            --danger:     #ef4444;
+            --info:       #3b82f6;
+
+            /* Radios */
+            --radius:    16px;
+            --radius-sm: 10px;
+            --radius-xs: 6px;
+
+            /* Sombras */
+            --shadow-sm: 0 2px 14px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--cream);
+            color: var(--text-primary);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            background-image: radial-gradient(ellipse at 20% 0%, rgba(245,158,11,0.05) 0%, transparent 60%);
+            /* Anti-bounce: elimina el efecto rebote de Safari */
+            overscroll-behavior: none;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Splash Screen PWA */
+        .splash-screen {
+            position: fixed;
+            inset: 0;
+            background: #F5F0E1;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+        }
+        .splash-screen.hide {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .splash-logo {
+            width: 120px;
+            height: 120px;
+            animation: splashPulse 1.8s ease-in-out infinite;
+        }
+        @keyframes splashPulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.06); opacity: 1; }
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: rgba(26, 26, 36, 0.85);
+            border-bottom: 1px solid var(--border);
+            padding: calc(18px + env(safe-area-inset-top)) 20px 14px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .header-content {
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-img-header {
+            width: 38px;
+            height: 38px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .logo-text h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 19px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+        }
+
+        .logo-text span {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 500;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .icon-btn {
+            width: 38px;
+            height: 38px;
+            background: var(--warm-100);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .icon-btn:hover {
+            background: var(--warm-200);
+            border-color: var(--warm-300);
+        }
+
+        /* ===== STATUS PILL ===== */
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            background: rgba(92, 158, 126, 0.12);
+            border: 1px solid rgba(92, 158, 126, 0.25);
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--success);
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+
+        /* ===== MAIN ===== */
+        .main {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px 16px 120px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeUp 0.3s ease;
+        }
+
+        .tab-content.active { display: block; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ===== SCANNER ===== */
+        .section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            letter-spacing: 0px;
+        }
+
+        .section-subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .scanner-area {
+            background: var(--white);
+            border: 2px dashed var(--border);
+            border-radius: 20px;
+            padding: 42px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scanner-area::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at 50% 100%, var(--rose-glow), transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .scanner-area:hover,
+        .scanner-area.drag-over {
+            border-color: var(--rose);
+            background: var(--warm-100);
+        }
+        .scanner-area:hover::before,
+        .scanner-area.drag-over::before { opacity: 1; }
+
+        .scanner-area.has-image {
+            border-style: solid;
+            border-color: var(--rose);
+            padding: 0;
+        }
+
+        .scanner-icon-wrap {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, var(--warm-100), var(--warm-200));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 34px;
+            margin: 0 auto 16px;
+            border: 1px solid var(--border);
+        }
+
+        .scanner-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .scanner-subtitle-text {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .scan-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn-scan {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            color: var(--text-secondary);
+            padding: 9px 18px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-scan:hover {
+            border-color: var(--rose);
+            color: var(--rose);
+            background: var(--warm-100);
+        }
+
+        .preview-img {
+            width: 100%;
+            max-height: 360px;
+            object-fit: contain;
+            border-radius: 18px;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 15px 28px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            width: 100%;
+            letter-spacing: 0.2px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--rose-light), var(--rose));
+            color: var(--white);
+            box-shadow: 0 6px 20px rgba(201, 116, 116, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(201, 116, 116, 0.45);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background: var(--warm-100);
+            color: var(--text-secondary);
+            border: 1.5px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background: var(--warm-200);
+            border-color: var(--warm-300);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .btn-group .btn { flex: 1; }
+
+        /* ===== RESULT CARD ===== */
+        .result-card {
+            margin-top: 20px;
+            background: var(--white);
+            border-radius: 20px;
+            padding: 22px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .result-icon-wrap {
+            width: 46px;
+            height: 46px;
+            background: rgba(92, 158, 126, 0.12);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .result-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .result-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .result-item {
+            background: var(--cream);
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-soft);
+        }
+
+        .result-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .result-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .result-value.amount { color: var(--rose); }
+
+        /* ===== PROCESSING OVERLAY ===== */
+        .processing-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(250, 246, 240, 0.88);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            backdrop-filter: blur(12px);
+        }
+
+        .processing-overlay.hidden { display: none; }
+
+        .spinner-track {
+            width: 56px;
+            height: 56px;
+            border: 3px solid var(--border);
+            border-top-color: var(--rose);
+            border-radius: 50%;
+            animation: spin 0.9s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .processing-bread {
+            font-size: 36px;
+            margin-bottom: 16px;
+            animation: float 2s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .processing-text {
+            margin-top: 18px;
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .processing-sub {
+            margin-top: 6px;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* ===== FACTURAS VIEW ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stats-row.stats-4 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .stat-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 12px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat-value {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--rose);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+            margin-top: 3px;
+            font-weight: 600;
+        }
+
+        /* SUB-FILTROS (Facturas / Albaranes / Gastos) */
+        .sub-tabs {
+            display: flex;
+            background: var(--warm-100);
+            border-radius: 50px;
+            padding: 4px;
+            margin-bottom: 18px;
+            border: 1px solid var(--border);
+        }
+
+        .sub-tab-btn {
+            flex: 1;
+            padding: 9px 6px;
+            border-radius: 50px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .sub-tab-btn.active {
+            background: var(--white);
+            color: var(--rose);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .refresh-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+
+        .refresh-btn {
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            color: var(--text-secondary);
+            padding: 7px 14px;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .refresh-btn:hover {
+            border-color: var(--rose);
+            color: var(--rose);
+        }
+
+        .error-banner {
+            background: rgba(190, 77, 77, 0.08);
+            border: 1px solid rgba(190, 77, 77, 0.2);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            color: var(--danger);
+            font-size: 13px;
+            margin-bottom: 14px;
+            display: none;
+            border-left: 3px solid var(--danger);
+        }
+
+        /* BANNER TOTAL PERIODO */
+        .total-periodo-banner {
+            background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(251,191,36,0.08));
+            border: 1px solid rgba(245,158,11,0.25);
+            border-radius: var(--radius-sm);
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .total-periodo-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+        .total-periodo-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--rose);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* CARDS DE FACTURA */
+        .factura-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 10px;
+            transition: all 0.25s;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+        }
+
+        .factura-card:hover {
+            border-color: var(--rose-light);
+            box-shadow: 0 6px 24px rgba(201, 116, 116, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .factura-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .factura-info { flex: 1; min-width: 0; }
+
+        .factura-proveedor {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 4px;
+        }
+
+        .factura-total {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--rose);
+            font-family: 'Syne', sans-serif;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
+
+        .factura-meta {
+            display: flex;
+            gap: 10px;
+            font-size: 11px;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+
+        .factura-meta span {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .factura-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+
+        .badge-factura {
+            background: rgba(91, 130, 180, 0.12);
+            color: var(--info);
+            border: 1px solid rgba(91, 130, 180, 0.2);
+        }
+
+        .badge-albaran {
+            background: rgba(139, 92, 246, 0.1);
+            color: #7c5cbf;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .badge-gastos {
+            background: rgba(200, 151, 58, 0.12);
+            color: var(--gold);
+            border: 1px solid rgba(200, 151, 58, 0.2);
+        }
+
+        /* EMPTY STATES */
+        .empty-state {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 52px 28px;
+            text-align: center;
+            margin-top: 8px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 14px;
+            opacity: 0.45;
+        }
+
+        .empty-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .empty-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ===== CONFIG / AJUSTES ===== */
+        .config-header {
+            margin-bottom: 20px;
+        }
+
+        .config-section {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .config-section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .config-field {
+            margin-bottom: 12px;
+        }
+
+        .config-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--cream);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 13px;
+            transition: border-color 0.2s;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: var(--rose);
+            background: var(--white);
+        }
+
+        .config-help {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-top: 6px;
+        }
+
+        .alert-time {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 6px;
+        }
+
+        /* ===== FACTURA MODAL ===== */
+        .factura-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 15, 20, 0.9);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+            padding: 20px;
+        }
+
+        .factura-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .factura-modal-content {
+            background: var(--white);
+            width: 100%;
+            max-width: 500px;
+            max-height: 85vh;
+            border-radius: 24px;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .factura-modal.active .factura-modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .factura-modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--warm-50);
+        }
+
+        .factura-modal-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .factura-modal-close {
+            background: var(--white);
+            border: 1px solid var(--border);
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .factura-modal-close:hover {
+            background: var(--warm-100);
+            color: var(--text-primary);
+        }
+
+        .factura-modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .factura-modal-img {
+            width: 100%;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            max-height: 400px;
+            object-fit: contain;
+            background: var(--warm-50);
+            display: none; /* Se muestra por JS si hay imagen */
+        }
+
+        .factura-modal-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .fm-field-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .fm-field-value {
+            font-size: 15px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .fm-total {
+            font-size: 24px;
+            font-family: 'Syne', sans-serif;
+            color: var(--rose);
+            font-weight: 800;   
+        }
+
+        .config-help a { color: var(--rose); text-decoration: none; }
+        .config-help a:hover { text-decoration: underline; }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-soft);
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-key { font-size: 13px; color: var(--text-muted); }
+        .info-val { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+        .info-val.free { color: var(--success); }
+
+        /* ===== MÁRGENES (vista futura) ===== */
+        .coming-soon {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 60px 28px;
+            text-align: center;
+            margin-top: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+        .coming-soon-icon { font-size: 54px; margin-bottom: 18px; }
+        .coming-soon-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        .coming-soon-desc {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        /* ===== AGENDA / CONTACTOS ===== */
+        .agenda-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 16px;
+        }
+
+        .agenda-count {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 14px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 15px;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 14px 12px 40px;
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: 50px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .search-input::placeholder { color: var(--text-muted); }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--rose);
+        }
+
+        /* Sub-tabs 2 col para Agenda */
+        .agenda-sub-tabs {
+            display: flex;
+            background: var(--warm-100);
+            border-radius: 50px;
+            padding: 4px;
+            margin-bottom: 18px;
+            border: 1px solid var(--border);
+        }
+
+        .agenda-sub-btn {
+            flex: 1;
+            padding: 9px 6px;
+            border-radius: 50px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .agenda-sub-btn.active {
+            background: var(--white);
+            color: var(--rose);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Tarjeta de contacto */
+        .contact-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.2s;
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .contact-card:hover {
+            border-color: var(--rose-light);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1);
+        }
+
+        .contact-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            font-family: 'Outfit', sans-serif;
+            flex-shrink: 0;
+            color: var(--cream);
+        }
+
+        .avatar-proveedor { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .avatar-cliente   { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+
+        .contact-info { flex: 1; min-width: 0; }
+
+        .contact-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .factura-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .factura-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .factura-btn-view {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--amber-dark);
+            border: none;
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .factura-btn-view:hover {
+            background: rgba(245, 158, 11, 0.2);
+        }
+
+        .contact-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .contact-arrow {
+            font-size: 14px;
+            color: var(--text-muted);
+            opacity: 0.5;
+        }
+
+        /* ===== NUEVO POPUP AGENDA (PERFECTO) ===== */
+        #detalles-contacto-modal {
+            position: fixed;
+            inset: 0 ;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(12px);
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(10, 10, 15, 0.95); z-index: 10000;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; visibility: hidden; transition: all 0.3s ease;
+            backdrop-filter: blur(8px); padding: 24px;
+        }
+        #detalles-contacto-modal.active { opacity: 1; visibility: visible; }
+        
+        .det-modal-content {
+            background: #111111; /* Negro Profundo */
+            border: 1px solid #ebae1c; /* Borde amarillo neón (Gold) */
+            border-radius: 20px; width: 100%; max-width: 380px;
+            padding: 30px 24px; position: relative;
+            box-shadow: 0 0 40px rgba(235, 174, 28, 0.15); /* Resplandor dorado */
+            transform: scale(0.9) translateY(20px);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #detalles-contacto-modal.active .det-modal-content { transform: scale(1) translateY(0); }
+        
+        .det-modal-close {
+            position: absolute; top: 20px; right: 20px; color: #888; font-size: 20px; cursor: pointer;
+            width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+            transition: color 0.2s;
+        }
+        .det-modal-close:hover { color: #fff; }
+
+        .det-header {
+            display: flex; align-items: center; justify-content: flex-start; margin-bottom: 28px; gap: 16px;
+            text-align: left;
+        }
+
+        .det-initials-circle {
+            width: 66px; height: 66px; background: #ebae1c; color: #000; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            font-size: 26px; font-weight: 800; font-family: 'Outfit', sans-serif;
+            box-shadow: 0 0 20px rgba(235, 174, 28, 0.5); /* Glowing dot */
+        }
+        
+        .det-header-text { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+
+        .det-name {
+            font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: #fff; margin: 0 0 4px 0;
+        }
+
+        .det-status {
+            font-size: 13px; color: #aaa; display: flex; align-items: center; gap: 6px;
+        }
+
+        .status-dot {
+            width: 10px; height: 10px; border-radius: 50%; background: #FFEA00; box-shadow: 0 0 8px rgba(255, 234, 0, 0.5);
+        }
+
+        .det-actions-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px;
+        }
+
+        .det-action-btn {
+            background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px 4px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+            color: #eee; font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.2s;
+        }
+        .det-action-btn:hover { background: #222; border-color: #ebae1c; color: #ebae1c; }
+        .det-btn-icon { font-size: 20px; }
+
+        .det-resumen-box {
+            background: #181818; border: 1px solid #282828; border-radius: 16px; padding: 20px;
+        }
+
+        .det-resumen-title {
+            font-size: 11px; color: #888; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 16px;
+        }
+
+        .det-resumen-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+        }
+        .res-col { display: flex; flex-direction: column; gap: 6px; text-align: center; }
+        .res-label { font-size: 11px; color: #888; font-weight: 500; }
+        .res-value { font-size: 16px; font-weight: 700; color: #fff; }
+        .text-white { color: #fff !important; }
+
+        /* FAB Añadir Contacto */
+        .fab-add {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--rose-light), var(--rose));
+            border-radius: 50%;
+            border: none;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            cursor: pointer;
+            box-shadow: 0 6px 24px rgba(245, 158, 11, 0.45);
+            z-index: 150;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .fab-add.visible { display: flex; }
+        .fab-add:hover { transform: scale(1.12) rotate(45deg); }
+
+        /* Modal Añadir Contacto */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+            display: none;
+            align-items: flex-end;
+            backdrop-filter: blur(6px);
+        }
+        .modal-overlay.open { display: flex; }
+
+        .modal-sheet {
+            background: var(--cream-dark);
+            border-radius: 24px 24px 0 0;
+            padding: 20px 20px 40px;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to   { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-handle {
+            width: 40px;
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin: 0 auto 20px;
+        }
+
+        .modal-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-type-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .modal-type-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            border: 1.5px solid var(--border);
+            background: var(--white);
+            color: var(--text-muted);
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-type-btn.active {
+            border-color: var(--rose);
+            color: var(--rose);
+            background: rgba(245,158,11,0.08);
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 13px 14px;
+            background: var(--white);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 14px;
+            margin-bottom: 10px;
+            transition: border-color 0.2s;
+        }
+
+        .modal-input::placeholder { color: var(--text-muted); }
+        .modal-input:focus { outline: none; border-color: var(--rose); }
+
+        /* ===== BOTTOM NAVIGATION ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(26, 26, 36, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+            z-index: 200;
+            box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .bottom-nav-inner {
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+        }
+
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 12px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            border-radius: var(--radius-sm);
+            min-width: 60px;
+        }
+
+        .nav-icon {
+            font-size: 22px;
+            transition: transform 0.2s;
+            line-height: 1;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            letter-spacing: 0.3px;
+            transition: color 0.2s;
+        }
+
+        .nav-btn.active .nav-label { color: var(--rose); }
+        .nav-btn.active .nav-icon { transform: scale(1.1); }
+        .nav-btn:hover .nav-label { color: var(--text-secondary); }
+
+        /* FAB - Botón Central Cámara */
+        .nav-btn-fab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+            position: relative;
+            top: -12px;
+        }
+
+        .nav-fab-circle {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--rose-light), var(--rose));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            box-shadow: 0 6px 24px rgba(201, 116, 116, 0.5);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 3px solid var(--white);
+        }
+
+        .nav-btn-fab:hover .nav-fab-circle,
+        .nav-btn-fab.active .nav-fab-circle {
+            transform: scale(1.1) rotate(-5deg);
+            box-shadow: 0 10px 32px rgba(201, 116, 116, 0.6);
+        }
+
+        .nav-fab-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--rose);
+            letter-spacing: 0.3px;
+        }
+
+        /* ===== MOBILE ===== */
+        @media (max-width: 380px) {
+            .stats-row { gap: 7px; }
+            .stat-card { padding: 12px 8px; }
+            .stat-value { font-size: 22px; }
+            .result-grid { grid-template-columns: 1fr; }
+            .nav-btn { min-width: 50px; padding: 4px 8px; }
+        }
+
+        input[type="file"] { display: none; }
+
+        /* ===== MODAL CONFIG (Header Gear) ===== */
+        .config-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            z-index: 997;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 70px;
+            backdrop-filter: blur(8px);
+        }
+        .config-modal-overlay.open { display: flex; }
+
+        .config-modal-box {
+            background: var(--cream-dark);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px 20px 28px;
+            width: calc(100% - 32px);
+            max-width: 440px;
+            box-shadow: var(--shadow-lg);
+            animation: fadeDown 0.25s ease;
+        }
+
+        @keyframes fadeDown {
+            from { opacity: 0; transform: translateY(-16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .config-modal-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .config-modal-subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+
+        /* ===== ALERTAS ===== */
+        .alert-card {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+        }
+
+        .alert-card.danger  { border-left: 3px solid #ef4444; }
+        .alert-card.warning { border-left: 3px solid var(--rose); }
+        .alert-card.info    { border-left: 3px solid var(--info); }
+
+        .alert-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .alert-body { flex: 1; min-width: 0; }
+
+        .alert-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 3px;
+        }
+
+        .alert-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .alert-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-top: 6px;
+        }
+
+        .badge-danger  { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); }
+        .badge-warning { background: rgba(245,158,11,0.12); color: var(--rose); border: 1px solid rgba(245,158,11,0.2); }
+        .badge-ok      { background: rgba(16,185,129,0.12); color: var(--success); border: 1px solid rgba(16,185,129,0.2); }
+
+        .alert-time {
+            font-size: 11px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+            margin-top: 3px;
+        }
+
+        /* ===== MÁRGENES FUNCIONAL ===== */
+        .margin-hero {
+            background: var(--white);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 28px 24px;
+            text-align: center;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .margin-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .margin-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+        .margin-value.positive { color: var(--success); }
+        .margin-value.negative { color: #ef4444; }
+        .margin-value.neutral  { color: var(--text-muted); }
+
+        .margin-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .margin-bar-wrap {
+            background: var(--warm-100);
+            border-radius: 8px;
+            height: 12px;
+            overflow: hidden;
+            margin: 10px 0 6px;
+        }
+
+        .margin-bar {
+            height: 100%;
+            border-radius: 8px;
+            background: linear-gradient(90deg, var(--rose-dark), var(--rose-light));
+            transition: width 0.8s ease;
+        }
+
+        .margin-config-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+
+        .icon-btn-gear {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            opacity: 0.7;
+            transition: opacity 0.2s, transform 0.3s;
+            padding: 4px;
+        }
+        .icon-btn-gear:hover { opacity: 1; transform: rotate(45deg); }
+
+    </style>
+</head>
+
+<body>
+
+    <!-- SPLASH SCREEN PWA -->
+    <div class="splash-screen" id="splashScreen">
+        <img src="icon-512.png" alt="Dulce Jaleo" class="splash-logo">
+    </div>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <img src="icon-512.png?v=3" class="logo-img-header" alt="Logo Dulce Jaleo">
+                <div class="logo-text">
+                    <h1>Dulce Jaleo</h1>
+                    <span>Gestión Inteligente</span>
+                </div>
+            </div>
+            <div class="header-actions">
+                <div class="status-pill">
+                    <div class="status-dot"></div>
+                    Online
+                </div>
+                <button class="icon-btn-gear" id="gearBtn" title="Ajustes técnicos">⚙️</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="main">
+
+        <!-- ===== TAB: ESCÁNER ===== -->
+        <div id="tab-scanner" class="tab-content active">
+            <div class="section-title">Nuevo Documento</div>
+            <div class="section-subtitle">Fotografía una factura, albarán o gasto</div>
+
+            <div class="scanner-area" id="scannerArea">
+                <div id="scannerPlaceholder">
+                    <div class="scanner-icon-wrap">📄</div>
+                    <div class="scanner-title">Añadir Documento</div>
+                    <div class="scanner-subtitle-text">Arrastra una imagen aquí o<br>elige cómo quieres subirla</div>
+                    <div class="scan-options">
+                        <button class="btn-scan" id="btnCamera">📷 Cámara</button>
+                        <button class="btn-scan" id="btnGallery">🖼️ Galería</button>
+                    </div>
+                </div>
+                <img id="previewImg" class="preview-img" style="display:none" alt="Vista previa">
+            </div>
+
+            <!-- Inputs ocultos -->
+            <input type="file" id="fileInputCamera" accept="image/*" capture="environment">
+            <input type="file" id="fileInputGallery" accept="image/*">
+
+            <div class="btn-group">
+                <button class="btn btn-primary" id="sendBtn" disabled>🚀 Enviar a Procesar</button>
+                <button class="btn btn-secondary" id="clearBtn" style="display:none; flex:0.3;">✕</button>
+            </div>
+
+            <div id="resultArea" style="display:none">
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="result-icon-wrap">✅</div>
+                        <div>
+                            <div class="result-title">Documento Procesado</div>
+                            <div class="result-subtitle" id="resultCategoria"></div>
+                        </div>
+                    </div>
+                    <div class="result-grid" id="resultGrid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== TAB: MIS FACTURAS ===== -->
+        <div id="tab-facturas" class="tab-content">
+            <div class="section-title">Mis Facturas</div>
+            <div class="section-subtitle">Documentos procesados por la IA</div>
+
+            <div class="stats-row stats-4">
+                <div class="stat-card">
+                    <div class="stat-value" id="statTotal">-</div>
+                    <div class="stat-label">TOTAL</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statFacturas">-</div>
+                    <div class="stat-label">FACTURAS</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statAlbaranes">-</div>
+                    <div class="stat-label">ALBARANES</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="statGastos">-</div>
+                    <div class="stat-label">GASTOS</div>
+                </div>
+            </div>
+
+            <div class="sub-tabs" id="filterContainer">
+                <button class="sub-tab-btn active" data-filter="all">📋 Todos</button>
+                <button class="sub-tab-btn" data-filter="FACTURA">📄 Facturas</button>
+                <button class="sub-tab-btn" data-filter="ALBARAN">📦 Albaranes</button>
+                <button class="sub-tab-btn" data-filter="GASTOS_VARIOS">💰 Gastos</button>
+            </div>
+
+            <div class="refresh-bar">
+                <div style="font-size:14px;font-weight:700;color:var(--text-secondary);">Documentos</div>
+                <button class="refresh-btn" id="refreshBtn">🔄 Actualizar</button>
+            </div>
+
+            <div id="errorBanner" class="error-banner"></div>
+            <div class="total-periodo-banner">
+                <span class="total-periodo-label">💰 Total periodo</span>
+                <span class="total-periodo-value" id="totalPeriodoBanner">0.00 €</span>
+            </div>
+            <div id="facturasList"></div>
+        </div>
+
+        <!-- ===== TAB: AGENDA / CONTACTOS ===== -->
+        <div id="tab-agenda" class="tab-content">
+            <div id="contenedor-lista-agenda">
+                <div class="agenda-header-row">
+                    <div>
+                        <div class="section-title">Agenda</div>
+                        <div class="section-subtitle">Proveedores y clientes</div>
+                    </div>
+                    <div class="agenda-count" id="agendaCount">0 contactos</div>
+                </div>
+
+                <!-- Buscador -->
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input class="search-input" id="agendaSearch" type="text" placeholder="Nombre, teléfono o email...">
+                </div>
+
+                <!-- Sub-tabs -->
+                <div class="agenda-sub-tabs">
+                    <button class="agenda-sub-btn active" data-agenda="all">Todos</button>
+                    <button class="agenda-sub-btn" data-agenda="proveedor">🏗️ Proveedores</button>
+                    <button class="agenda-sub-btn" data-agenda="cliente">🛒 Clientes</button>
+                </div>
+
+                <!-- Lista -->
+                <div id="contactList"></div>
+            </div>
+
+            <!-- EL HTML DE LA VISTA DETALLADA FUE ELIMINADO: VOLVEMOS AL MODAL -->
+        </div>
+
+        <!-- ===== TAB: MÁRGENES ===== -->
+        <div id="tab-margenes" class="tab-content">
+            <div class="section-title">Márgenes</div>
+            <div class="section-subtitle">Rentabilidad estimada del mes</div>
+
+            <!-- Hero margen -->
+            <div class="margin-hero">
+                <div class="margin-label">Margen bruto estimado</div>
+                <div class="margin-value neutral" id="margenValor">—</div>
+                <div class="margin-sub" id="margenSub">Cargando datos...</div>
+                <div class="margin-bar-wrap" style="margin-top:16px;">
+                    <div class="margin-bar" id="margenBar" style="width:0%;"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-muted);">
+                    <span>🔴 Gastos</span><span>🟢 Ingresos estimados</span>
+                </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-value" id="mGastos" style="font-size:20px">—</div>
+                    <div class="stat-label">Gastos mes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="mIngresos" style="font-size:20px">—</div>
+                    <div class="stat-label">Ingresos est.</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="mFacturas" style="font-size:20px">—</div>
+                    <div class="stat-label">Docs mes</div>
+                </div>
+            </div>
+
+            <!-- Config ingresos -->
+            <div class="config-section">
+                <div class="config-section-title">📊 Configurar venta semanal</div>
+                <div class="config-field">
+                    <label class="config-label">Venta media semanal (€)</label>
+                    <input class="config-input" id="ventaSemanalInput" type="number" placeholder="Ej: 4500" min="0" step="100">
+                    <div class="config-help">Introduce tu venta media semanal aproximada. Usaremos este dato para estimar tu margen hasta integrar los tickets Z de caja.</div>
+                </div>
+                <button class="btn btn-primary" id="saveVentaBtn" style="margin-top:4px">💾 Guardar y recalcular</button>
+            </div>
+
+            <p class="margin-config-hint">⚠️ Estimación basada en gastos reales de Airtable + venta media configurada. Los márgenes reales dependen también de la merma diaria.</p>
+        </div>
+
+        <!-- ===== TAB: ALERTAS ===== -->
+        <div id="tab-alertas" class="tab-content">
+            <div class="section-title">Alertas</div>
+            <div class="section-subtitle">Avisos inteligentes de tu negocio</div>
+
+            <!-- Lista de alertas (se renderiza con JS) -->
+            <div id="alertasList">
+                <!-- Alerta de ejemplo hasta integrar Airtable -->
+                <div class="alert-card warning">
+                    <div class="alert-icon">📈</div>
+                    <div class="alert-body">
+                        <div class="alert-title">Sube el precio del trigo</div>
+                        <div class="alert-desc">La última factura de harina reflectó 1.35€/kg. El mes pasado pagabas 0.98€/kg. Revisa con tu proveedor.</div>
+                        <span class="alert-badge badge-warning">↑ +37% vs mes anterior</span>
+                    </div>
+                    <div class="alert-time">Hoy</div>
+                </div>
+
+                <div class="alert-card danger">
+                    <div class="alert-icon">⚠️</div>
+                    <div class="alert-body">
+                        <div class="alert-title">3 facturas sin revisar</div>
+                        <div class="alert-desc">Tienes facturas escaneadas esta semana que aún no han sido verificadas con tu gestor contable.</div>
+                        <span class="alert-badge badge-danger">Revisar pendientes</span>
+                    </div>
+                    <div class="alert-time">Esta semana</div>
+                </div>
+
+                <div class="alert-card info">
+                    <div class="alert-icon">💡</div>
+                    <div class="alert-body">
+                        <div class="alert-title">Automatización activa</div>
+                        <div class="alert-desc">
+                            Cuando n8n detecte un cambio de precio ≥10% en un proveedor conocido de tu Agenda,
+                            aparecerá aquí como alerta roja automáticamente.
+                        </div>
+                        <span class="alert-badge badge-ok">✓ Sistema listo</span>
+                    </div>
+                    <div class="alert-time"></div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Config Técnica (desde header ⚙️) -->
+    <div class="config-modal-overlay" id="configModal">
+        <div class="config-modal">
+            <h2 class="config-modal-title">⚙️ Ajustes Técnicos</h2>
+            <p class="config-modal-desc" style="margin-bottom:20px;color:var(--text-muted);font-size:13px;">Configuración de integraciones — solo para administrador</p>
+            
+            <div class="config-field">
+                <label class="config-label">🔗 Webhook URL (n8n)</label>
+                <input class="config-input" id="cfgWebhookUrl" type="url" placeholder="https://tu-n8n.com/webhook/..." required>
+            </div>
+            
+            <div class="config-field">
+                <label class="config-label">🔑 Airtable Personal Access Token</label>
+                <input class="config-input" id="cfgAirtableToken" type="password" placeholder="pat0XXXXX.XXXXX..." required>
+                <div class="config-help">Créalo en <a href="https://airtable.com/create/tokens" target="_blank">airtable.com/create/tokens</a></div>
+            </div>
+
+            <div class="config-actions" style="display:flex;gap:12px;margin-top:10px;">
+                <button class="btn btn-secondary" id="closeConfigModal" style="flex:1;">Cancelar</button>
+                <button class="btn btn-primary" id="saveConfigBtn" style="flex:2;background:var(--amber);color:var(--amber-dark);">💾 Guardar</button>
+            </div>
+
+            <div class="version-info" style="margin-top:24px;background:var(--warm-50);padding:12px;border-radius:12px;font-size:11px;color:var(--text-muted);border:1px solid var(--border);">
+                <strong>Estado:</strong> WebApp ✓ | n8n Self-hosted ✓ | Airtable Free ✓ | IA ~0.02€/imagen<br>
+                <strong>Versión:</strong> Dulce Jaleo 2.1
+            </div>
+        </div>
+    </div>
+
+    <!-- FAB Añadir Contacto -->
+    <button class="fab-add" id="fabAddContact" title="Añadir contacto">➕</button>
+
+    <!-- Modal Añadir Contacto -->
+    <div class="modal-overlay" id="contactModal">
+        <div class="modal-sheet">
+            <div class="modal-handle"></div>
+            <div class="modal-title">➕ Nuevo Contacto</div>
+            <div class="modal-type-tabs">
+                <button class="modal-type-btn active" data-ctype="proveedor">🏗️ Proveedor</button>
+                <button class="modal-type-btn" data-ctype="cliente">🛒 Cliente</button>
+            </div>
+            <input class="modal-input" id="cNombre" type="text" placeholder="Nombre o empresa *">
+            <input class="modal-input" id="cTelefono" type="tel" placeholder="Teléfono">
+            <input class="modal-input" id="cEmail" type="email" placeholder="Email">
+            <input class="modal-input" id="cCategoria" type="text" placeholder="Categoría (ej: Harina, Café, Reparto...)">
+            <div style="display:flex;gap:10px;margin-top:6px;">
+                <button class="btn btn-secondary" id="closeModal" style="width:auto;padding:12px 24px;border-radius:10px;">Cancelar</button>
+                <button class="btn btn-primary" id="saveContact" style="border-radius:10px;">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROCESSING OVERLAY -->
+    <div class="processing-overlay hidden" id="processingOverlay">
+        <div class="processing-bread">🍞</div>
+        <div class="spinner-track"></div>
+        <div class="processing-text">Procesando documento...</div>
+        <div class="processing-sub">La IA está analizando tu factura</div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav">
+        <div class="bottom-nav-inner">
+            <!-- Agenda -->
+            <button class="nav-btn" data-tab="agenda">
+                <span class="nav-icon">📒</span>
+                <span class="nav-label">Agenda</span>
+            </button>
+
+            <!-- Márgenes -->
+            <button class="nav-btn" data-tab="margenes">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Márgenes</span>
+            </button>
+
+            <!-- FAB: Cámara / Escáner (centro) -->
+            <button class="nav-btn-fab" data-tab="scanner" id="fabBtn">
+                <div class="nav-fab-circle">📷</div>
+                <span class="nav-fab-label">Escanear</span>
+            </button>
+
+            <!-- Facturas -->
+            <button class="nav-btn" data-tab="facturas">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">Facturas</span>
+            </button>
+
+            <!-- Alertas -->
+            <button class="nav-btn" data-tab="alertas">
+                <span class="nav-icon">🔔</span>
+                <span class="nav-label">Alertas</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Modal Previsualización de Factura -->
+    <div class="factura-modal" id="facturaModal">
+        <div class="factura-modal-content">
+            <div class="factura-modal-header">
+                <div class="factura-modal-title" id="fmTitle">Detalle del Documento</div>
+                <div class="factura-modal-close" onclick="closeFacturaModal()">✕</div>
+            </div>
+            <div class="factura-modal-body">
+                <img id="fmImage" class="factura-modal-img" src="" alt="Documento escaneado">
+                
+                <div class="fm-total" id="fmTotal" style="margin-bottom: 24px; text-align: center;">0.00 €</div>
+
+                <div class="factura-modal-grid">
+                    <div>
+                        <div class="fm-field-label">Proveedor</div>
+                        <div class="fm-field-value" id="fmProveedor">-</div>
+                    </div>
+                    <div>
+                        <div class="fm-field-label">Fecha</div>
+                        <div class="fm-field-value" id="fmFecha">-</div>
+                    </div>
+                    <div>
+                        <div class="fm-field-label">Número de Documento</div>
+                        <div class="fm-field-value" id="fmDoc">-</div>
+                    </div>
+                    <div>
+                        <div class="fm-field-label">CIF / NIF</div>
+                        <div class="fm-field-value" id="fmCif">-</div>
+                    </div>
+                    <div>
+                        <div class="fm-field-label">Base Imponible</div>
+                        <div class="fm-field-value" id="fmBase">-</div>
+                    </div>
+                    <div>
+                        <div class="fm-field-label">IVA</div>
+                        <div class="fm-field-value" id="fmIva">-</div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px;">
+                    <div class="fm-field-label">Detalles / Conceptos</div>
+                    <div class="fm-field-value" id="fmDetalles" style="font-size: 13px; color: var(--text-secondary); line-height: 1.5; white-space: pre-wrap;">-</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- [MODAL POPUP (PREMIUM) RESTAURADO] -->
+    <div id="detalles-contacto-modal" onclick="if(event.target === this) window.cerrarVistaCliente()">
+        <div class="det-modal-content">
+            <div class="det-modal-close" onclick="window.cerrarVistaCliente()">✕</div>
+            
+            <div class="det-header">
+                <div class="det-initials-circle" id="det-initials">IM</div>
+                <div class="det-header-text">
+                    <h2 class="det-name" id="det-name">Contacto</h2>
+                    <div class="det-status">
+                        <div class="status-dot" id="det-status-dot"></div>
+                        <span id="det-category-text">Sin Registros</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="det-actions-grid">
+                <div class="det-action-btn" onclick="ejecutarLlamada()">
+                    <span class="det-btn-icon">📞</span>
+                    <span>Llamar</span>
+                </div>
+                <div class="det-action-btn" onclick="ejecutarWhatsApp()">
+                    <span class="det-btn-icon">💬</span>
+                    <span>WhatsApp</span>
+                </div>
+                <div class="det-action-btn" onclick="ejecutarHistorial()">
+                    <span class="det-btn-icon">📊</span>
+                    <span>Historial</span>
+                </div>
+                <div class="det-action-btn" onclick="ejecutarNota()">
+                    <span class="det-btn-icon">⚠️</span>
+                    <span>Nota</span>
+                </div>
+            </div>
+
+            <div class="det-resumen-box">
+                <div class="det-resumen-title">RESUMEN FINANCIERO RÁPIDO</div>
+                <div class="det-resumen-grid">
+                    <div class="res-col">
+                        <span class="res-label">Saldo Pend.</span>
+                        <span class="res-value text-white" id="det-saldo">0.00 €</span>
+                    </div>
+                    <div class="res-col">
+                        <span class="res-label">Ticket Medio</span>
+                        <span class="res-value text-white" id="det-ticket">0.00 €</span>
+                    </div>
+                    <div class="res-col">
+                        <span class="res-label">Última Acc.</span>
+                        <span class="res-value text-white" id="det-ultima">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Catch-all para evitar cierres abruptos y diagnosticar errores
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            console.error('[Global Error]', msg, 'at', url, ':', lineNo);
+            // No mostrar alert en producción para no molestar, pero loguearlo
+            return false;
+        };
+
+        // Prevenir cierres en navegadores PWA al hacer clic en links externos
+        document.addEventListener('click', function(e) {
+            const link = e.target.closest('a');
+            if (link && link.href && !link.href.includes(window.location.host)) {
+                // Si es un link externo, abrir en pestaña nueva de forma segura
+                if (link.target !== '_blank') {
+                    e.preventDefault();
+                    window.open(link.href, '_blank', 'noopener,noreferrer');
+                }
+            }
+        });
+
+        // ===== CONFIG =====
+        const CONFIG_KEY = 'dulce_jaleo_config';
+        const AIRTABLE_BASE = 'app7VJr4iHt5v1r5c';
+        const AIRTABLE_TABLES = {
+            FACTURAS: 'tblLC7oMOUQtRWkn7',
+            ALBARANES: 'tblX9EQUmwItNJCZI',
+            GASTOS_VARIOS: 'tblHzVIPEde7zWnUv'
+        };
+
+        function loadConfig() {
+            const saved = localStorage.getItem(CONFIG_KEY);
+            if (saved) {
+                const cfg = JSON.parse(saved);
+                document.getElementById('cfgWebhookUrl').value = cfg.webhookUrl || '';
+                document.getElementById('cfgAirtableToken').value = cfg.airtableToken || '';
+                return cfg;
+            }
+            const defaults = {
+                webhookUrl: 'https://dulce-y-jaleo-n8n.xm1sa3.easypanel.host/webhook/lovable-webhook',
+                airtableToken: ''
+            };
+            document.getElementById('cfgWebhookUrl').value = defaults.webhookUrl;
+            return defaults;
+        }
+
+        function saveConfig() {
+            const cfg = {
+                webhookUrl: document.getElementById('cfgWebhookUrl').value.trim(),
+                airtableToken: document.getElementById('cfgAirtableToken').value.trim()
+            };
+            localStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+            config = cfg;
+
+            const btn = document.getElementById('saveConfigBtn');
+            btn.textContent = '✅ ¡Guardado!';
+            document.getElementById('configModal').classList.remove('open');
+            setTimeout(() => { btn.textContent = '💾 Guardar'; }, 2000);
+        }
+
+        let config = loadConfig();
+        document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
+
+        // ===== ESTADO GLOBAL CENTRALIZADO =====
+        // Fuente de verdad única: una sola consulta a Airtable alimenta TODAS las pestañas
+        let globalStats = {
+            allRecords: [],       // Todos los registros normalizados
+            mesActual: '',        // 'YYYY-MM' del mes en curso
+            // Contadores GLOBALES (todos los registros, sin filtro de mes)
+            countTotal: 0,
+            countFacturas: 0,
+            countAlbaranes: 0,
+            countGastos: 0,
+            sumTotal: 0,          // Suma € de TODOS los registros
+            sumFacturas: 0,
+            sumAlbaranes: 0,
+            sumGastos: 0,
+            // Contadores MENSUALES (solo para Márgenes)
+            recordsMes: [],
+            countTotalMes: 0,
+            totalGastosMes: 0,    // Suma € de todos los docs del mes actual
+            loaded: false
+        };
+
+        async function fetchGlobalData() {
+            config = loadConfig();
+            if (!config.airtableToken) return false;
+
+            const headers = { 'Authorization': 'Bearer ' + config.airtableToken };
+            const now = new Date();
+            globalStats.mesActual = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+            // Fetch las 3 tablas en paralelo
+            const [facturasRes, albaranesRes, gastosRes] = await Promise.all([
+                fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLES.FACTURAS}`, { headers }),
+                fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLES.ALBARANES}`, { headers }),
+                fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLES.GASTOS_VARIOS}`, { headers })
+            ]);
+
+            if (facturasRes.status === 401) {
+                throw new Error('Token de Airtable no válido. Revísalo en Ajustes.');
+            }
+
+            const [facturasData, albaranesData, gastosData] = await Promise.all([
+                facturasRes.json(), albaranesRes.json(), gastosRes.json()
+            ]);
+
+            // Normalizar TODOS los registros
+            globalStats.allRecords = [];
+            if (facturasData.records) globalStats.allRecords.push(...facturasData.records.map(r => normalizeRecord(r, 'FACTURA')));
+            if (albaranesData.records) globalStats.allRecords.push(...albaranesData.records.map(r => normalizeRecord(r, 'ALBARAN')));
+            if (gastosData.records) globalStats.allRecords.push(...gastosData.records.map(r => normalizeRecord(r, 'GASTOS_VARIOS')));
+
+            // Ordenar por fecha descendente
+            globalStats.allRecords.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
+
+            // Calcular AMBOS sets de estadísticas
+            calculateGlobalStats();
+            globalStats.loaded = true;
+            return true;
+        }
+
+        function calculateGlobalStats() {
+            const all = globalStats.allRecords;
+            const mes = globalStats.mesActual;
+
+            // --- TOTALES GLOBALES (sin filtro de mes, TODOS los registros) ---
+            const facturas = all.filter(f => f.categoria === 'FACTURA');
+            const albaranes = all.filter(f => f.categoria === 'ALBARAN');
+            const gastos = all.filter(f => f.categoria === 'GASTOS_VARIOS');
+
+            globalStats.countTotal = all.length;
+            globalStats.countFacturas = facturas.length;
+            globalStats.countAlbaranes = albaranes.length;
+            globalStats.countGastos = gastos.length;
+
+            globalStats.sumTotal = all.reduce((s, f) => s + (f.total || 0), 0);
+            globalStats.sumFacturas = facturas.reduce((s, f) => s + (f.total || 0), 0);
+            globalStats.sumAlbaranes = albaranes.reduce((s, f) => s + (f.total || 0), 0);
+            globalStats.sumGastos = gastos.reduce((s, f) => s + (f.total || 0), 0);
+
+            // --- TOTALES MENSUALES (solo mes actual, para Márgenes) ---
+            // IMPORTANTE: Usar createdAt (fecha de SUBIDA a Airtable) en vez de fecha del documento
+            // Porque las facturas pueden tener fechas antiguas (2019, 2024...) pero se subieron este mes
+            const delMes = all.filter(f => {
+                const fechaRef = f.createdAt || f.fecha || '';
+                return fechaRef && fechaRef.startsWith(mes);
+            });
+            globalStats.recordsMes = delMes;
+            globalStats.countTotalMes = delMes.length;
+            globalStats.totalGastosMes = delMes.reduce((s, f) => s + (f.total || 0), 0);
+
+            console.log('[Dulce Jaleo] Stats globales:', globalStats.countTotal, 'docs |', globalStats.sumTotal.toFixed(2), '€');
+            console.log('[Dulce Jaleo] Stats mes', mes + ':', globalStats.countTotalMes, 'docs |', globalStats.totalGastosMes.toFixed(2), '€');
+        }
+
+        // Modal Config desde ⚙️ del header
+        document.getElementById('gearBtn').addEventListener('click', () => {
+            document.getElementById('configModal').classList.add('open');
+        });
+        document.getElementById('closeConfigModal').addEventListener('click', () => {
+            document.getElementById('configModal').classList.remove('open');
+        });
+        document.getElementById('configModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('configModal'))
+                document.getElementById('configModal').classList.remove('open');
+        });
+
+        // ===== BOTTOM NAVIGATION =====
+        function activateTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.nav-btn[data-tab]').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.nav-btn-fab').forEach(b => b.classList.remove('active'));
+
+            const target = document.getElementById('tab-' + tabId);
+            if (target) target.classList.add('active');
+
+            const activeBtn = document.querySelector('.nav-btn[data-tab="' + tabId + '"]');
+            const activeFab = document.querySelector('.nav-btn-fab[data-tab="' + tabId + '"]');
+            if (activeBtn) activeBtn.classList.add('active');
+            if (activeFab) activeFab.classList.add('active');
+
+            // FAB Añadir Contacto: visible solo en pestaña Agenda
+            const fabAdd = document.getElementById('fabAddContact');
+            if (tabId === 'agenda') {
+                fabAdd.classList.add('visible');
+                renderAgenda();
+            } else {
+                fabAdd.classList.remove('visible');
+            }
+
+            if (tabId === 'facturas') loadFacturas();
+            if (tabId === 'margenes') loadMargenes();
+        }
+
+        document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => {
+            btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+        });
+
+        document.getElementById('fabBtn').addEventListener('click', () => activateTab('scanner'));
+
+
+
+        // Activar tab inicial
+        activateTab('scanner');
+
+        // ===== SCANNER =====
+        let selectedFile = null;   // Archivo File verdadero a enviar
+        const scannerArea = document.getElementById('scannerArea');
+        const fileInputCamera = document.getElementById('fileInputCamera');
+        const fileInputGallery = document.getElementById('fileInputGallery');
+        const btnCamera = document.getElementById('btnCamera');
+        const btnGallery = document.getElementById('btnGallery');
+        const previewImg = document.getElementById('previewImg');
+        const placeholder = document.getElementById('scannerPlaceholder');
+        const sendBtn = document.getElementById('sendBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const resultArea = document.getElementById('resultArea');
+
+        btnCamera.addEventListener('click', e => { e.stopPropagation(); fileInputCamera.click(); });
+        btnGallery.addEventListener('click', e => { e.stopPropagation(); fileInputGallery.click(); });
+        scannerArea.addEventListener('click', () => { if (!selectedFile) fileInputGallery.click(); });
+
+        // Drag & Drop
+        scannerArea.addEventListener('dragover', e => { e.preventDefault(); scannerArea.classList.add('drag-over'); });
+        scannerArea.addEventListener('dragleave', () => scannerArea.classList.remove('drag-over'));
+        scannerArea.addEventListener('drop', e => {
+            e.preventDefault();
+            scannerArea.classList.remove('drag-over');
+            if (e.dataTransfer.files.length) processSelectedFile(e.dataTransfer.files[0], false);
+        });
+
+        fileInputCamera.addEventListener('change', e => { if (e.target.files.length) processSelectedFile(e.target.files[0], true); });
+        fileInputGallery.addEventListener('change', e => { if (e.target.files.length) processSelectedFile(e.target.files[0], false); });
+
+        function showPreviewDirectly(srcBase64) {
+            previewImg.src = srcBase64;
+            previewImg.style.display = 'block';
+            placeholder.style.display = 'none';
+            scannerArea.classList.add('has-image');
+            sendBtn.disabled = false;
+            clearBtn.style.display = 'block';
+            resultArea.style.display = 'none';
+        }
+
+        function dataURLtoFile(dataurl, filename) {
+            const arr = dataurl.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+            while(n--){
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new File([u8arr], filename, {type:mime});
+        }
+
+        function processSelectedFile(file, isCamera) {
+            if (file.type && !file.type.startsWith('image/')) {
+                alert('Por favor selecciona una imagen');
+                return;
+            }
+
+            // Paso A: Si es de galería, usamos el archivo original que funcionaba bien
+            if (!isCamera) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = ev => showPreviewDirectly(ev.target.result);
+                reader.readAsDataURL(file);
+                return;
+            }
+
+            // Paso B: Si es de la Cámara, procesamos DataURL y lo convertimos a File explícitamente
+            // Aceptar imagen aunque sea HEIC en iOS (el type puede ser vacío)
+            if (file.type && !file.type.startsWith('image/')) {
+                alert('Por favor selecciona una imagen');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onerror = () => alert('No se pudo leer el archivo de la cámara.');
+            reader.onload = ev => {
+                const img = new Image();
+                img.onerror = () => {
+                    selectedFile = file; // Fallback extremo
+                    showPreviewDirectly(ev.target.result);
+                };
+                img.onload = () => {
+                    const MAX_W = 1200;
+                    let w = img.width, h = img.height;
+                    if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W; }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.drawImage(img, 0, 0, w, h);
+                    
+                    try {
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                        selectedFile = dataURLtoFile(dataUrl, 'foto_camara.jpg');
+                        showPreviewDirectly(dataUrl);
+                    } catch (e) {
+                        alert('Error procesando imagen en memoria: ' + e.message);
+                        selectedFile = file;
+                        showPreviewDirectly(ev.target.result);
+                    }
+                    
+                    canvas.width = 0; canvas.height = 0;
+                };
+                img.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        clearBtn.addEventListener('click', e => { e.stopPropagation(); resetScanner(); });
+
+        function resetScanner() {
+            selectedFile = null;
+            previewImg.style.display = 'none';
+            previewImg.src = '';
+            placeholder.style.display = 'block';
+            scannerArea.classList.remove('has-image');
+            sendBtn.disabled = true;
+            clearBtn.style.display = 'none';
+            fileInputCamera.value = '';
+            fileInputGallery.value = '';
+        }
+
+        sendBtn.addEventListener('click', sendImage);
+
+        async function sendImage() {
+            if (!selectedFile) return;
+            config = loadConfig();
+            if (!config.webhookUrl) {
+                alert('⚠️ Configura la URL del Webhook primero en Ajustes ⚙️');
+                return;
+            }
+
+            const overlay = document.getElementById('processingOverlay');
+            overlay.classList.remove('hidden');
+
+            try {
+                const formData = new FormData();
+                formData.append('data', selectedFile); 
+
+                const response = await fetch(config.webhookUrl, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorMsg = await response.text();
+                    throw new Error(`Servidor n8n (HTTP ${response.status}):\n${errorMsg.substring(0,250)}`);
+                }
+
+                const result = await response.json();
+                showResult(result);
+            } catch (err) {
+                // Paso C: try/catch con alert() con el err.message exacto
+                alert('❌ ERROR FATAL O RECHAZO DEL SERVIDOR:\n\n' + err.message);
+            } finally {
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function showResult(data) {
+            resultArea.style.display = 'block';
+            const record = Array.isArray(data) ? data[0] : data;
+            const fields = record?.fields || record || {};
+
+            let rawCategoria = fields['tabla_destino'] || fields['CATEGORIA'] || 'Procesado';
+            let catUpper = rawCategoria.toUpperCase();
+            
+            if (catUpper.includes('FACTURA') || catUpper.includes('TICKET')) {
+                rawCategoria = 'FACTURAS';
+            } else if (catUpper.includes('ALBARAN')) {
+                rawCategoria = 'ALBARANES';
+            } else if (catUpper.includes('GASTO')) {
+                rawCategoria = 'GASTOS CAJA';
+            }
+
+            document.getElementById('resultCategoria').textContent = 'Categoría: ' + rawCategoria;
+
+            const grid = document.getElementById('resultGrid');
+            const items = [
+                { label: 'Proveedor', value: fields['PROVEDOR/ TITULO'] || fields['proveedor'] || '-' },
+                { label: 'Total', value: (fields['TOTAL'] || fields['total'] || '0') + ' €', cls: 'amount' },
+                { label: 'Fecha', value: fields['Fecha'] || fields['fecha'] || '-' },
+                { label: 'Nº Doc', value: fields['NUMERO DE DOC'] || fields['numero_doc'] || '-' },
+                { label: 'Base Imponible', value: (fields['BASE IMPONIBLE'] || fields['base_imponible'] || '0') + ' €' },
+                { label: 'IVA', value: (fields['IVA'] || fields['iva'] || '0') + ' €' }
+            ];
+
+            grid.innerHTML = items.map(i => `
+                <div class="result-item">
+                    <div class="result-label">${i.label}</div>
+                    <div class="result-value ${i.cls || ''}">${i.value}</div>
+                </div>
+            `).join('');
+
+            resetScanner();
+        }
+
+        // ===== FACTURAS (usa estado global) =====
+        let allFacturas = [];
+        let currentFilter = 'all';
+
+        document.getElementById('refreshBtn').addEventListener('click', loadFacturas);
+
+        document.getElementById('filterContainer').addEventListener('click', e => {
+            if (!e.target.classList.contains('sub-tab-btn')) return;
+            document.querySelectorAll('.sub-tab-btn').forEach(c => c.classList.remove('active'));
+            e.target.classList.add('active');
+            currentFilter = e.target.dataset.filter;
+            renderFacturas();
+        });
+
+        async function loadFacturas() {
+            config = loadConfig();
+            if (!config.airtableToken) {
+                showError('Configura tu Airtable Token en la pestaña ⚙️ Ajustes');
+                document.getElementById('facturasList').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔑</div>
+                        <div class="empty-title">Token no configurado</div>
+                        <div class="empty-desc">Ve a Ajustes ⚙️ e introduce<br>tu Airtable Personal Access Token</div>
+                    </div>`;
+                return;
+            }
+
+            const list = document.getElementById('facturasList');
+            list.innerHTML = `<div class="empty-state">
+                <div style="display:flex;justify-content:center;margin-bottom:12px;">
+                    <div class="spinner-track"></div>
+                </div>
+                <div class="empty-title">Cargando documentos...</div>
+            </div>`;
+
+            try {
+                // Usar estado global centralizado (una sola consulta)
+                await fetchGlobalData();
+                allFacturas = globalStats.allRecords;
+
+                updateStats();
+                renderFacturas();
+                hideError();
+            } catch (err) {
+                showError('No se pudieron cargar los datos: ' + err.message);
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">⚠️</div>
+                        <div class="empty-title">Error de conexión</div>
+                        <div class="empty-desc">Verifica tu Airtable Token<br>en la pestaña ⚙️ Ajustes</div>
+                    </div>`;
+            }
+        }
+
+        function normalizeRecord(item, categoria) {
+            const f = item.fields || item;
+            
+            // Normalizamos la categoría base
+            let catLimpia = categoria;
+            if (categoria === 'FACTURAS') catLimpia = 'FACTURA';
+            if (categoria === 'ALBARANES') catLimpia = 'ALBARAN';
+
+            const cif = f.CIF || f.cif || '';
+            const iva = parseFloat(f.IVA || f.iva || 0);
+            const total = parseFloat(f.TOTAL || f.total || 0);
+
+            // REGLA DE RECLASIFICACIÓN: Si tiene CIF/NIF e IVA desglosado, es FACTURA
+            if (catLimpia === 'GASTOS_VARIOS' && cif && iva > 0) {
+                catLimpia = 'FACTURA';
+            }
+
+            return {
+                proveedor: f['PROVEDOR/ TITULO'] || f.proveedor || 'Desconocido',
+                cif: cif,
+                fecha: f.Fecha || f.fecha || '',
+                createdAt: (item.createdTime || '').slice(0, 10),  // YYYY-MM-DD de Airtable
+                numero_doc: f['NUMERO DE DOC'] || f.numero_doc || '',
+                base_imponible: parseFloat(f['BASE IMPONIBLE'] || f.base_imponible || 0),
+                iva: iva,
+                total: total,
+                detalles: f['DETALLES DOC'] || f.detalles || '',
+                moneda: f.MONEDA || f.moneda || 'EUR',
+                categoria: catLimpia
+            };
+        }
+
+        function updateStats() {
+            // TOTALES GLOBALES: cuenta y suma de TODOS los registros de Airtable
+            document.getElementById('statTotal').textContent = globalStats.countTotal;
+            document.getElementById('statFacturas').textContent = globalStats.countFacturas;
+            document.getElementById('statAlbaranes').textContent = globalStats.countAlbaranes;
+            document.getElementById('statGastos').textContent = globalStats.countGastos;
+        }
+
+        function renderFacturas() {
+            const list = document.getElementById('facturasList');
+            const filtered = currentFilter === 'all' ? allFacturas : allFacturas.filter(f => f.categoria === currentFilter);
+
+            if (filtered.length === 0) {
+                const labels = {
+                    all: 'Sin documentos aún',
+                    FACTURA: 'Sin facturas aún',
+                    ALBARAN: 'Sin albaranes aún',
+                    GASTOS_VARIOS: 'Sin gastos aún'
+                };
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📭</div>
+                        <div class="empty-title">${labels[currentFilter] || 'Sin documentos'}</div>
+                        <div class="empty-desc">Escanea tu primer documento<br>con el botón de la cámara 📷</div>
+                    </div>`;
+                document.getElementById('totalPeriodoBanner').textContent = '0.00 €';
+                return;
+            }
+
+            list.innerHTML = filtered.map(f => {
+                const badgeClass = f.categoria === 'FACTURA' ? 'badge-factura' :
+                    f.categoria === 'ALBARAN' ? 'badge-albaran' : 'badge-gastos';
+                const badgeText = f.categoria === 'GASTOS_VARIOS' ? 'GASTOS' : f.categoria;
+                const total = typeof f.total === 'number' ? f.total.toFixed(2) : (f.total || '0');
+
+                return `
+                    <div class="factura-card">
+                        <div class="factura-top">
+                            <div class="factura-info">
+                                <div class="factura-proveedor">${f.proveedor}</div>
+                                <span class="factura-badge ${badgeClass}">${badgeText}</span>
+                            </div>
+                            <div class="factura-total">${total}€</div>
+                        </div>
+                        <div class="factura-meta">
+                            <span>📅 ${f.fecha || 'Sin fecha'}</span>
+                            <span>📄 ${f.numero_doc || 'S/N'}</span>
+                            ${f.cif ? `<span>🏢 ${f.cif}</span>` : ''}
+                        </div>
+                        <div class="factura-actions">
+                            <button class="factura-btn-view" onclick='openFacturaModal(${JSON.stringify(f).replace(/'/g, "&#39;")})'>
+                                👁️ Ver Detalles
+                            </button>
+                        </div>
+                    </div>`;
+            }).join('');
+
+            // Actualizar banner TOTAL PERIODO con la suma de los filtrados
+            const sumaFiltrada = filtered.reduce((acc, f) => acc + (parseFloat(f.total) || 0), 0);
+            document.getElementById('totalPeriodoBanner').textContent = sumaFiltrada.toFixed(2) + ' €';
+        }
+
+        // Funciones del Modal de Factura
+        window.openFacturaModal = function(f) {
+            document.getElementById('fmTitle').textContent = f.categoria === 'FACTURA' ? 'Factura' : f.categoria === 'ALBARAN' ? 'Albarán' : 'Gasto Vario';
+            document.getElementById('fmTotal').textContent = (typeof f.total === 'number' ? f.total.toFixed(2) : (f.total || '0')) + ' €';
+            document.getElementById('fmProveedor').textContent = f.proveedor || '-';
+            document.getElementById('fmFecha').textContent = f.fecha || '-';
+            document.getElementById('fmDoc').textContent = f.numero_doc || '-';
+            document.getElementById('fmCif').textContent = f.cif || '-';
+            document.getElementById('fmBase').textContent = (f.base_imponible || '0') + ' €';
+            document.getElementById('fmIva').textContent = (f.iva || '0') + ' €';
+            document.getElementById('fmDetalles').textContent = f.detalles || 'Sin conceptos extraídos.';
+            
+            document.getElementById('facturaModal').classList.add('active');
+        };
+
+        window.closeFacturaModal = function() {
+            document.getElementById('facturaModal').classList.remove('active');
+        };
+
+        function showError(msg) {
+            const el = document.getElementById('errorBanner');
+            el.textContent = '⚠️ ' + msg;
+            el.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorBanner').style.display = 'none';
+        }
+
+        // ===== AGENDA / CONTACTOS =====
+        const CONTACTS_KEY = 'dulce_jaleo_contactos';
+        let newContactType = 'proveedor';
+        let agendaFilter = 'all';
+
+        function getContacts() {
+            const saved = localStorage.getItem(CONTACTS_KEY);
+            return saved ? JSON.parse(saved) : [];
+        }
+
+        function saveContacts(contacts) {
+            localStorage.setItem(CONTACTS_KEY, JSON.stringify(contacts));
+        }
+
+        function normalize(str) {
+            return (str || '').toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9\s]/g, '').trim();
+        }
+
+        // Matching inteligente: busca si alguna palabra del proveedor coincide con un contacto
+        function findMatchingContact(proveedorName) {
+            const contacts = getContacts();
+            const words = normalize(proveedorName).split(/\s+/).filter(w => w.length > 3);
+            for (const c of contacts) {
+                const cn = normalize(c.nombre);
+                if (words.some(w => cn.includes(w))) return c;
+            }
+            return null;
+        }
+
+        function renderAgenda() {
+            const contacts = getContacts();
+            const searchVal = normalize(document.getElementById('agendaSearch')?.value || '');
+            const list = document.getElementById('contactList');
+
+            if (!list) return;
+
+            let filtered = contacts.filter(c => {
+                if (agendaFilter !== 'all' && c.tipo !== agendaFilter) return false;
+                if (!searchVal) return true;
+                return normalize(c.nombre).includes(searchVal) ||
+                       normalize(c.telefono || '').includes(searchVal) ||
+                       normalize(c.email || '').includes(searchVal);
+            });
+
+            document.getElementById('agendaCount').textContent = contacts.length + ' contacto' + (contacts.length !== 1 ? 's' : '');
+
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="empty-state">
+                    <div class="empty-icon">${agendaFilter === 'proveedor' ? '🏭' : agendaFilter === 'cliente' ? '🛒' : '📒'}</div>
+                    <div class="empty-title">${searchVal ? 'Sin resultados' : 'Sin contactos aún'}</div>
+                    <div class="empty-desc">${searchVal ? 'Prueba con otro término de búsqueda' : 'Pulsa ✚ para añadir tu primer contacto'}</div>
+                </div>`;
+                return;
+            }
+
+            // REGLA CLAVE: Fuerza Bruta con onclick en línea + CSS anticapas invisibles
+            list.innerHTML = filtered.map((c, i) => {
+                const initials = c.nombre.split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+                const avatarClass = c.tipo === 'proveedor' ? 'avatar-proveedor' : 'avatar-cliente';
+                return `
+                <div class="contact-card" onclick="window.forzarAperturaCliente('${c.id}')" style="cursor: pointer; position: relative; z-index: 50; pointer-events: auto;">
+                    <div class="contact-avatar ${avatarClass}">${initials}</div>
+                    <div class="contact-info">
+                        <div class="contact-name">${c.nombre}</div>
+                        <div class="contact-meta">
+                            ${c.telefono ? '📞 '+c.telefono : ''}
+                            ${c.categoria ? ' · '+c.categoria : ''}
+                        </div>
+                    </div>
+                    <span class="contact-arrow">›</span>
+                </div>`;
+            }).join('');
+        }
+
+        // [LA LÓGICA DEL CLIC INFALIBLE AHORA RESIDE EN AGENDA.JS]
+
+        // Sub-tabs de Agenda
+        document.addEventListener('click', e => {
+            const btn = e.target.closest('.agenda-sub-btn');
+            if (btn) {
+                document.querySelectorAll('.agenda-sub-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                agendaFilter = btn.dataset.agenda;
+                renderAgenda();
+            }
+        });
+
+        // Búsqueda en tiempo real
+        if (document.getElementById('agendaSearch')) {
+            document.getElementById('agendaSearch').addEventListener('input', renderAgenda);
+        }
+
+        // Modal
+        document.getElementById('fabAddContact').addEventListener('click', () => {
+            document.getElementById('contactModal').classList.add('open');
+            document.getElementById('cNombre').focus();
+        });
+
+        document.getElementById('closeModal').addEventListener('click', () => {
+            document.getElementById('contactModal').classList.remove('open');
+        });
+
+        document.getElementById('contactModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('contactModal'))
+                document.getElementById('contactModal').classList.remove('open');
+        });
+
+        document.querySelectorAll('.modal-type-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.modal-type-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                newContactType = btn.dataset.ctype;
+            });
+        });
+
+        document.getElementById('saveContact').addEventListener('click', () => {
+            const nombre = document.getElementById('cNombre').value.trim();
+            if (!nombre) { document.getElementById('cNombre').focus(); return; }
+            const contacts = getContacts();
+            contacts.push({
+                id: Date.now().toString(), // Asegurar ID string para data-id
+                tipo: newContactType,
+                nombre: nombre,
+                telefono: document.getElementById('cTelefono').value.trim(),
+                email: document.getElementById('cEmail').value.trim(),
+                categoria: document.getElementById('cCategoria').value.trim(),
+                creado: new Date().toISOString().slice(0,10)
+            });
+            saveContacts(contacts);
+            ['cNombre','cTelefono','cEmail','cCategoria'].forEach(id => document.getElementById(id).value = '');
+            document.getElementById('contactModal').classList.remove('open');
+            renderAgenda();
+        });
+
+        // ===== MÁRGENES =====
+        const VENTA_KEY = 'dulce_jaleo_venta_semanal';
+
+        async function loadMargenes() {
+            const ventaGuardada = localStorage.getItem(VENTA_KEY);
+            if (ventaGuardada) document.getElementById('ventaSemanalInput').value = ventaGuardada;
+
+            if (!config.airtableToken) {
+                document.getElementById('margenSub').textContent = '⚠️ Configura tu token de Airtable (⚙️)';
+                return;
+            }
+
+            document.getElementById('margenSub').textContent = 'Leyendo gastos...';
+
+            try {
+                // Reutilizar datos globales (misma fuente que Dashboard)
+                if (!globalStats.loaded) await fetchGlobalData();
+
+                const now = new Date();
+                const totalGastos = globalStats.totalGastosMes;
+                const totalDocs = globalStats.countTotalMes;
+
+                // Calcular ingresos estimados del mes
+                const ventaSemanal = parseFloat(localStorage.getItem(VENTA_KEY) || 0);
+                const semanasEnMes = 4.33;
+                const ingresosMes = ventaSemanal * semanasEnMes;
+                const margen = ingresosMes > 0 ? ((ingresosMes - totalGastos) / ingresosMes * 100) : null;
+
+                // Actualizar UI — MISMOS NÚMEROS que en Dashboard
+                document.getElementById('mGastos').textContent = totalGastos.toFixed(2) + '€';
+                document.getElementById('mIngresos').textContent = ingresosMes > 0 ? ingresosMes.toFixed(0) + '€' : '—';
+                document.getElementById('mFacturas').textContent = totalDocs;
+
+                const valEl = document.getElementById('margenValor');
+                const subEl = document.getElementById('margenSub');
+                const barEl = document.getElementById('margenBar');
+
+                if (margen === null) {
+                    valEl.textContent = '—';
+                    valEl.className = 'margin-value neutral';
+                    subEl.textContent = 'Configura tu venta semanal para ver el margen estimado';
+                    barEl.style.width = '0%';
+                } else {
+                    valEl.textContent = (margen >= 0 ? '+' : '') + margen.toFixed(1) + '%';
+                    valEl.className = 'margin-value ' + (margen >= 20 ? 'positive' : margen >= 0 ? 'neutral' : 'negative');
+                    subEl.textContent = `Gastos: ${totalGastos.toFixed(2)}€ | Ingresos est.: ${ingresosMes.toFixed(0)}€ | ${now.toLocaleString('es-ES', {month:'long'})}`;
+                    barEl.style.width = Math.min(Math.abs(totalGastos / ingresosMes * 100), 100) + '%';
+                    barEl.style.background = margen >= 20 ? 'linear-gradient(90deg,#059669,#10b981)' : margen >= 0 ? 'linear-gradient(90deg,#d97706,#f59e0b)' : 'linear-gradient(90deg,#dc2626,#ef4444)';
+                }
+
+            } catch(err) {
+                document.getElementById('margenSub').textContent = '❌ Error al cargar datos: ' + err.message;
+            }
+        }
+
+        document.getElementById('saveVentaBtn').addEventListener('click', () => {
+            const val = document.getElementById('ventaSemanalInput').value.trim();
+            if (val && !isNaN(val)) {
+                localStorage.setItem(VENTA_KEY, val);
+                loadMargenes();
+            }
+        });
+
+        // Initialize Splash Screen
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                if (splash) splash.classList.add('hide');
+            }, 800); // 800ms delay for native feel
+        });
+
+        // [BLOQUE 3: CONEXIÓN DE DATOS Y LÓGICA POPUP REEMPLAZADA POR VISTA EN AGENDA.JS]
+        let contactSelected = null;
+
+        function calculateContactFinancials(nombre) {
+            const allDocs = globalStats.allRecords;
+            // Filtro por nombre de proveedor (case insensitive normalize)
+            const matches = allDocs.filter(d => normalize(d.proveedor).includes(normalize(nombre)));
+            
+            const total = matches.reduce((acc, d) => acc + (d.total || 0), 0);
+            const count = matches.length;
+            const avg = count > 0 ? (total / count) : 0;
+            const lastDate = matches.length > 0 ? matches[0].fecha : '-';
+
+            document.getElementById('det-saldo').textContent = total.toFixed(2) + ' €';
+            document.getElementById('det-ticket').textContent = avg.toFixed(2) + ' €';
+            document.getElementById('det-ultima').textContent = lastDate || '-';
+        }
+
+        window.ejecutarLlamada = function() {
+            if (window.contactSelected && window.contactSelected.telefono) {
+                window.location.href = 'tel:' + window.contactSelected.telefono;
+            } else {
+                alert('Este contacto no tiene teléfono guardado.');
+            }
+        };
+
+        window.ejecutarWhatsApp = function() {
+            if (window.contactSelected && window.contactSelected.telefono) {
+                window.location.href = 'https://wa.me/' + window.contactSelected.telefono.replace(/\s+/g, '');
+            } else {
+                alert('Este contacto no tiene teléfono guardado.');
+            }
+        };
+
+        window.ejecutarHistorial = function() {
+            if (!window.contactSelected) return;
+            // Cargar en la pestaña de facturas filtrando por este proveedor
+            activateTab('facturas');
+            currentFilter = 'all'; // Reset filter to see all from this contact
+            
+            // Simular búsqueda para filtrar lista
+            setTimeout(() => {
+                const results = allFacturas.filter(f => normalize(f.proveedor).includes(normalize(window.contactSelected.nombre)));
+                updateListWithCustomData(results, `Historial: ${window.contactSelected.nombre}`);
+                // Si llegamos de la vista contacto, mostramos el tab facturas sin hacer más
+            }, 100);
+        };
+
+        function updateListWithCustomData(data, title) {
+            const list = document.getElementById('facturasList');
+            const titleEl = document.querySelector('#tab-facturas .section-title');
+            if (titleEl) titleEl.textContent = title;
+            renderCustomFacturas(data);
+        }
+
+        function renderCustomFacturas(filtered) {
+            const list = document.getElementById('facturasList');
+            if (filtered.length === 0) {
+                list.innerHTML = `<div class="empty-state">
+                    <div class="empty-icon">📭</div>
+                    <div class="empty-title">Sin historial</div>
+                    <div class="empty-desc">No hay documentos registrados para este contacto</div>
+                </div>`;
+                return;
+            }
+            list.innerHTML = filtered.map(f => {
+                const badgeClass = f.categoria === 'FACTURA' ? 'badge-factura' : 'badge-albaran';
+                return `
+                    <div class="factura-card">
+                        <div class="factura-top">
+                            <div class="factura-info">
+                                <div class="factura-proveedor">${f.proveedor}</div>
+                                <span class="factura-badge ${badgeClass}">${f.categoria}</span>
+                            </div>
+                            <div class="factura-total">${(f.total || 0).toFixed(2)}€</div>
+                        </div>
+                        <div class="factura-meta">
+                            <span>📅 ${f.fecha || 'S/F'}</span>
+                            <span>📄 ${f.numero_doc || 'S/N'}</span>
+                        </div>
+                        <div class="factura-actions">
+                            <button class="factura-btn-view" onclick='openFacturaModal(${JSON.stringify(f).replace(/'/g, "&#39;")})'>
+                                👁️ Ver Detalles
+                            </button>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        window.ejecutarNota = function() {
+            alert('En desarrollo: ' + (window.contactSelected && window.contactSelected.email ? window.contactSelected.email : 'Sin nota.'));
+        };
+    </script>
+    <script src="agenda.js"></script>
+</body>
+</html>

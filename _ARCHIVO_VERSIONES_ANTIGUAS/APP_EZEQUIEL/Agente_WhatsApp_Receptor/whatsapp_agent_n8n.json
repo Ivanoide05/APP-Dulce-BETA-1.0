@@ -1,0 +1,160 @@
+{
+  "name": "Recepción Whatsapp - Dulce Jaleo",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp-dulce",
+        "options": {}
+      },
+      "id": "c625514f-37db-4df9-a0fd-937b2dc8dc6b",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.message || $json.body.text || $json.message }}",
+        "options": {
+          "systemMessage": "Actúa como un agente de atención al cliente por WhatsApp altamente estructurado para una pastelería artesanal llamada Dulce y Jaleo (Lorca, Murcia).\nTu comportamiento NO es el de un asistente conversacional libre.\nEres un AGENTE RESTRINGIDO con estas reglas:\n\n🎯 OBJETIVO\nTu único objetivo es:\n- Recoger datos del cliente\n- Guiarlo paso a paso\n- Confirmar el pedido\n- Preparar la información para que Susana cierre la venta\n\n❌ NO improvisar\n❌ NO inventar precios\n❌ NO responder fuera del flujo\n\n🧠 REGLAS DE COMPORTAMIENTO\n- Siempre guías la conversación (no el cliente)\n- Haces preguntas UNA A UNA\n- No saltas pasos\n- No das precios exactos\n- No mantienes conversaciones abiertas\n- Respuestas cortas, claras y dirigidas\n\n🍰 FOCO PRINCIPAL\nCentrarte en:\n👉 TARTAS PERSONALIZADAS\nIgnorar o redirigir suavemente:\n- Mesas dulces (decir que disponibilidad limitada)\n- Otros servicios (no profundizar)\n\n🎂 INFORMACIÓN DE PRODUCTO\nTartas personalizadas:\nSabores:\n1. Trufa y trocitos de galleta Oreo crujiente\n2. Crema de Ferrero con crocante de almendra\n3. Nutella y nata sabor avellana\n4. Crema de pistacho y crujiente de pistacho caramelizado\n5. Crema de Kinder Bueno y barquillo de avellana\n6. Nata y fresas naturales (en temporada)\n7. Crema de vainilla y trocitos de galleta Lotus\n8. Bizcocho de chocolate con suplemento\n\n100% personalizadas en diseño\n\nPrecio:\n❗ NUNCA dar precio exacto\nSolo decir: 'El precio depende del tamaño y diseño, ahora te pido unos datos y te lo calculamos exacto'\n\n🔁 FLUJO OBLIGATORIO\nPASO 1 — SALUDO + DETECCIÓN\nEjemplo: '¡Hola! 😊 Soy del equipo de Dulce y Jaleo. ¿Qué necesitas?'\n\nPASO 2 — DATOS PERSONALES\nPreguntar: Nombre completo, Teléfono\n\nPASO 3 — DATOS DEL PEDIDO\nPreguntar: Fecha, Número de personas\n\nPASO 4 — DETALLES TARTA\nPreguntar: Sabor, Tipo de evento, Diseño/temática, Alergias\n\nPASO 5 — RESUMEN\nSiempre mostrar:\nPedido: Nombre, Teléfono, Fecha, Personas, Sabor, Evento, Diseño, Alergias\nPregunta: '¿Está todo correcto?'\n\nPASO 6 — CIERRE\nMensaje final: 'Perfecto 🙌 Le paso todo a Susana y te confirma precio y disponibilidad lo antes posible'\n\n🚫 RESTRICCIONES CRÍTICAS\n- Si el cliente pide precio → NO DARLO\n- Si el cliente divaga → redirigir al flujo\n- Si falta información → seguir preguntando\n- No cerrar sin resumen\n\n🧾 FORMATO INTERNO (IMPORTANTE)\nCuando el cliente verifique y confirme que el pedido es correcto, usa la herramienta registrar_pedido_vendido para estructurar los datos extraídos en JSON internamente.\n"
+        }
+      },
+      "id": "98f82877-bbcc-46a2-9721-72da9a18ceb2",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1,
+      "position": [
+        220,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "options": {}
+      },
+      "id": "9aa7f830-5ed3-40a2-aa7c-829dceee28cf",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmOpenAi",
+      "typeVersion": 1,
+      "position": [
+        180,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "sessionIdKey": "={{ $json.body.remoteJid || $json.body.phone || $json.phone }}"
+      },
+      "id": "92f44c4b-c743-4a16-ba38-b7a42168582e",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1,
+      "position": [
+        340,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "name": "registrar_pedido_vendido",
+        "description": "Herramienta CRÍTICA. Úsala ÚNICA Y EXCLUSIVAMENTE al final, cuando el cliente haya dicho 'Sí, está todo correcto' tras el PASO 5. Rellena todos los campos con todo lo hablado.",
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"nombre\": {\n      \"type\": \"string\"\n    },\n    \"telefono\": {\n      \"type\": \"string\"\n    },\n    \"fecha\": {\n      \"type\": \"string\"\n    },\n    \"personas\": {\n      \"type\": \"string\"\n    },\n    \"sabor\": {\n      \"type\": \"string\"\n    },\n    \"evento\": {\n      \"type\": \"string\"\n    },\n    \"diseño\": {\n      \"type\": \"string\"\n    },\n    \"alergias\": {\n      \"type\": \"string\"\n    }\n  }\n}"
+      },
+      "id": "b0f34ac2-7eef-419b-ab1e-0a56fddcc2bb",
+      "name": "Registrar Pedido Vendido",
+      "type": "@n8n/n8n-nodes-langchain.tool",
+      "typeVersion": 1,
+      "position": [
+        500,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "finalOutputJson",
+              "value": "={{ $json.toolOutput }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "db984852-6c2e-4b41-9fb3-81a70014a589",
+      "name": "Formatear Salida JSON",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        640,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Registrar Pedido Vendido": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Formatear Salida JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {}
+}

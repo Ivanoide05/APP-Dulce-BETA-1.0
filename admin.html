@@ -13,6 +13,16 @@
     <!-- Toastify -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script src="public/js/auth.js"></script>
+    <script>
+        // Protección de ruta inmediata (Perfil Admin)
+        if (typeof DulceAuth !== 'undefined') {
+            const user = DulceAuth.checkAuth();
+            if (user && user.role !== 'admin') {
+                window.location.href = '/index.html';
+            }
+        }
+    </script>
 
     <style>
         /* ========== CSS VARIABLES ========== */
@@ -669,53 +679,10 @@
         }
 
         // ============================================================
-        // AUTH CHECK
+        // LOGOUT
         // ============================================================
-        function decodeJWT(token) {
-            try {
-                const payload = token.split('.')[1];
-                // Reemplazar caracteres base64url por base64
-                const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonStr = decodeURIComponent(
-                    atob(base64).split('').map(c =>
-                        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-                    ).join('')
-                );
-                return JSON.parse(jsonStr);
-            } catch (e) {
-                return null;
-            }
-        }
-
-        function checkAuth() {
-            const token = localStorage.getItem('auth_token');
-            if (!token) {
-                window.location.href = '/login.html';
-                return null;
-            }
-
-            const payload = decodeJWT(token);
-            if (!payload) {
-                localStorage.removeItem('auth_token');
-                window.location.href = '/login.html';
-                return null;
-            }
-
-            // Verificar expiración
-            if (payload.exp && payload.exp * 1000 < Date.now()) {
-                localStorage.removeItem('auth_token');
-                window.location.href = '/login.html';
-                return null;
-            }
-
-            // Verificar rol admin
-            if (payload.role !== 'admin') {
-                localStorage.removeItem('auth_token');
-                window.location.href = '/login.html';
-                return null;
-            }
-
-            return payload;
+        function logout() {
+            DulceAuth.logout();
         }
 
         // ============================================================

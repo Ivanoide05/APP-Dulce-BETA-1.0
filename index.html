@@ -28,6 +28,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Lucide Icons (Carga Temprana) -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="public/js/auth.js"></script>
+    <script>
+        // Protección de ruta inmediata
+        if (typeof DulceAuth !== 'undefined') {
+            DulceAuth.checkAuth();
+        }
+    </script>
     <style>
         :root {
             /* Paleta Qantas/Apple High-End (Light Mode Default) */
@@ -3468,6 +3475,9 @@
         }
     </script>
 
+    <!-- Error Banner (Premium Glass Style) -->
+    <div id="errorBanner" style="display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; background: rgba(220, 38, 38, 0.95); color: white; padding: 12px 24px; border-radius: 12px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.3); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);"></div>
+
     <!-- SPLASH SCREEN PWA -->
     <div class="splash-screen" id="splashScreen">
         <img src="icon-512.png" alt="Dulce Jaleo" class="splash-logo">
@@ -3477,11 +3487,10 @@
     <header class="premium-header">
         <div class="header-profile">
             <div class="avatar-glow">
-                <img src="icon-512.png?v=3" alt="Perfil" class="avatar-img">
+                <img src="https://ui-avatars.com/api/?name=User&background=E40000&color=fff" alt="Perfil" class="avatar-img" id="user-avatar-top">
             </div>
             <div class="header-text">
-                <h1>Hola, Equipo</h1>
-                <p>Gestión Inteligente</p>
+                <h1 id="user-name-top">Usuario</h1>
             </div>
         </div>
         
@@ -3490,8 +3499,12 @@
             <div class="action-circle" onclick="activateTab('agenda')" title="Buscar">
                 <i data-lucide="search"></i>
             </div>
-            <!-- Tema (Sol/Luna) con Contenedor Inmutable -->
-            <div class="action-circle" onclick="toggleTheme()" title="Modo Claro/Oscuro" id="btn-theme-toggle">
+            <!-- Cerrar Sesión -->
+            <div class="action-circle" title="Cerrar Sesión" onclick="DulceAuth.logout()" style="color: var(--premium-red);">
+                <i data-lucide="log-out"></i>
+            </div>
+            <!-- Tema (Sol/Luna) -->
+            <div class="action-circle" title="Cambiar Tema" id="btn-theme-toggle" onclick="toggleTheme()">
                 <i data-lucide="moon"></i>
             </div>
             <!-- Ajustes Técnicos -->
@@ -5774,9 +5787,9 @@
 
             const grid = document.getElementById('resultGrid');
             const items = [
-                { label: 'Proveedor', value: fields['PROVEDOR/ TITULO'] || fields['proveedor'] || '-' },
+                { label: 'Entidad', value: fields['PROVEDOR/TITULO'] || fields['PROVEDOR/ TITULO'] || fields['proveedor'] || 'NO DETECTADO' },
                 { label: 'Total', value: (fields['TOTAL'] || fields['total'] || '0') + ' €', cls: 'amount' },
-                { label: 'Fecha', value: fields['Fecha'] || fields['fecha'] || '-' },
+                { label: 'Fecha', value: fields['FECHA'] || fields['Fecha'] || fields['fecha'] || new Date().toISOString().slice(0, 10) + ' (Auto)' },
                 { label: 'Nº Doc', value: fields['NUMERO DE DOC'] || fields['numero_doc'] || '-' },
                 { label: 'Base Imponible', value: (fields['BASE IMPONIBLE'] || fields['base_imponible'] || '0') + ' €' },
                 { label: 'IVA', value: (fields['IVA'] || fields['iva'] || '0') + ' €' }
@@ -5789,6 +5802,38 @@
                 </div>
             `).join('');
 
+            // ✨ INTELIGENCIA DE AGENDA ✨
+            const entidadNombre = fields['PROVEDOR/TITULO'] || fields['PROVEDOR/ TITULO'] || fields['proveedor'];
+            const agendaActionContainer = document.getElementById('agendaActionContainer') || document.createElement('div');
+            
+            if (!document.getElementById('agendaActionContainer')) {
+                agendaActionContainer.id = 'agendaActionContainer';
+                agendaActionContainer.style.marginTop = '20px';
+                grid.parentNode.appendChild(agendaActionContainer);
+            }
+
+            if (entidadNombre && entidadNombre !== 'NO DETECTADO') {
+                const match = findMatchingContact(entidadNombre);
+                const isBlacklisted = isEntityBlacklisted(entidadNombre);
+
+                if (match) {
+                    agendaActionContainer.innerHTML = `
+                        <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:12px;color:#10b981;font-size:13px;font-weight:600;">
+                            <i data-lucide="check-circle" style="width:16px;height:16px;"></i> Entidad en tu Agenda: ${match.nombre}
+                        </div>`;
+                } else if (!isBlacklisted) {
+                    agendaActionContainer.innerHTML = `
+                        <button onclick="addToAgendaScanned('${entidadNombre.replace(/'/g, "\\'")}')" style="width:100%;padding:14px;border-radius:15px;background:linear-gradient(135deg, var(--gold), #d97706);color:#000;font-family:'Outfit',sans-serif;font-weight:700;font-size:14px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 15px rgba(245,158,11,0.3);transition:transform 0.2s;">
+                            <i data-lucide="user-plus" style="width:18px;height:18px;"></i> Añadir a tu Agenda
+                        </button>`;
+                } else {
+                    agendaActionContainer.innerHTML = ''; // No invitamos a añadir marcas genéricas
+                }
+            } else {
+                agendaActionContainer.innerHTML = '';
+            }
+
+            if (typeof lucide !== 'undefined') lucide.createIcons();
             resetScanner();
         }
 
@@ -6072,12 +6117,21 @@
 
         function showError(msg) {
             const el = document.getElementById('errorBanner');
-            el.textContent = '⚠️ ' + msg;
-            el.style.display = 'block';
+            if (el) {
+                el.textContent = '⚠ ' + msg;
+                el.style.display = 'block';
+            } else {
+                console.error('[Dulce] Error:', msg);
+                // Fallback a toast si el banner no existe
+                if (typeof mostrarToastConexion === 'function') {
+                    mostrarToastConexion(msg);
+                }
+            }
         }
 
         function hideError() {
-            document.getElementById('errorBanner').style.display = 'none';
+            const el = document.getElementById('errorBanner');
+            if (el) el.style.display = 'none';
         }
 
         // ===== AGENDA / CONTACTOS =====
@@ -6106,10 +6160,54 @@
             const words = normalize(proveedorName).split(/\s+/).filter(w => w.length > 3);
             for (const c of contacts) {
                 const cn = normalize(c.nombre);
-                if (words.some(w => cn.includes(w))) return c;
+                if (words.some(w => cn.includes(w)) || cn.includes(normalize(proveedorName))) return c;
             }
             return null;
         }
+
+        const COMMON_BRANDS_BLACKLIST = ['mercadona', 'consum', 'carrefour', 'amazon', 'lidl', 'aldi', 'el corte ingles', 'hipercor', 'auchan', 'alcampo', 'dia', 'eroski', 'repsol', 'cepsa', 'shell', 'bp', 'galp', 'starbucks', 'mcdonalds', 'burger king', 'uber', 'bolt', 'glovo', 'just eat'];
+        
+        function isEntityBlacklisted(name) {
+            const normalized = normalize(name);
+            return COMMON_BRANDS_BLACKLIST.some(brand => normalized.includes(brand));
+        }
+
+        window.addToAgendaScanned = function(nombre) {
+            const contacts = getContacts();
+            // Evitar duplicados exactos
+            if (contacts.find(c => normalize(c.nombre) === normalize(nombre))) {
+                if (typeof mostrarToastConexion === 'function') mostrarToastConexion('Esta entidad ya está en tu agenda');
+                return;
+            }
+
+            const newContact = {
+                id: Date.now().toString(),
+                tipo: 'proveedor',
+                nombre: nombre,
+                telefono: '',
+                email: '',
+                categoria: 'Nuevo (Escáner)',
+                creado: new Date().toISOString().slice(0, 10)
+            };
+
+            contacts.push(newContact);
+            saveContacts(contacts);
+            renderAgenda();
+            
+            // UI Feedback
+            const container = document.getElementById('agendaActionContainer');
+            if (container) {
+                container.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:12px;color:#10b981;font-size:13px;font-weight:600;">
+                        <i data-lucide="check-circle" style="width:16px;height:16px;"></i> ✅ ¡Guardado en Agenda!
+                    </div>`;
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+
+            if (typeof mostrarToastConexion === 'function') {
+                mostrarToastConexion('Contacto añadido a la agenda');
+            }
+        };
 
         function renderAgenda() {
             const contacts = getContacts();
@@ -7524,6 +7622,16 @@
             // 6. Sincronización — SIEMPRE intentar (el servidor tiene las claves en .env)
             if (window.DulceAPI) {
                 console.log('[Dulce] Intentando sincronizar con Airtable...');
+                
+                // Actualizar UI con info del usuario
+                const user = DulceAuth.getUserInfo();
+                if (user) {
+                    const nameEl = document.getElementById('user-name-top');
+                    const avatarEl = document.getElementById('user-avatar-top');
+                    if (nameEl) nameEl.textContent = user.name || 'Usuario';
+                    if (avatarEl) avatarEl.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=E40000&color=fff`;
+                }
+
                 fetchGlobalData()
                     .then(ok => {
                         if (ok) {
@@ -7533,17 +7641,11 @@
                             if (b) b.remove();
                         } else {
                             console.warn('[Dulce] ⚠️ fetchGlobalData devolvió false');
-                            mostrarToastConexion('No se pudieron cargar los datos. Toca para revisar ⚙️');
                         }
                     })
                     .catch(err => {
                         console.error('[Dulce] Error sincronización:', err);
-                        // Servidor no responde o error de red
-                        if (err.message && err.message.includes('Failed to fetch')) {
-                            mostrarToastConexion('Servidor no disponible. Arranca el backend con: node backend/server.js');
-                        } else {
-                            mostrarToastConexion('Error de Airtable: ' + (err.message || 'desconocido'));
-                        }
+                        mostrarToastConexion('Error de conexión con el servidor');
                     });
             }
         });

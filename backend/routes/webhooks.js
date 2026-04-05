@@ -46,18 +46,24 @@ router.post('/scan-invoice', async (req, res) => {
             contents: [{
                 parts: [
                     {
-                        text: `Analiza esta imagen de documento/ticket/factura y extrae los datos en JSON.
-Responde ÚNICAMENTE con un objeto JSON válido, sin texto adicional, sin markdown, sin backticks.
-Campos requeridos:
-- tabla_destino: "FACTURAS" si tiene CIF e IVA desglosado, "ALBARANES" si es lista de productos sin IVA, "GASTOS_VARIOS" si es ticket o gasto menor
-- "PROVEDOR/TITULO": nombre del proveedor o comercio
-- "TOTAL": número total (ejemplo: 38.99)
-- "FECHA": fecha en formato YYYY-MM-DD
-- "NUMERO DE DOC": número de documento si existe
-- "BASE IMPONIBLE": base imponible si existe, 0 si no
-- "IVA": importe de IVA si existe, 0 si no
-- "CIF": CIF/NIF si existe
-- "DETALLES DOC": resumen breve de los productos/conceptos`
+                        text: `Analiza exhaustivamente esta imagen de factura o ticket y extrae los datos clave. 
+INSTRUCCIONES CRÍTICAS:
+1. "PROVEDOR/TITULO": Busca el nombre de la empresa, comercio o entidad emisora. Prioriza logos, textos grandes en la parte superior o datos fiscales cerca del CIF. Si no es obvio, busca cualquier indicio comercial.
+2. "FECHA": Formato YYYY-MM-DD. Busca con rigor la fecha de emisión del documento.
+3. "TOTAL": El importe final pagado (numérico).
+4. "tabla_destino": "FACTURAS" si tiene CIF e IVA desglosado; "ALBARANES" si no tiene IVA; "GASTOS_VARIOS" para tickets menores.
+
+Responde ÚNICAMENTE con un objeto JSON válido.
+Campos:
+- tabla_destino: string
+- "PROVEDOR/TITULO": string
+- "TOTAL": number
+- "FECHA": string (YYYY-MM-DD)
+- "NUMERO DE DOC": string
+- "BASE IMPONIBLE": number
+- "IVA": number
+- "CIF": string
+- "DETALLES DOC": string (resumen de compra)`
                     },
                     {
                         inline_data: {
