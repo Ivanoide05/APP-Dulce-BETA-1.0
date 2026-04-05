@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "WebSearch",
-      "Bash(mkdir -p \"/c/Users/ivanr/Desktop/IA/YouTube_Remixer\")",
-      "Bash(cp \"/c/Users/ivanr/Desktop/IA/Dulce_Jaleo_Proyecto_Completo/youtube-remixer.html\" \"/c/Users/ivanr/Desktop/IA/YouTube_Remixer/index.html\")"
-    ]
-  }
-}
