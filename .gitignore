@@ -1,34 +1,43 @@
+# Backups y Legado (Archivos que no deben ir a GitHub)
+_ARCHIVO_VERSIONES_ANTIGUAS/
+_COPIA_SEGURIDAD_ANTIGUA/
+_scripts_migracion/
+DULCE_JALEO_BASE_BETA/
+_ARCHIVO_VERSIONES_ANTIGUAS/
+APP EZEQUIEL/
+
 # Dependencias
 node_modules/
 
 # Variables de entorno con credenciales sensibles
 backend/.env
 .env
+.env.backup
+backend/.env.backup
 
-# Backups
+# Backups de archivos sueltos
 *.BAK
 *.bak
 
-# Archivos temporales
+# Archivos temporales de scripts
 *.tmp
 *.log
 tmp_*.js
 debug_*.js
 test_*.js
 check_*.js
+realFix*.js
+fix*.js
+script_*.js
 
 # Archivos de sistema
 .DS_Store
 Thumbs.db
 
-# Scripts de utilidad puntual del backend (no parte del código productivo)
+# Scripts de utilidad puntual del backend
 backend/create_admin.js
 backend/create_test_client.js
 backend/repair_admin.js
-backend/tmp_list_admins.js
-backend/tmp_list_clients.js
-backend/tmp_list_tables.js
-backend/tmp_update_clients.js
+backend/tmp_list_*.js
 backend/check_data.js
-backend/test_airtable.js
-backend/test_meta.js
+backend/test_*.js
