@@ -11,7 +11,9 @@ const API_BASE = (window.location.protocol === 'file:' || window.location.hostna
 const DEFAULT_TABLES = {
     FACTURAS: 'tblLC7oMOUQtRWkn7',
     ALBARANES: 'tblX9EQUmwItNJCZI',
-    GASTOS_VARIOS: 'tblHzVIPEde7zWnUv'
+    GASTOS_VARIOS: 'tblHzVIPEde7zWnUv',
+    PEDIDOS: '', // Se detectará automáticamente
+    AGENDA: ''   // Se detectará automáticamente
 };
 
 // Obtener mapeo actual con prioridad a lo guardado en localStorage
@@ -19,7 +21,9 @@ function getTablesMap() {
     return {
         FACTURAS: localStorage.getItem('AIRTABLE_TABLE_FACTURAS') || DEFAULT_TABLES.FACTURAS,
         ALBARANES: localStorage.getItem('AIRTABLE_TABLE_ALBARANES') || DEFAULT_TABLES.ALBARANES,
-        GASTOS_VARIOS: localStorage.getItem('AIRTABLE_TABLE_GASTOS') || DEFAULT_TABLES.GASTOS_VARIOS
+        GASTOS_VARIOS: localStorage.getItem('AIRTABLE_TABLE_GASTOS') || DEFAULT_TABLES.GASTOS_VARIOS,
+        PEDIDOS: localStorage.getItem('AIRTABLE_TABLE_PEDIDOS') || DEFAULT_TABLES.PEDIDOS,
+        AGENDA: localStorage.getItem('AIRTABLE_TABLE_AGENDA') || DEFAULT_TABLES.AGENDA
     };
 }
 
@@ -83,7 +87,6 @@ function handle401(res) {
     }
     return 'ok';
 }
-
 const DulceAPI = {
     API_BASE,
 
@@ -101,17 +104,21 @@ const DulceAPI = {
             if (name.includes('FACTURA')) found.FACTURAS = t.id;
             if (name.includes('ALBARAN')) found.ALBARANES = t.id;
             if (name.includes('GASTO') || name.includes('VARIOS')) found.GASTOS_VARIOS = t.id;
+            if (name.includes('PEDIDO') || name.includes('ORDER') || name.includes('RUTA')) found.PEDIDOS = t.id;
+            if (name.includes('AGENDA') || name.includes('CLIENTE')) found.AGENDA = t.id;
         });
         if (found.FACTURAS) localStorage.setItem('AIRTABLE_TABLE_FACTURAS', found.FACTURAS);
         if (found.ALBARANES) localStorage.setItem('AIRTABLE_TABLE_ALBARANES', found.ALBARANES);
         if (found.GASTOS_VARIOS) localStorage.setItem('AIRTABLE_TABLE_GASTOS', found.GASTOS_VARIOS);
+        if (found.PEDIDOS) localStorage.setItem('AIRTABLE_TABLE_PEDIDOS', found.PEDIDOS);
+        if (found.AGENDA) localStorage.setItem('AIRTABLE_TABLE_AGENDA', found.AGENDA);
         return found;
     },
 
     async testConnection(token, baseId) {
         if (!token || !baseId) throw new Error('Token y Base ID requeridos');
         const map = getTablesMap();
-        const url = `https://api.airtable.com/v0/${baseId}/${map.FACTURAS}?maxRecords=1`;
+        const url = `https://api.airtable.com/v0/${baseId}/${map.FACTURAS || 'tblTest'}?maxRecords=1`;
         const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
         return res.ok;
     },
@@ -127,8 +134,31 @@ const DulceAPI = {
             }
         } catch (e) {}
         const map = getTablesMap();
-        const [f, a, g] = await Promise.all([airtableDirectFetch(map.FACTURAS), airtableDirectFetch(map.ALBARANES), airtableDirectFetch(map.GASTOS_VARIOS)]);
-        return { facturas: f.records || [], albaranes: a.records || [], gastos: g.records || [] };
+        const tasks = [
+            airtableDirectFetch(map.FACTURAS),
+            airtableDirectFetch(map.ALBARANES),
+            airtableDirectFetch(map.GASTOS_VARIOS)
+        ];
+        if (map.PEDIDOS) tasks.push(airtableDirectFetch(map.PEDIDOS));
+        // Si Agenda está en el mapa, será el índice 4
+        if (map.AGENDA) tasks.push(airtableDirectFetch(map.AGENDA));
+        
+        const results = await Promise.all(tasks);
+        
+        // El array results puede tener 3, 4 o 5 elementos dependiendo de si Pedidos y Agenda existen.
+        // Para asegurar seguridad, buscamos índices usando la longitud final
+        let resPedidos = [], resAgenda = [];
+        if (map.PEDIDOS && map.AGENDA) { resPedidos = results[3]; resAgenda = results[4]; }
+        else if (map.PEDIDOS && !map.AGENDA) { resPedidos = results[3]; }
+        else if (!map.PEDIDOS && map.AGENDA) { resAgenda = results[3]; }
+
+        return { 
+            facturas: results[0].records || [], 
+            albaranes: results[1].records || [], 
+            gastos: results[2].records || [],
+            pedidos: resPedidos.records || [],
+            agenda: resAgenda.records || []
+        };
     },
 
     /** Obtiene una tabla específica */
@@ -170,6 +200,33 @@ const DulceAPI = {
             body: JSON.stringify({ fields })
         });
         if (!res.ok) throw new Error('Error al guardar directamente en Airtable');
+        return res.json();
+    },
+
+    /** Actualiza un registro (PATCH) */
+    async updateRecord(tableName, recordId, fields) {
+        try {
+            const serverOk = await serverIsAvailable();
+            if (serverOk) {
+                const res = await fetch(`${API_BASE}/api/records/${tableName}/${recordId}`, {
+                    method: 'PATCH',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ fields })
+                });
+                if (res.ok) return res.json();
+            }
+        } catch(e) {}
+        // Fallback directo a Airtable
+        const keys = getAirtableKeys();
+        const map = getTablesMap();
+        const tableId = map[tableName.toUpperCase()];
+        const url = `https://api.airtable.com/v0/${keys.baseId}/${tableId}/${recordId}`;
+        const res = await fetch(url, {
+            method: 'PATCH',
+            headers: { 'Authorization': `Bearer ${keys.token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fields })
+        });
+        if (!res.ok) throw new Error('Error al actualizar registro en Airtable');
         return res.json();
     },
 

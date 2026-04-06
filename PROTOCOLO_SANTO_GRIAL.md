@@ -7,13 +7,20 @@ Este documento es la ley sagrada de sincronización para el proyecto **Dulce y J
 ## 🚩 AL EMPEZAR (El "Refresco")
 Antes de cambiar ni una sola coma, hay que traer lo que se haya hecho mientras no estabas.
 
-1. Abre la terminal en la carpeta raíz.
+1. Abre la terminal en la carpeta raíz (`LA REAL ORIGINAL`).
 2. Escribe:
    ```bash
-   git pull origin main
+   git pull origin master
    ```
-*   **¿Qué hace esto?** Descarga todas las actualizaciones y las fusiona con los archivos locales.
-*   **Resultado:** Estás 100% al día con la versión más reciente del proyecto.
+*   **¿Qué hace esto?** Descarga las actualizaciones de Ivan.
+*   **Resultado:** Estás 100% al día en la rama maestra.
+
+## 🖥️ ARRANQUE (Backend)
+Antes de abrir la web, el "motor" debe estar encendido.
+
+1. Abre otra terminal en `backend`.
+2. Escribe: `npm start`.
+3. Abre tu navegador en: **http://localhost:3001**.
 
 ---
 
@@ -43,16 +50,17 @@ Cuando hayas terminado tus modificaciones y quieras que los demás (y el servido
 
 3. **Enviar al servidor (Push):**
    ```bash
-   git push origin main
+   git push origin master
    ```
-   *   **¿Qué hace esto?** Envía tus cambios a GitHub.
-   *   **Resultado:** Vercel se actualiza y el equipo puede hacer su `git pull` para ver lo que has hecho.
+   *   **¿Qué hace esto?** Envía tus cambios a GitHub (y Vercel).
+   *   **Resultado:** Ivan podrá ver tu trabajo al hacer su `pull`.
 
 ---
 
 ## ⚠️ REGLA DE ORO
-**Siempre haz PUSH al final de tu sesión de trabajo.** 
-Si no haces PUSH, los demás seguirán trabajando sobre una versión vieja y, al intentar subirlo más tarde, habrá un conflicto porque los códigos habrán "chocado".
+**1. Siempre haz PUSH al final de tu sesión.**
+**2. TRABAJA SIEMPRE en `LA REAL ORIGINAL`.** Olvida cualquier otra carpeta.
+**3. NO MEZCLES RAMAS.** Todo a `master`.
 
 ---
-*Instaurado el 05/04/2026*
+*Actualizado el 05/04/2026 — Antigravity & Dulce Team*

@@ -798,6 +798,80 @@
             }
         }
 
+        /* ===== PERFORMANCE OVERVIEW ===== */
+        .perf-overview-container {
+            margin: 0 var(--gutter) 32px;
+            padding: 24px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            width: calc(100% - 48px);
+            order: 999; /* Forces the box to render at the absolute bottom of the flex container */
+        }
+
+        .perf-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .perf-card {
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: var(--transition);
+        }
+
+        body.dark-theme .perf-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .perf-label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .perf-val {
+            font-family: 'Outfit', sans-serif;
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .perf-sub-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .perf-sub-row span {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .perf-pill {
+            padding: 4px 10px;
+            border-radius: 50px;
+            background: rgba(92, 158, 126, 0.1);
+            color: var(--success);
+            font-size: 11px !important;
+            font-weight: 700 !important;
+        }
+
         .processing-bread {
             font-size: 36px;
             margin-bottom: 16px;
@@ -1987,6 +2061,92 @@
             border-color: var(--rose);
         }
 
+        /* [PROFESSIONAL LUXURY MODALS] */
+        .professional-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            animation: fadeIn 0.3s ease;
+        }
+        .professional-modal-overlay.open { display: flex; }
+        
+        .luxury-card {
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border);
+            border-radius: 32px;
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 420px;
+            padding: 40px;
+            animation: scaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .pill-input {
+            width: 100%;
+            padding: 16px 24px;
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            color: var(--text-primary);
+            transition: var(--transition);
+            margin-bottom: 12px;
+        }
+        body.dark-theme .pill-input {
+            background: rgba(255, 255, 255, 0.04);
+        }
+        .pill-input:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: var(--bg-card);
+            box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+        }
+
+        .pill-tab-group {
+            display: flex;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.03);
+            padding: 6px;
+            border-radius: 50px;
+            margin-bottom: 28px;
+        }
+        body.dark-theme .pill-tab-group { background: rgba(255, 255, 255, 0.03); }
+
+        .pill-tab-btn {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .pill-tab-btn.active {
+            background: var(--gold);
+            color: #000;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
         /* [NUEVO] Carrusel de Diagramas Responsivo v3.0 */
         .carousel-charts-wrapper {
             display: flex;
@@ -2487,6 +2647,163 @@
         #ruta-hornada-section:empty, #ruta-recurrentes-section:empty,
         #ruta-dinamicos-section:empty, #ruta-manuales-section:empty,
         #ruta-finalizadas-section:empty { margin: 0 !important; padding: 0; }
+
+        /* ===== RUTA DASHBOARD & CALENDAR (PASO 3) ===== */
+        .ruta-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 16px var(--gutter);
+        }
+        .ruta-stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 12px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: transform 0.2s;
+        }
+        body.dark-theme .ruta-stat-card { background: rgba(255,255,255,0.03); }
+        .ruta-stat-value { font-size: 18px; font-weight: 800; color: var(--text-primary); }
+        .ruta-stat-label { font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .ruta-calendar-container {
+            margin: 16px var(--gutter);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 16px;
+            overflow: hidden;
+        }
+        body.dark-theme .ruta-calendar-container { background: rgba(255,255,255,0.025); }
+        .ruta-month-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        .ruta-month-nav-btn {
+            width: 36px; height: 36px; border-radius: 12px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 18px; font-weight: 700;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .ruta-month-nav-btn:hover { background: var(--gold); color: #000; border-color: var(--gold); }
+        .ruta-month-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800; font-size: 17px;
+            color: var(--text-primary);
+            text-transform: capitalize;
+        }
+        .ruta-weekday-row {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            margin-bottom: 6px;
+        }
+        .ruta-weekday-cell {
+            text-align: center;
+            font-size: 10px; font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            padding: 4px 0;
+        }
+        .ruta-month-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+        }
+        .ruta-day-cell {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+            min-height: 38px;
+        }
+        .ruta-day-cell:hover { background: rgba(212,175,55,0.08); }
+        .ruta-day-cell.out-month { opacity: 0.25; pointer-events: none; }
+        .ruta-day-cell.today {
+            background: rgba(212,175,55,0.1);
+            border-color: rgba(212,175,55,0.3);
+        }
+        .ruta-day-cell.selected {
+            background: var(--gold) !important;
+            border-color: var(--gold) !important;
+            box-shadow: 0 4px 14px rgba(212,175,55,0.35);
+        }
+        .ruta-day-cell.selected .ruta-day-number { color: #000 !important; font-weight: 900; }
+        .ruta-day-cell.selected .ruta-day-dots span { background: #000 !important; }
+        .ruta-day-number {
+            font-size: 13px; font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+        .ruta-day-dots {
+            display: flex; gap: 3px; margin-top: 3px; height: 6px;
+            align-items: center; justify-content: center;
+        }
+        .ruta-day-dots span { width: 5px; height: 5px; border-radius: 50%; }
+        .ruta-dot-green { background: #10b981; }
+        .ruta-dot-yellow { background: #f59e0b; }
+        .ruta-dot-red { background: #ef4444; }
+        .ruta-dot-gold { background: var(--gold); }
+
+        /* Día expandido / detalle del día seleccionado */
+        .ruta-day-detail {
+            margin: 16px var(--gutter) 0;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+            animation: fadeSlideIn 0.3s ease;
+        }
+        body.dark-theme .ruta-day-detail { background: rgba(255,255,255,0.025); }
+        .ruta-day-detail-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px; padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+        }
+        .ruta-day-detail-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800; font-size: 15px;
+            color: var(--text-primary);
+        }
+        .ruta-day-detail-badge {
+            font-size: 11px; font-weight: 700;
+            padding: 4px 10px; border-radius: 20px;
+            text-transform: uppercase;
+        }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .whatsapp-status-area {
+            margin: 0 var(--gutter) 20px;
+            background: rgba(37, 211, 102, 0.05);
+            border: 1px solid rgba(37, 211, 102, 0.1);
+            border-radius: 12px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .wa-dot { width: 8px; height: 8px; border-radius: 50%; background: #25D366; box-shadow: 0 0 8px #25D366; }
+
 
         /* 💎 PREMIUM DASHBOARD v2.0 (BENTO & GLASS) 💎 */
         :root {
@@ -3456,6 +3773,77 @@
         }
         .gn-obj-pct { font-weight: 700; color: #D4AF37; }
 
+        /* ===== MÁRGENES: ESCUDO DE RENTABILIDAD ===== */
+        .margen-health-indicator {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 12px; border-radius: 20px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 16px;
+        }
+        .margen-health-indicator.healthy { background: rgba(16,185,129,0.12); color: #10b981; border: 1px solid rgba(16,185,129,0.25); }
+        .margen-health-indicator.warning { background: rgba(245,158,11,0.12); color: #f59e0b; border: 1px solid rgba(245,158,11,0.25); }
+        .margen-health-indicator.danger { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.25); }
+        .margen-health-dot { width: 6px; height: 6px; border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+        .margen-health-indicator.healthy .margen-health-dot { background: #10b981; }
+        .margen-health-indicator.warning .margen-health-dot { background: #f59e0b; }
+        .margen-health-indicator.danger .margen-health-dot { background: #ef4444; }
+
+        .margen-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 var(--gutter); margin-bottom: 24px; }
+        .margen-stat-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 20px; padding: 16px; transition: all 0.3s ease;
+        }
+        .margen-stat-card:hover { border-color: rgba(212,175,55,0.2); transform: scale(1.02); }
+        body.dark-theme .margen-stat-card { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.05); }
+        .margen-stat-icon { font-size: 18px; margin-bottom: 6px; }
+        .margen-stat-value { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 2px; }
+        .margen-stat-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+
+        /* Mermas Section */
+        .merma-section { margin: 0 var(--gutter) 20px; padding: 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 24px; }
+        body.dark-theme .merma-section { background: rgba(255,255,255,0.03); }
+        .merma-section-title { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+        .merma-form-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 16px; }
+        .merma-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .merma-input { width: 100%; padding: 12px 14px; background: var(--bg-page); border: 1.5px solid var(--border); border-radius: 14px; color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 13px; transition: border-color 0.2s; }
+        .merma-input:focus { outline: none; border-color: #D4AF37; }
+        .merma-input::placeholder { color: var(--text-muted); }
+        .merma-submit-btn { width: 100%; padding: 13px; border: none; border-radius: 14px; background: linear-gradient(135deg, #dc2626, #ef4444); color: #fff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; }
+        .merma-submit-btn:active { transform: scale(0.97); }
+        .merma-submit-btn:hover { box-shadow: 0 8px 24px rgba(239,68,68,0.3); }
+        .merma-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--bg-page); border: 1px solid var(--border); margin-bottom: 8px; transition: all 0.2s; }
+        body.dark-theme .merma-item { background: rgba(255,255,255,0.02); }
+        .merma-item-icon { width: 36px; height: 36px; border-radius: 12px; background: rgba(239,68,68,0.1); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+        .merma-item-info { flex: 1; min-width: 0; }
+        .merma-item-name { font-size: 13px; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .merma-item-detail { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .merma-item-cost { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; color: #ef4444; flex-shrink: 0; }
+        .merma-item-delete { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-muted); flex-shrink: 0; transition: color 0.2s; background: none; border: none; }
+        .merma-item-delete:active { color: #ef4444; }
+        .merma-empty { text-align: center; padding: 20px; color: var(--text-muted); font-size: 12px; }
+
+        /* TGTG Section */
+        .tgtg-section { margin: 0 var(--gutter) 20px; padding: 20px; background: linear-gradient(135deg, rgba(16,185,129,0.06), rgba(5,150,105,0.02)); border: 1px solid rgba(16,185,129,0.15); border-radius: 24px; }
+        body.dark-theme .tgtg-section { background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(5,150,105,0.03)); }
+        .tgtg-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .tgtg-title { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+        .tgtg-badge { font-size: 9px; font-weight: 800; padding: 3px 8px; border-radius: 6px; background: rgba(16,185,129,0.15); color: #059669; text-transform: uppercase; letter-spacing: 0.5px; }
+        .tgtg-calc-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 20px; text-align: center; margin-bottom: 12px; }
+        body.dark-theme .tgtg-calc-card { background: rgba(255,255,255,0.03); }
+        .tgtg-loss-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; margin-bottom: 4px; }
+        .tgtg-loss-value { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 800; color: #ef4444; margin-bottom: 4px; }
+        .tgtg-recover-label { font-size: 11px; font-weight: 600; text-transform: uppercase; color: #059669; letter-spacing: 0.5px; margin-top: 12px; margin-bottom: 4px; }
+        .tgtg-recover-value { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 800; color: #10b981; }
+        .tgtg-arrow { font-size: 18px; color: var(--text-muted); margin: 8px 0; }
+        .tgtg-cta-btn { width: 100%; padding: 13px; border: none; border-radius: 14px; background: linear-gradient(135deg, #059669, #10b981); color: #fff; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease; text-decoration: none; }
+        .tgtg-cta-btn:hover { box-shadow: 0 8px 24px rgba(16,185,129,0.3); transform: translateY(-2px); }
+        .tgtg-cta-btn:active { transform: scale(0.97); }
+
+        /* Margen Config */
+        .margen-config-section { margin: 0 var(--gutter) 20px; padding: 20px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 24px; }
+        body.dark-theme .margen-config-section { background: rgba(255,255,255,0.03); }
+        .margen-config-title { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+
     </style>
 </head>
 
@@ -3844,48 +4232,97 @@
             <!-- EL HTML DE LA VISTA DETALLADA FUE ELIMINADO: VOLVEMOS AL MODAL -->
         </div>
 
-        <!-- ===== TAB: MÁRGENES ===== -->
+        <!-- ===== TAB: MÁRGENES — ESCUDO DE RENTABILIDAD ===== -->
         <div id="tab-margenes" class="tab-content">
             <div class="section-title">Márgenes</div>
-            <div class="section-subtitle" style="text-align: center;">Rentabilidad estimada del mes</div>
+            <div class="section-subtitle" style="text-align: center;">Escudo de rentabilidad · Control de pérdidas</div>
 
-            <!-- Hero margen -->
-            <div class="margin-hero glass-panel"
-                style="margin: var(--gutter); padding: 32px; text-align: center; width: calc(100% - 48px);">
-                <div class="margin-label"
-                    style="font-size: 14px; opacity: 0.6; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 1px;">
-                    Margen bruto del mes</div>
-                <div class="margin-value neutral" id="margenValor"
-                    style="font-size: 48px; font-weight: 500; margin-bottom: 12px;">—</div>
-                <div class="margin-sub" id="margenSub" style="font-size: 13px; opacity: 0.5;">Analizando datos de
-                    Airtable...</div>
-                <div class="margin-bar-wrap"
-                    style="height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden; margin-top: 32px;">
-                    <div class="margin-bar" id="margenBar"
-                        style="width:0%; height: 100%; background: var(--rose); transition: width 1s ease;"></div>
+            <!-- Hero: Escudo de Rentabilidad -->
+            <div class="margin-hero glass-panel" style="margin: 0 var(--gutter) 20px; padding: 28px; text-align: center; width: calc(100% - 48px);">
+                <div class="margen-health-indicator warning" id="margenHealthBadge">
+                    <div class="margen-health-dot"></div>
+                    <span>Sin Datos</span>
+                </div>
+                <div style="font-size: 12px; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Beneficio Neto Estimado</div>
+                <div class="margin-value neutral" id="margenValor" style="font-family: 'Outfit', sans-serif; font-size: 48px; font-weight: 800; margin-bottom: 8px;">—</div>
+                <div class="margin-sub" id="margenSub" style="font-size: 13px; opacity: 0.5;">Analizando datos de Airtable...</div>
+                <div style="height: 8px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-top: 24px;">
+                    <div id="margenBar" style="width:0%; height: 100%; background: var(--gold); transition: width 1s ease; border-radius: 4px;"></div>
                 </div>
             </div>
 
-            <!-- Stats -->
-            <div class="stats-row" style="margin-bottom: 32px; gap: 12px; padding: 0 var(--gutter);">
-                <div class="stat-card glass-panel" style="padding: 20px; border: 1px solid var(--border);">
-                    <div class="stat-value" id="mGastos" style="font-size: 22px; font-weight: 500;">—</div>
-                    <div class="stat-label" style="font-size: 10px; opacity: 0.5; margin-top: 4px;">Gastos mes</div>
+            <!-- Stats Grid: 4 cards -->
+            <div class="margen-stats-grid">
+                <div class="margen-stat-card">
+                    <div class="margen-stat-icon">💰</div>
+                    <div class="margen-stat-value" id="mIngresos">—</div>
+                    <div class="margen-stat-label">Ingresos Est.</div>
                 </div>
-                <div class="stat-card glass-panel" style="padding: 20px; border: 1px solid var(--border);">
-                    <div class="stat-value" id="mIngresos" style="font-size: 22px; font-weight: 500;">—</div>
-                    <div class="stat-label" style="font-size: 10px; opacity: 0.5; margin-top: 4px;">Ingresos est.</div>
+                <div class="margen-stat-card">
+                    <div class="margen-stat-icon">📉</div>
+                    <div class="margen-stat-value" id="mGastos">—</div>
+                    <div class="margen-stat-label">Gastos Mes</div>
                 </div>
-                <div class="stat-card glass-panel" style="padding: 20px; border: 1px solid var(--border);">
-                    <div class="stat-value" id="mFacturas" style="font-size: 22px; font-weight: 500;">—</div>
-                    <div class="stat-label" style="font-size: 10px; opacity: 0.5; margin-top: 4px;">Docs mes</div>
+                <div class="margen-stat-card">
+                    <div class="margen-stat-icon">🗑️</div>
+                    <div class="margen-stat-value" id="mMermas" style="color: #ef4444;">0€</div>
+                    <div class="margen-stat-label">Mermas Mes</div>
+                </div>
+                <div class="margen-stat-card">
+                    <div class="margen-stat-icon">📄</div>
+                    <div class="margen-stat-value" id="mFacturas">—</div>
+                    <div class="margen-stat-label">Docs Mes</div>
                 </div>
             </div>
 
+            <!-- Registro de Mermas / Sobras -->
+            <div class="merma-section">
+                <div class="merma-section-title">
+                    <i data-lucide="trash-2" style="width: 18px; color: #ef4444;"></i>
+                    Registro de Sobras / Mermas
+                </div>
+                <div class="merma-form-grid">
+                    <input class="merma-input" id="mermaProducto" type="text" placeholder="Producto (ej: Pan, Nata, Croissants...)" />
+                    <div class="merma-form-row">
+                        <input class="merma-input" id="mermaCantidad" type="number" placeholder="Cantidad" min="0" step="1" />
+                        <input class="merma-input" id="mermaCoste" type="number" placeholder="€ / unidad" min="0" step="0.01" />
+                    </div>
+                    <button class="merma-submit-btn" id="mermaSubmitBtn" type="button" onclick="registrarMerma()">
+                        <i data-lucide="plus-circle" style="width: 16px;"></i>
+                        Registrar Merma
+                    </button>
+                </div>
+                <div class="merma-list" id="mermasList"></div>
+            </div>
 
-            <!-- ===== [FASE 13] Análisis de Rentabilidad por Cliente ===== -->
+            <!-- Too Good To Go: Recupera dinero de las sobras -->
+            <div class="tgtg-section">
+                <div class="tgtg-header">
+                    <div class="tgtg-title">
+                        <span style="font-size: 18px;">♻️</span>
+                        Recupera con Too Good To Go
+                    </div>
+                    <div class="tgtg-badge">Ahorro</div>
+                </div>
+                <div class="tgtg-calc-card">
+                    <div class="tgtg-loss-label">Pérdidas por Sobras (Mes)</div>
+                    <div class="tgtg-loss-value" id="tgtgLoss">0,00 €</div>
+                    <div class="tgtg-arrow">↓</div>
+                    <div class="tgtg-recover-label">Podrías Recuperar (~33%)</div>
+                    <div class="tgtg-recover-value" id="tgtgRecover">0,00 €</div>
+                </div>
+                <a href="https://toogoodtogo.es/es/business" target="_blank" rel="noopener noreferrer" class="tgtg-cta-btn">
+                    <i data-lucide="external-link" style="width: 16px;"></i>
+                    Darme de Alta en Too Good To Go
+                </a>
+            </div>
+
+            <!-- Análisis por Cliente / Proveedor (Fase 13) -->
             <div style="padding: 0 var(--gutter); margin-bottom: 24px;">
-                <div class="config-section-title" style="margin-bottom: 12px;">🔍 Análisis por Cliente / Proveedor</div>
+                <div class="merma-section-title" style="margin-bottom: 12px;">
+                    <i data-lucide="search" style="width: 16px; color: var(--gold);"></i>
+                    Análisis por Cliente / Proveedor
+                </div>
                 <div style="position: relative;">
                     <div class="glass-panel" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid var(--border);border-radius:16px;">
                         <i data-lucide="search" style="width:16px;opacity:0.5;flex-shrink:0;"></i>
@@ -3902,40 +4339,70 @@
                 <div id="selectedClientDash" style="display:none;margin-top:16px;"></div>
             </div>
 
-            <!-- Config ingresos -->
-            <div class="config-section">
-                <div class="config-section-title">📊 Configurar venta semanal</div>
-                <div class="config-field">
-                    <label class="config-label">Venta media semanal (€)</label>
-                    <input class="config-input" id="ventaSemanalInput" type="number" placeholder="Ej: 4500" min="0"
-                        step="100">
-                    <div class="config-help">Introduce tu venta media semanal aproximada. Usaremos este dato para
-                        estimar tu margen hasta integrar los tickets Z de caja.</div>
+            <!-- Config Venta Semanal -->
+            <div class="margen-config-section">
+                <div class="margen-config-title">
+                    <i data-lucide="settings" style="width: 16px; color: var(--gold);"></i>
+                    Configurar Venta Semanal
                 </div>
-                <button class="btn btn-primary" id="saveVentaBtn"
-                    style="margin-top:4px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <i data-lucide="save" style="width: 18px; height: 18px;"></i>
-                    Guardar y recalcular
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px;">Venta media semanal (€)</label>
+                    <input class="merma-input" id="ventaSemanalInput" type="number" placeholder="Ej: 4500" min="0" step="100">
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.4;">
+                        Usaremos este dato para estimar tu margen hasta integrar los tickets Z de caja.
+                    </div>
+                </div>
+                <button class="merma-submit-btn" id="saveVentaBtn" style="background: linear-gradient(135deg, #ebae1c, #D4AF37);">
+                    <i data-lucide="save" style="width: 16px;"></i>
+                    Guardar y Recalcular
                 </button>
             </div>
 
-            <p class="margin-config-hint"
-                style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                <i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: var(--rose);"></i>
-                Estimación basada en gastos reales de Airtable + venta media configurada. Los márgenes reales dependen
-                también de la merma diaria.
+            <p style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; color: var(--text-muted); margin: 0 var(--gutter) 20px; text-align: center;">
+                <i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: var(--gold);"></i>
+                Estimación basada en gastos reales + venta media. Los márgenes reales incluyen mermas registradas.
             </p>
         </div>
 
         <!-- ===== TAB: HOJA DE RUTA ===== -->
         <div id="tab-ruta" class="tab-content">
             <div class="section-title">Hoja de Ruta</div>
-            <div class="section-subtitle" style="text-align: center;">Pedidos recurrentes y elaboraciones</div>
+            
+            <!-- WhatsApp Status -->
+            <div class="whatsapp-status-area">
+                <div class="wa-dot"></div>
+                <span style="font-size: 11px; font-weight: 700; color: #166534; text-transform: uppercase;">Automatización WhatsApp Activa</span>
+                <span id="wa-last-order-time" style="font-size: 10px; color: var(--text-muted); margin-left: auto;">Listo</span>
+            </div>
 
-            <!-- Barra de Progreso -->
-            <div id="ruta-progress-section" style="margin: 16px var(--gutter) 0; width: calc(100% - 48px);">
+            <!-- Calendario Mensual Profesional -->
+            <div class="ruta-calendar-container">
+                <div class="ruta-month-nav">
+                    <button class="ruta-month-nav-btn" onclick="navigateRutaMonth(-1)">‹</button>
+                    <span class="ruta-month-title" id="rutaMonthTitle">Abril 2026</span>
+                    <button class="ruta-month-nav-btn" onclick="navigateRutaMonth(1)">›</button>
+                </div>
+                <div class="ruta-weekday-row">
+                    <div class="ruta-weekday-cell">Lun</div>
+                    <div class="ruta-weekday-cell">Mar</div>
+                    <div class="ruta-weekday-cell">Mié</div>
+                    <div class="ruta-weekday-cell">Jue</div>
+                    <div class="ruta-weekday-cell">Vie</div>
+                    <div class="ruta-weekday-cell">Sáb</div>
+                    <div class="ruta-weekday-cell">Dom</div>
+                </div>
+                <div class="ruta-month-grid" id="rutaMonthGrid">
+                    <!-- Se rellena por JS -->
+                </div>
+            </div>
+
+            <!-- Detalle del Día Seleccionado -->
+            <div id="ruta-day-detail-section"></div>
+
+            <!-- Barra de Progreso (Día Seleccionado) -->
+            <div id="ruta-progress-section" style="margin: 8px var(--gutter) 24px; width: calc(100% - 48px);">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <span id="ruta-progress-text" style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">0 de 0 tareas</span>
+                    <span id="ruta-progress-text" style="font-size: 13px; font-weight: 600; color: var(--text-secondary);">Selecciona un día</span>
                     <span id="ruta-progress-pct" style="font-size: 13px; font-weight: 700; color: #D4AF37;">0%</span>
                 </div>
                 <div class="ruta-progress-track">
@@ -3957,6 +4424,42 @@
 
             <!-- Tareas Finalizadas -->
             <div id="ruta-finalizadas-section" style="margin: 8px var(--gutter) 32px; width: calc(100% - 48px);"></div>
+
+            <!-- Rendimiento del Negocio (Movido al final) -->
+            <div class="perf-overview-container">
+                <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+                    <i data-lucide="trending-up" style="width:16px;color:var(--gold);"></i> Rendimiento de Negocio
+                </div>
+                <div class="perf-grid">
+                    <!-- Esta Semana -->
+                    <div class="perf-card">
+                        <span class="perf-label">Esta Semana</span>
+                        <span class="perf-val" id="perfStatsWeekValue">0€</span>
+                        <div class="perf-sub-row">
+                            <span id="perfStatsWeekOrders">0 ped.</span>
+                            <span id="perfStatsWeekEff" class="perf-pill">0%</span>
+                        </div>
+                    </div>
+                    <!-- Este Mes (Destacado) -->
+                    <div class="perf-card" style="background:var(--gold); border-color:var(--gold); box-shadow:0 4px 12px rgba(212,175,55,0.25);">
+                        <span class="perf-label" id="perfLabelCurrentMonth" style="color:rgba(0,0,0,0.6);">Mes Actual</span>
+                        <span class="perf-val" id="perfStatsMonthValue" style="color:#000;">0€</span>
+                        <div class="perf-sub-row">
+                            <span id="perfStatsMonthOrders" style="color:rgba(0,0,0,0.8);">0 ped.</span>
+                            <span id="perfStatsMonthEff" class="perf-pill" style="background:rgba(0,0,0,0.15);color:#000;">0%</span>
+                        </div>
+                    </div>
+                    <!-- Mes Anterior -->
+                    <div class="perf-card">
+                        <span class="perf-label" id="perfLabelPrevMonth">Mes Ant.</span>
+                        <span class="perf-val" id="perfStatsPrevMonthValue">0€</span>
+                        <div class="perf-sub-row">
+                            <span id="perfStatsPrevMonthOrders">0 ped.</span>
+                            <span id="perfStatsPrevMonthEff" class="perf-pill" style="background:rgba(255,255,255,0.05);color:var(--text-muted);">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </main>
@@ -4327,42 +4830,40 @@
         </div>
     </div>
 
-    <!-- Modal Añadir Contacto [GLASS VERSION] -->
-    <div class="modal-overlay" id="contactModal">
-        <div class="modal-sheet glass-panel"
-            style="padding: 32px; border-top: 1px solid var(--border); border-radius: 32px 32px 0 0;">
-            <div class="modal-handle" style="background: rgba(255,255,255,0.1);"></div>
-            <div class="modal-title" style="font-size: 22px; font-weight: 500; margin-bottom: 24px;">Nuevo Contacto
+    <!-- Modal Añadir Contacto [PROFESSIONAL LUXURY VERSION] -->
+    <div class="professional-modal-overlay" id="contactModal">
+        <div class="luxury-card glass-panel">
+            <div style="font-size: 24px; font-weight: 800; color: var(--text-primary); margin-bottom: 8px; font-family: 'Manrope', sans-serif;">
+                Nuevo Contacto
             </div>
-            <div class="modal-type-tabs glass-panel"
-                style="padding: 6px; display: inline-flex; margin-bottom: 32px; background: rgba(255,255,255,0.03);">
-                <button class="modal-type-btn active" data-ctype="proveedor"
-                    style="padding: 10px 24px; border-radius: 16px;">
-                    <i data-lucide="truck" style="width: 16px; margin-right: 8px;"></i>
-                    Proveedor
+            <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 32px; font-family: 'Inter', sans-serif;">Completa los datos para el sistema</p>
+            
+            <div class="pill-tab-group" id="contactTypeGroup">
+                <button class="pill-tab-btn c-type-btn active" data-ctype="proveedor">
+                    <i data-lucide="truck" style="width: 16px;"></i> Proveedor
                 </button>
-                <button class="modal-type-btn" data-ctype="cliente" style="padding: 10px 24px; border-radius: 16px;">
-                    <i data-lucide="shopping-bag" style="width: 16px; margin-right: 8px;"></i>
-                    Cliente
+                <button class="pill-tab-btn c-type-btn" data-ctype="cliente">
+                    <i data-lucide="shopping-bag" style="width: 16px;"></i> Cliente
                 </button>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px;">
-                <input class="modal-input glass-panel" id="cNombre" type="text" placeholder="Nombre o empresa *"
-                    style="padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); font-family: 'Montserrat', sans-serif;">
-                <input class="modal-input glass-panel" id="cTelefono" type="tel" placeholder="Teléfono"
-                    style="padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); font-family: 'Montserrat', sans-serif;">
-                <input class="modal-input glass-panel" id="cEmail" type="email" placeholder="Email"
-                    style="padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); font-family: 'Montserrat', sans-serif;">
-                <input class="modal-input glass-panel" id="cCategoria" type="text"
-                    placeholder="Categoría (ej: Harina, Café, Reparto...)"
-                    style="padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); font-family: 'Montserrat', sans-serif;">
+
+            <div style="margin-bottom: 32px;">
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 8px 12px;">Identificación</label>
+                <input class="pill-input glass-panel" id="cNombre" type="text" placeholder="Nombre o empresa *">
+                
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 16px 0 8px 12px;">Contacto</label>
+                <input class="pill-input glass-panel" id="cTelefono" type="tel" placeholder="Teléfono">
+                <input class="pill-input glass-panel" id="cEmail" type="email" placeholder="Email">
+                
+                <label style="display: block; font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 16px 0 8px 12px;">Categorización</label>
+                <input class="pill-input glass-panel" id="cCategoria" type="text" placeholder="Ej: Harina, Café, Reparto...">
             </div>
-            <div style="display:flex;gap:12px;">
-                <button class="btn glass-panel" id="closeModal"
-                    style="flex: 1; padding: 16px; border: 1px solid var(--border);">Cancelar</button>
-                <button class="btn glass-panel" id="saveContact"
-                    style="flex: 2; padding: 16px; background: var(--rose); color: #fff; font-weight: 500;">Guardar
-                    Contacto</button>
+
+            <div style="display: flex; gap: 12px;">
+                <button class="pill-tab-btn" id="closeModal"
+                    style="flex: 1; border: 1px solid var(--border); background: transparent; color: var(--text-primary);">Cancelar</button>
+                <button class="pill-tab-btn active" id="saveContact"
+                    style="flex: 2; background: var(--premium-red); color: #fff; font-weight: 700; border: none; box-shadow: 0 6px 20px rgba(228, 0, 0, 0.25);">Guardar</button>
             </div>
         </div>
     </div>
@@ -4552,6 +5053,7 @@
         const CONFIG_KEY = 'dulce_jaleo_config';
         const CONTACTS_KEY = 'dulce_jaleo_contactos';
         const VENTA_KEY = 'dulce_jaleo_venta_semanal';
+        const MERMA_KEY = 'dulce_jaleo_mermas';
         const RUTA_KEY = 'dulce_jaleo_ruta';
         const EQUIPO_KEY = 'dulce_jaleo_equipo';
 
@@ -4786,22 +5288,41 @@
             globalStats.mesActual = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
 
             try {
-                // Obtener las 3 tablas vía backend seguro (sin tokens en el navegador)
+                // Obtener las tablas vía backend seguro
+                // Ahora traemos TODO: Facturas, Agenda y Pedidos
                 const data = await DulceAPI.fetchAllRecords();
-                // data = { facturas: [], albaranes: [], gastos: [] }
-
-                // Normalizar TODOS los registros
+                
+                // 1. Sincronizar FACTURAS
                 globalStats.allRecords = [];
                 if (data.facturas) globalStats.allRecords.push(...data.facturas.map(r => normalizeRecord(r, 'FACTURA')));
                 if (data.albaranes) globalStats.allRecords.push(...data.albaranes.map(r => normalizeRecord(r, 'ALBARAN')));
                 if (data.gastos) globalStats.allRecords.push(...data.gastos.map(r => normalizeRecord(r, 'GASTOS_VARIOS')));
+
+                // 2. Sincronizar AGENDA (Contactos)
+                globalStats.agenda = [];
+                if (data.agenda) {
+                    globalStats.agenda = data.agenda.map(r => ({
+                        id: r.id,
+                        ...r.fields,
+                        nombre: r.fields.nombre || r.fields.Nombre || 'Sin nombre',
+                        tipo: r.fields.tipo || r.fields.Tipo || 'proveedor'
+                    }));
+                }
+
+                // 3. Sincronizar PEDIDOS (Hoja de Ruta)
+                globalStats.pedidosRaw = data.pedidos || [];
+                globalStats.pedidos = globalStats.pedidosRaw.map(r => ({
+                    id: r.id,
+                    ...r.fields,
+                    completed: r.fields.status === 'Done' || r.fields.status === 'Completado'
+                }));
 
                 globalStats.allRecords.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
                 calculateGlobalStats();
                 globalStats.loaded = true;
                 return true;
             } catch (err) {
-                console.error('Error fetching data:', err);
+                console.error('Error fetching global data:', err);
                 return false;
             }
         }
@@ -5603,7 +6124,7 @@
             if (tabId === 'facturas') { try { loadFacturas(); } catch(e) { console.error(e); } }
             if (tabId === 'agenda') { try { renderAgenda(); } catch(e) { console.error(e); } }
             if (tabId === 'margenes') { try { loadMargenes(); } catch(e) { console.error(e); } }
-            if (tabId === 'ruta') { try { renderRuta(); } catch(e) { console.error(e); } }
+            if (tabId === 'ruta') { try { renderRutaCalendar(); renderRuta(); } catch(e) { console.error(e); } }
 
             // FAB Tarea: visible solo en pestaña Ruta
             const fabTask = document.getElementById('fabAddTask');
@@ -6140,12 +6661,38 @@
         let agendaFilter = 'all';
 
         function getContacts() {
+            // Si los datos globales están cargados, usamos la agenda de Airtable
+            if (globalStats.loaded && globalStats.agenda && globalStats.agenda.length > 0) {
+                return globalStats.agenda;
+            }
+            // Fallback a localStorage por seguridad si no hay red
             const saved = localStorage.getItem(CONTACTS_KEY);
             return saved ? JSON.parse(saved) : [];
         }
 
-        function saveContacts(contacts) {
+        async function saveContacts(contacts) {
+            // 1. Persistencia Local (Fallback)
             localStorage.setItem(CONTACTS_KEY, JSON.stringify(contacts));
+            
+            // 2. Persistencia en Airtable (Real-time)
+            // Tomamos el último añadido si la longitud aumentó
+            const lastContact = contacts[contacts.length - 1];
+            if (lastContact && !lastContact.id.startsWith('rec')) { // Si no tiene ID de Airtable aún
+                try {
+                    const result = await DulceAPI.createRecord('AGENDA', {
+                        nombre: lastContact.nombre,
+                        tipo: lastContact.tipo,
+                        telefono: lastContact.telefono,
+                        email: lastContact.email,
+                        categoria: lastContact.categoria,
+                        creado: lastContact.creado
+                    });
+                    console.log('[Dulce] Contacto sincronizado con Airtable:', result);
+                    fetchGlobalData(); // Refrescar estado global
+                } catch (e) {
+                    console.error('[Dulce] Error al sincronizar contacto:', e);
+                }
+            }
         }
 
         function normalize(str) {
@@ -6312,10 +6859,10 @@
             });
         }
 
-        document.querySelectorAll('.modal-type-btn').forEach(btn => {
+        document.querySelectorAll('.c-type-btn').forEach(btn => {
             if (btn) {
                 btn.addEventListener('click', () => {
-                    document.querySelectorAll('.modal-type-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.c-type-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     newContactType = btn.dataset.ctype;
                 });
@@ -6412,62 +6959,131 @@
             console.log('Contacto eliminado:', idToKill);
         };
 
-        // ===== MÁRGENES =====
+        // ===== MÁRGENES — ESCUDO DE RENTABILIDAD =====
 
+        // Motor de Mermas: CRUD de sobras/desperdicios
+        function getMermasMes() {
+            try {
+                const all = JSON.parse(localStorage.getItem(MERMA_KEY) || '[]');
+                const now = new Date();
+                const mesStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+                return all.filter(m => (m.fecha || '').substring(0, 7) === mesStr);
+            } catch(e) { return []; }
+        }
+        function getAllMermas() { try { return JSON.parse(localStorage.getItem(MERMA_KEY) || '[]'); } catch(e) { return []; } }
+        function saveMermas(mermas) { try { localStorage.setItem(MERMA_KEY, JSON.stringify(mermas)); } catch(e) {} }
+
+        window.registrarMerma = function() {
+            const producto = (document.getElementById('mermaProducto').value || '').trim();
+            const cantidad = parseFloat(document.getElementById('mermaCantidad').value) || 0;
+            const coste = parseFloat(document.getElementById('mermaCoste').value) || 0;
+            if (!producto) { alert('Introduce el nombre del producto'); return; }
+            if (cantidad <= 0) { alert('Introduce una cantidad válida'); return; }
+            if (coste <= 0) { alert('Introduce el coste por unidad'); return; }
+            const merma = { id: Date.now().toString(), producto, cantidad, costeUnitario: coste, total: cantidad * coste, fecha: new Date().toISOString() };
+            const all = getAllMermas(); all.unshift(merma); saveMermas(all);
+            document.getElementById('mermaProducto').value = '';
+            document.getElementById('mermaCantidad').value = '';
+            document.getElementById('mermaCoste').value = '';
+            loadMargenes();
+            const btn = document.getElementById('mermaSubmitBtn');
+            btn.innerHTML = '<i data-lucide="check" style="width:16px;"></i> ¡Registrada!';
+            btn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+            setTimeout(() => { btn.innerHTML = '<i data-lucide="plus-circle" style="width:16px;"></i> Registrar Merma'; btn.style.background = ''; if (typeof lucide !== 'undefined') lucide.createIcons(); }, 1500);
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        };
+
+        window.eliminarMerma = function(id) {
+            let all = getAllMermas(); all = all.filter(m => m.id !== id); saveMermas(all); loadMargenes();
+        };
+
+        function renderMermasList() {
+            const container = document.getElementById('mermasList'); if (!container) return;
+            const mermas = getMermasMes();
+            if (mermas.length === 0) { container.innerHTML = '<div class="merma-empty"><span style="font-size:24px;">✨</span><br>Sin mermas este mes. ¡Enhorabuena!</div>'; return; }
+            container.innerHTML = '<div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.5px;margin-bottom:10px;">Registros del mes (' + mermas.length + ')</div>' +
+                mermas.slice(0, 10).map(m => {
+                    const fechaStr = new Date(m.fecha).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+                    return '<div class="merma-item">' +
+                        '<div class="merma-item-icon">🗑️</div>' +
+                        '<div class="merma-item-info"><div class="merma-item-name">' + m.producto + '</div><div class="merma-item-detail">' + m.cantidad + ' uds × ' + m.costeUnitario.toFixed(2) + '€ · ' + fechaStr + '</div></div>' +
+                        '<div class="merma-item-cost">-' + m.total.toFixed(2) + '€</div>' +
+                        '<button class="merma-item-delete" onclick="eliminarMerma(\'' + m.id + '\')" title="Eliminar"><i data-lucide="x" style="width:14px;"></i></button></div>';
+                }).join('');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function updateTGTG(totalMermas) {
+            const lossEl = document.getElementById('tgtgLoss'); const recoverEl = document.getElementById('tgtgRecover');
+            if (!lossEl || !recoverEl) return;
+            lossEl.textContent = totalMermas.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+            recoverEl.textContent = (totalMermas * 0.33).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+        }
 
         async function loadMargenes() {
             const ventaGuardada = localStorage.getItem(VENTA_KEY);
             if (ventaGuardada) document.getElementById('ventaSemanalInput').value = ventaGuardada;
-
             document.getElementById('margenSub').textContent = 'Leyendo gastos...';
-
             try {
-                // Reutilizar datos globales (misma fuente que Dashboard)
                 if (!globalStats.loaded) await fetchGlobalData();
-
                 const now = new Date();
                 const totalGastos = globalStats.totalGastosMes;
                 const totalDocs = globalStats.countTotalMes;
-
-                // Calcular ingresos estimados del mes
                 const ventaSemanal = parseFloat(localStorage.getItem(VENTA_KEY) || 0);
-                const semanasEnMes = 4.33;
-                const ingresosMes = ventaSemanal * semanasEnMes;
-                const margen = ingresosMes > 0 ? ((ingresosMes - totalGastos) / ingresosMes * 100) : null;
+                const ingresosMes = ventaSemanal * 4.33;
+                const mermasMes = getMermasMes();
+                const totalMermas = mermasMes.reduce((s, m) => s + (m.total || 0), 0);
+                const beneficioNeto = ingresosMes - totalGastos - totalMermas;
+                const margen = ingresosMes > 0 ? (beneficioNeto / ingresosMes * 100) : null;
 
-                // Actualizar UI — MISMOS NÚMEROS que en Dashboard
                 document.getElementById('mGastos').textContent = totalGastos.toFixed(2) + '€';
                 document.getElementById('mIngresos').textContent = ingresosMes > 0 ? ingresosMes.toFixed(0) + '€' : '—';
                 document.getElementById('mFacturas').textContent = totalDocs;
+                document.getElementById('mMermas').textContent = totalMermas.toFixed(2) + '€';
 
                 const valEl = document.getElementById('margenValor');
                 const subEl = document.getElementById('margenSub');
                 const barEl = document.getElementById('margenBar');
+                const healthEl = document.getElementById('margenHealthBadge');
 
                 if (margen === null) {
-                    valEl.textContent = '—';
-                    valEl.className = 'margin-value neutral';
+                    valEl.textContent = '—'; valEl.style.color = 'var(--text-muted)';
                     subEl.textContent = 'Configura tu venta semanal para ver el margen estimado';
                     barEl.style.width = '0%';
+                    healthEl.className = 'margen-health-indicator warning';
+                    healthEl.innerHTML = '<div class="margen-health-dot"></div><span>Sin Datos</span>';
                 } else {
                     valEl.textContent = (margen >= 0 ? '+' : '') + margen.toFixed(1) + '%';
-                    valEl.className = 'margin-value ' + (margen >= 20 ? 'positive' : margen >= 0 ? 'neutral' : 'negative');
-                    subEl.textContent = `Gastos: ${totalGastos.toFixed(2)}€ | Ingresos est.: ${ingresosMes.toFixed(0)}€ | ${now.toLocaleString('es-ES', { month: 'long' })}`;
-                    barEl.style.width = Math.min(Math.abs(totalGastos / ingresosMes * 100), 100) + '%';
-                    barEl.style.background = margen >= 20 ? 'linear-gradient(90deg,#059669,#10b981)' : margen >= 0 ? 'linear-gradient(90deg,#d97706,#f59e0b)' : 'linear-gradient(90deg,#dc2626,#ef4444)';
+                    if (margen >= 20) {
+                        valEl.style.color = '#10b981';
+                        healthEl.className = 'margen-health-indicator healthy';
+                        healthEl.innerHTML = '<div class="margen-health-dot"></div><span>Saludable</span>';
+                        barEl.style.background = 'linear-gradient(90deg,#059669,#10b981)';
+                    } else if (margen >= 0) {
+                        valEl.style.color = '#f59e0b';
+                        healthEl.className = 'margen-health-indicator warning';
+                        healthEl.innerHTML = '<div class="margen-health-dot"></div><span>En Riesgo</span>';
+                        barEl.style.background = 'linear-gradient(90deg,#d97706,#f59e0b)';
+                    } else {
+                        valEl.style.color = '#ef4444';
+                        healthEl.className = 'margen-health-indicator danger';
+                        healthEl.innerHTML = '<div class="margen-health-dot"></div><span>Pérdidas</span>';
+                        barEl.style.background = 'linear-gradient(90deg,#dc2626,#ef4444)';
+                    }
+                    const mermaStr = totalMermas > 0 ? ' | Mermas: ' + totalMermas.toFixed(2) + '€' : '';
+                    subEl.textContent = 'Gastos: ' + totalGastos.toFixed(2) + '€ | Ingresos: ' + ingresosMes.toFixed(0) + '€' + mermaStr + ' | ' + now.toLocaleString('es-ES', { month: 'long' });
+                    barEl.style.width = Math.min(Math.abs((totalGastos + totalMermas) / ingresosMes * 100), 100) + '%';
                 }
-
+                renderMermasList();
+                updateTGTG(totalMermas);
             } catch (err) {
-                document.getElementById('margenSub').textContent = '❌ Error al cargar datos: ' + err.message;
+                document.getElementById('margenSub').textContent = '❌ Error: ' + err.message;
             }
         }
 
         document.getElementById('saveVentaBtn').addEventListener('click', () => {
             const val = document.getElementById('ventaSemanalInput').value.trim();
-            if (val && !isNaN(val)) {
-                localStorage.setItem(VENTA_KEY, val);
-                loadMargenes();
-            }
+            if (val && !isNaN(val)) { localStorage.setItem(VENTA_KEY, val); loadMargenes(); }
         });
 
         // Initialize Splash Screen
@@ -6616,32 +7232,23 @@
         };
 
         function getRutaData() {
+            // Prioridad: Datos en vivo de Airtable vía globalStats
+            if (globalStats.loaded && globalStats.pedidos && globalStats.pedidos.length > 0) {
+                return { orders: globalStats.pedidos };
+            }
+
             const raw = localStorage.getItem(RUTA_KEY);
             if (!raw) {
                 saveRutaData(RUTA_SEED);
                 return JSON.parse(JSON.stringify(RUTA_SEED));
             }
             const data = JSON.parse(raw);
-            // Migración a v2: añadir days a recurrentes existentes
+            // Migración a v2
             if (!data.version || data.version < 2) {
                 data.orders.forEach(function(o) {
                     if (o.type === 'recurrent' && !o.days) o.days = parseScheduleDays(o.schedule);
                 });
                 data.version = 2;
-                saveRutaData(data);
-            }
-            // Reset diario inteligente para recurrentes
-            const today = new Date().toISOString().slice(0, 10);
-            const todayDay = new Date().getDay();
-            if (data.date !== today) {
-                data.date = today;
-                data.orders.forEach(function(o) {
-                    if (o.type === 'recurrent') {
-                        if (o.days && o.days.indexOf(todayDay) === -1) return; // no toca hoy
-                        o.completed = false;
-                        o.completedAt = null;
-                    }
-                });
                 saveRutaData(data);
             }
             return data;
@@ -6860,28 +7467,291 @@
             localStorage.setItem(RUTA_KEY, JSON.stringify(data));
         }
 
+        // --- Calendario Operativo & Stats (PASO 3) ---
+        var RUTA_HISTORY_KEY = 'dulce_jaleo_ruta_history';
+        function toLocalDateStr(d) {
+            var y = d.getFullYear();
+            var m = String(d.getMonth() + 1).padStart(2, '0');
+            var dd = String(d.getDate()).padStart(2, '0');
+            return y + '-' + m + '-' + dd;
+        }
+        var rutaSelectedDate = toLocalDateStr(new Date());
+
+        function getRutaHistory() {
+            try { return JSON.parse(localStorage.getItem(RUTA_HISTORY_KEY) || '{}'); } catch(e) { return {}; }
+        }
+        function saveRutaHistory(h) {
+            try { localStorage.setItem(RUTA_HISTORY_KEY, JSON.stringify(h)); } catch(e) {}
+        }
+        async function recordCompletedOrder(order) {
+            // Sincronizar finalización con Airtable
+            try {
+                if (order.id && order.id.startsWith('rec')) {
+                    // Si ya existe en Airtable, lo marcamos como completado
+                    await DulceAPI.updateRecord('PEDIDOS', order.id, {
+                        status: 'Completado',
+                        fecha_entrega: toLocalDateStr(new Date())
+                    });
+                } else {
+                    // Si es nuevo (recurrrente o manual), creamos un registro histórico
+                    await DulceAPI.createRecord('PEDIDOS', {
+                        producto: order.product,
+                        status: 'Completado',
+                        cantidad: order.quantity || 1,
+                        unidad: order.unit || 'Uds',
+                        total: order.value || 0,
+                        fecha_entrega: toLocalDateStr(new Date()),
+                        tipo: order.type || 'Manual'
+                    });
+                }
+                console.log('[Dulce] Pedido completado registrado en Airtable');
+                // Forzamos refresco total para que las gráficas se actualicen al instante
+                fetchGlobalData(); 
+            } catch (e) {
+                console.error('[Dulce] Error registrando fin de pedido:', e);
+            }
+        }
+
+        function getBusinessPerformanceStats() {
+            // Cálculo basado 100% en el dataset consolidado de Airtable
+            // Esto permite ver el histórico de todos los meses de forma profesional
+            const allPedidos = (globalStats.pedidosRaw || []).map(r => ({
+                id: r.id,
+                ...r.fields,
+                total: parseFloat(r.fields.total || r.fields.Total || 0),
+                status: r.fields.status || r.fields.Status || 'Pendiente',
+                fecha: r.fields.fecha_entrega || r.fields.Fecha || ''
+            }));
+
+            const now = new Date();
+            const currMonthStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+            const prevMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const prevMonthStr = prevMonthDate.getFullYear() + '-' + String(prevMonthDate.getMonth() + 1).padStart(2, '0');
+
+            const monDate = new Date(now);
+            const dow = monDate.getDay() || 7; 
+            monDate.setDate(monDate.getDate() - dow + 1);
+            const monStr = toLocalDateStr(monDate);
+            const sunDate = new Date(monDate);
+            sunDate.setDate(sunDate.getDate() + 6);
+            const sunStr = toLocalDateStr(sunDate);
+
+            const stats = {
+                week: { orders: 0, value: 0 },
+                currMonth: { orders: 0, value: 0 },
+                prevMonth: { orders: 0, value: 0 }
+            };
+
+            allPedidos.forEach(p => {
+                const isCompletado = (p.status === 'Done' || p.status === 'Completado');
+                const dateKey = p.fecha || '';
+                
+                if (isCompletado) {
+                    if (dateKey.startsWith(currMonthStr)) {
+                        stats.currMonth.orders++;
+                        stats.currMonth.value += p.total;
+                    }
+                    if (dateKey.startsWith(prevMonthStr)) {
+                        stats.prevMonth.orders++;
+                        stats.prevMonth.value += p.total;
+                    }
+                    if (dateKey >= monStr && dateKey <= sunStr) {
+                        stats.week.orders++;
+                        stats.week.value += p.total;
+                    }
+                }
+            });
+
+            return stats;
+        }
+
+        function renderRutaStats() {
+            var stats = getBusinessPerformanceStats();
+            var monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+            
+            // Esta Semana
+            var eWeekVal = document.getElementById('perfStatsWeekValue');
+            var eWeekOrd = document.getElementById('perfStatsWeekOrders');
+            if (eWeekVal) eWeekVal.textContent = stats.week.value.toFixed(0) + '€';
+            if (eWeekOrd) eWeekOrd.textContent = stats.week.orders + ' pedidos';
+            
+            // Mes Actual
+            var eMonthVal = document.getElementById('perfStatsMonthValue');
+            var eMonthOrd = document.getElementById('perfStatsMonthOrders');
+            var eMonthLbl = document.getElementById('perfLabelCurrentMonth');
+            if (eMonthVal) eMonthVal.textContent = stats.currMonth.value.toFixed(0) + '€';
+            if (eMonthOrd) eMonthOrd.textContent = stats.currMonth.orders + ' pedidos';
+            if (eMonthLbl) eMonthLbl.textContent = 'Mes Actual (' + monthNames[new Date().getMonth()] + ')';
+
+            // Mes Anterior
+            var ePrevVal = document.getElementById('perfStatsPrevMonthValue');
+            var ePrevOrd = document.getElementById('perfStatsPrevMonthOrders');
+            var ePrevLbl = document.getElementById('perfLabelPrevMonth');
+            if (ePrevVal) ePrevVal.textContent = stats.prevMonth.value.toFixed(0) + '€';
+            if (ePrevOrd) ePrevOrd.textContent = stats.prevMonth.orders + ' pedidos';
+            var prevM = new Date().getMonth() - 1;
+            if (prevM < 0) prevM = 11;
+            if (ePrevLbl) ePrevLbl.textContent = monthNames[prevM];
+
+            // Ocultar pills de efectividad que ya no se usan en esta vista limpia
+            var pills = document.querySelectorAll('.perf-pill');
+            pills.forEach(function(p) { p.style.display = 'none'; });
+        }
+
+        // Estado del calendario mensual
+        var rutaViewMonth = new Date().getMonth();
+        var rutaViewYear = new Date().getFullYear();
+
+        function getOrderCountForDate(dateStr, dayOfWeek, data, history) {
+            var count = 0;
+            if (history[dateStr]) count += history[dateStr].length;
+            data.orders.forEach(function(o) {
+                if (o.type === 'recurrent' && o.days && o.days.indexOf(dayOfWeek) !== -1) count++;
+                if (o.type === 'dynamic' && o.fecha_entrega === dateStr) count++;
+                if (o.type === 'manual' && o.days && o.days.indexOf(dayOfWeek) !== -1) count++;
+            });
+            return count;
+        }
+
+        function renderRutaCalendar() {
+            var grid = document.getElementById('rutaMonthGrid');
+            var titleEl = document.getElementById('rutaMonthTitle');
+            if (!grid) return;
+
+            var data = getRutaData();
+            var history = getRutaHistory();
+            var todayStr = toLocalDateStr(new Date());
+
+            // Título del mes
+            var monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+            if (titleEl) titleEl.textContent = monthNames[rutaViewMonth] + ' ' + rutaViewYear;
+
+            // Calcular días del mes
+            var firstDay = new Date(rutaViewYear, rutaViewMonth, 1);
+            var lastDay = new Date(rutaViewYear, rutaViewMonth + 1, 0);
+            var daysInMonth = lastDay.getDate();
+
+            // getDay() devuelve 0=Dom, convertimos a Lun=0
+            var startWeekday = (firstDay.getDay() + 6) % 7; // Lun=0, Mar=1, ..., Dom=6
+
+            var html = '';
+
+            // Celdas vacías antes del mes
+            for (var e = 0; e < startWeekday; e++) {
+                html += '<div class="ruta-day-cell out-month"></div>';
+            }
+
+            // Celdas de cada día
+            for (var day = 1; day <= daysInMonth; day++) {
+                var d = new Date(rutaViewYear, rutaViewMonth, day);
+                var ds = toLocalDateStr(d);
+                var dow = d.getDay(); // 0=Dom ... 6=Sáb
+                var isToday = ds === todayStr;
+                var isSelected = ds === rutaSelectedDate;
+
+                var orderCount = getOrderCountForDate(ds, dow, data, history);
+
+                // Color del punto: rojo 3+, amarillo 1-2, verde 0
+                var dotHtml = '';
+                if (orderCount >= 3) {
+                    dotHtml = '<div class="ruta-day-dots"><span class="ruta-dot-red"></span><span class="ruta-dot-red"></span><span class="ruta-dot-red"></span></div>';
+                } else if (orderCount === 2) {
+                    dotHtml = '<div class="ruta-day-dots"><span class="ruta-dot-yellow"></span><span class="ruta-dot-yellow"></span></div>';
+                } else if (orderCount === 1) {
+                    dotHtml = '<div class="ruta-day-dots"><span class="ruta-dot-gold"></span></div>';
+                } else {
+                    dotHtml = '<div class="ruta-day-dots"></div>';
+                }
+
+                var classes = 'ruta-day-cell';
+                if (isToday) classes += ' today';
+                if (isSelected) classes += ' selected';
+
+                html += '<div class="' + classes + '" onclick="selectRutaDay(\'' + ds + '\')">' +
+                    '<span class="ruta-day-number">' + day + '</span>' +
+                    dotHtml +
+                    '</div>';
+            }
+
+            grid.innerHTML = html;
+
+            // Renderizar detalle del día seleccionado
+            renderDayDetailSection(data, history);
+        }
+
+        function renderDayDetailSection(data, history) {
+            var section = document.getElementById('ruta-day-detail-section');
+            if (!section) return;
+
+            var parts = rutaSelectedDate.split('-');
+            var selDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+            var dow = selDate.getDay();
+            var orderCount = getOrderCountForDate(rutaSelectedDate, dow, data || getRutaData(), history || getRutaHistory());
+
+            var dayNames = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+            var monthNames = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+            var dateLabel = dayNames[dow] + ', ' + selDate.getDate() + ' ' + monthNames[selDate.getMonth()];
+
+            var isToday = rutaSelectedDate === toLocalDateStr(new Date());
+            var badgeColor, badgeText;
+            if (orderCount === 0) { badgeColor = 'background:rgba(16,185,129,0.12);color:#10b981;'; badgeText = 'Libre'; }
+            else if (orderCount <= 2) { badgeColor = 'background:rgba(245,158,11,0.12);color:#f59e0b;'; badgeText = orderCount + ' pedido' + (orderCount>1?'s':''); }
+            else { badgeColor = 'background:rgba(239,68,68,0.12);color:#ef4444;'; badgeText = orderCount + ' pedidos'; }
+
+            section.innerHTML =
+                '<div class="ruta-day-detail">' +
+                    '<div class="ruta-day-detail-header">' +
+                        '<span class="ruta-day-detail-title">' + (isToday ? '📍 Hoy — ' : '') + dateLabel + '</span>' +
+                        '<span class="ruta-day-detail-badge" style="' + badgeColor + '">' + badgeText + '</span>' +
+                    '</div>' +
+                    (orderCount === 0 ?
+                        '<div style="text-align:center;padding:12px 0;color:var(--text-muted);font-size:13px;">Sin pedidos programados para este día</div>' :
+                        '<div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Los pedidos del día se muestran a continuación ↓</div>'
+                    ) +
+                '</div>';
+        }
+
+        window.navigateRutaMonth = function(delta) {
+            rutaViewMonth += delta;
+            if (rutaViewMonth > 11) { rutaViewMonth = 0; rutaViewYear++; }
+            if (rutaViewMonth < 0) { rutaViewMonth = 11; rutaViewYear--; }
+            renderRutaCalendar();
+        };
+
+        window.selectRutaDay = function(dateStr) {
+            rutaSelectedDate = dateStr;
+            renderRutaCalendar();
+            renderRuta();
+        };
+
         // --- Renderizado principal ---
         function renderRuta() {
             const data = getRutaData();
             const orders = data.orders;
-            const todayDay = new Date().getDay();
+            const selectedDate = new Date(rutaSelectedDate);
+            const selectedDay = selectedDate.getDay();
+            const isToday = rutaSelectedDate === new Date().toISOString().slice(0, 10);
 
-            // Filtrar recurrentes que no tocan hoy
-            function isTodayTask(o) {
-                if (o.days && o.days.indexOf(todayDay) === -1) return false;
+            // Filter orders for selected day
+            function isDayTask(o) {
+                if (o.type === 'dynamic' && o.fecha_entrega) {
+                    return o.fecha_entrega === rutaSelectedDate;
+                }
+                if (o.days && o.days.indexOf(selectedDay) === -1) return false;
                 return true;
             }
 
-            const todayOrders = orders.filter(isTodayTask);
-            const pending = todayOrders.filter(function(o) { return !o.completed; });
-            const done = todayOrders.filter(function(o) { return o.completed; });
+            const dayOrders = orders.filter(isDayTask);
+            const pending = dayOrders.filter(function(o) { return !o.completed || !isToday; });
+            const done = isToday ? dayOrders.filter(function(o) { return o.completed; }) : [];
 
-            renderRutaProgress(todayOrders);
+            renderRutaProgress(dayOrders);
             renderRutaHornada(pending);
             renderRutaRecurrentes(pending.filter(function(o) { return o.type === 'recurrent'; }));
             renderRutaDinamicos(pending.filter(function(o) { return o.type === 'dynamic'; }));
             renderRutaManuales(pending.filter(function(o) { return o.type === 'manual'; }));
             renderRutaFinalizadas(done);
+            renderRutaStats();
 
             setTimeout(function() {
                 if (typeof lucide !== 'undefined') lucide.createIcons({ attrs: { 'stroke-width': 1.8, 'stroke': 'currentColor' } });
@@ -7358,36 +8228,69 @@
         }
 
         // --- Acciones ---
-        window.completeRutaOrder = function(orderId) {
+        // --- Acciones ---
+        window.completeRutaOrder = async function(orderId) {
             var card = document.querySelector('[data-ruta-id="' + orderId + '"]');
             if (card) {
                 card.classList.add('ruta-completing');
             }
-            setTimeout(function() {
-                var data = getRutaData();
-                var order = data.orders.find(function(o) { return o.id === orderId; });
-                if (order) {
-                    order.completed = true;
-                    order.completedAt = Date.now();
+            try {
+                if (typeof DulceAPI === 'undefined' || !getTablesMap().PEDIDOS) throw new Error("Airtable no configurado");
+                
+                var nowIso = new Date().toISOString();
+                
+                // Excluimos datos locales de prueba
+                if (!orderId.startsWith('man-') && !orderId.startsWith('dyn-') && !orderId.startsWith('rec-')) {
+                    await DulceAPI.updateRecord('PEDIDOS', orderId, {
+                        "completed": true,
+                        "completedat": nowIso
+                    });
                 }
-                saveRutaData(data);
+                
+                if (typeof globalStats !== 'undefined' && globalStats.pedidos) {
+                    var order = globalStats.pedidos.find(function(o) { return o.id === orderId; });
+                    if (order) {
+                        order.completed = true;
+                        order.completedAt = nowIso;
+                        recordCompletedOrder(order);
+                    }
+                }
+            } catch (e) {
+                console.error("Error al completar en Airtable", e);
+                alert("Fallo de red al completar el pedido en Airtable.");
+            } finally {
+                if (card) card.classList.remove('ruta-completing');
                 renderRuta();
-            }, 500);
+            }
         };
 
         window.deleteRutaTask = function(taskId) {
-            var data = getRutaData();
-            data.orders = data.orders.filter(function(o) { return o.id !== taskId; });
-            saveRutaData(data);
+            // Nota: Podríamos agregar deleteRecord a DulceAPI en el futuro
+            if (typeof globalStats !== 'undefined' && globalStats.pedidos) {
+                globalStats.pedidos = globalStats.pedidos.filter(function(o) { return o.id !== taskId; });
+            }
             renderRuta();
         };
 
-        window.restoreRutaOrder = function(orderId) {
-            var data = getRutaData();
-            var order = data.orders.find(function(o) { return o.id === orderId; });
-            if (order) { order.completed = false; order.completedAt = null; }
-            saveRutaData(data);
-            renderRuta();
+        window.restoreRutaOrder = async function(orderId) {
+            try {
+                if (typeof DulceAPI !== 'undefined' && getTablesMap().PEDIDOS) {
+                    if (!orderId.startsWith('man-') && !orderId.startsWith('dyn-') && !orderId.startsWith('rec-')) {
+                        await DulceAPI.updateRecord('PEDIDOS', orderId, {
+                            "completed": false,
+                            "completedat": null
+                        });
+                    }
+                }
+                if (typeof globalStats !== 'undefined' && globalStats.pedidos) {
+                    var order = globalStats.pedidos.find(function(o) { return o.id === orderId; });
+                    if (order) { order.completed = false; order.completedAt = null; }
+                }
+            } catch (e) {
+                console.error("Error restaurando pedido en Airtable", e);
+            } finally {
+                renderRuta();
+            }
         };
 
         // --- Modal Editar Tarea ---
@@ -7469,6 +8372,76 @@
             var phone = order.clientPhone.replace(/\s+/g, '');
             window.open('https://wa.me/' + phone + '?text=' + msg, '_blank');
         };
+        window.renderRutaStats = function() {
+            var weekValue = 0, weekOrders = 0;
+            var monthValue = 0, monthOrders = 0;
+            var prevMonthValue = 0, prevMonthOrders = 0;
+
+            try {
+                // Recuperar estado global (Soporta errores de red - 401 Unauthorized)
+                var pedidos = (typeof globalStats !== 'undefined' && globalStats.pedidos) ? globalStats.pedidos : [];
+                var now = new Date();
+                
+                var currentMonthStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+                
+                var prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                var prevMonthStr = prevDate.getFullYear() + '-' + String(prevDate.getMonth() + 1).padStart(2, '0');
+
+                var oneWeekAgo = new Date();
+                oneWeekAgo.setDate(now.getDate() - 7);
+
+                pedidos.forEach(function(pid) {
+                    if(!pid.completed) return;
+                    var dateStr = pid.completedAt || pid.createdAt || '';
+                    if(!dateStr) return;
+                    var d = new Date(dateStr);
+                    if(isNaN(d.getTime())) return;
+                    
+                    var val = parseFloat(pid.total) || 0;
+
+                    // Esta Semana
+                    if(d >= oneWeekAgo && d <= now) {
+                        weekValue += val;
+                        weekOrders++;
+                    }
+
+                    // Mes Actual
+                    if(dateStr.startsWith(currentMonthStr)) {
+                        monthValue += val;
+                        monthOrders++;
+                    }
+                    // Mes Anterior
+                    else if(dateStr.startsWith(prevMonthStr)) {
+                        prevMonthValue += val;
+                        prevMonthOrders++;
+                    }
+                });
+            } catch(e) {
+                console.warn("[Analítica] No se pudo procesar desde Airtable o faltan datos:", e); // Failsafe
+            }
+
+            // Inyección al DOM blindada
+            var setEl = function(id, text) { var el = document.getElementById(id); if (el) el.innerHTML = text; };
+
+            setEl('perfStatsWeekValue', weekValue.toFixed(2) + '&euro;');
+            setEl('perfStatsWeekOrders', weekOrders + ' ped.');
+            
+            setEl('perfStatsMonthValue', monthValue.toFixed(2) + '&euro;');
+            setEl('perfStatsMonthOrders', monthOrders + ' ped.');
+
+            setEl('perfStatsPrevMonthValue', prevMonthValue.toFixed(2) + '&euro;');
+            setEl('perfStatsPrevMonthOrders', prevMonthOrders + ' ped.');
+
+            // Cálculo dinámico de crecimiento mensual (Pills)
+            var elMonthEff = document.getElementById('perfStatsMonthEff');
+            if(elMonthEff) {
+                 var growth = prevMonthValue > 0 ? ((monthValue - prevMonthValue) / prevMonthValue) * 100 : 0;
+                 if(monthValue > 0 && prevMonthValue === 0) growth = 100; // Crecimiento al inicio
+                 elMonthEff.textContent = (growth > 0 ? '+' : '') + growth.toFixed(0) + '%';
+                 elMonthEff.style.color = growth >= 0 ? '#166534' : '#ef4444'; // Verde Apple oscuro o Rojo
+                 elMonthEff.style.background = growth >= 0 ? 'rgba(92, 158, 126, 0.2)' : 'rgba(239, 68, 68, 0.1)';
+            }
+        };
 
         // --- Modal Nueva Tarea ---
         window.openTaskModal = function() {
@@ -7497,7 +8470,7 @@
             if (modal) modal.classList.remove('open');
         };
 
-        window.saveNewTask = function() {
+        window.saveNewTask = async function() {
             var nameInput = document.getElementById('taskName');
             var notesInput = document.getElementById('taskNotes');
             var qtyInput = document.getElementById('taskQty');
@@ -7507,30 +8480,61 @@
 
             var qty = qtyInput ? parseInt(qtyInput.value) || 0 : 0;
             var unit = unitInput ? unitInput.value.trim() : '';
+            var note = notesInput ? notesInput.value.trim() : '';
 
             // Collect selected days
             var selectedDays = [];
             document.querySelectorAll('#taskDayChips .ruta-day-chip.active').forEach(function(c) {
                 selectedDays.push(parseInt(c.dataset.day));
             });
-            // If none selected → all days
             if (selectedDays.length === 0) selectedDays = [0,1,2,3,4,5,6];
 
-            var data = getRutaData();
-            data.orders.push({
-                id: 'man-' + Date.now(),
-                type: 'manual',
-                product: name,
-                quantity: qty,
-                unit: unit,
-                days: selectedDays,
-                note: notesInput ? notesInput.value.trim() : '',
-                completed: false,
-                completedAt: null
-            });
-            saveRutaData(data);
-            closeTaskModal();
-            renderRuta();
+            closeTaskModal(); // Optimistic close
+
+            try {
+                if (typeof DulceAPI === 'undefined' || !getTablesMap().PEDIDOS) {
+                    throw new Error("No estás conectado a la Tabla PEDIDOS de Airtable.");
+                }
+
+                var currentISOTime = new Date().toISOString();
+                var fields = {
+                    "product": name,
+                    "quantity": qty,
+                    "unit": unit,
+                    "type": "manual",
+                    "note": note,
+                    "completed": false,
+                    "fecha_entrega": window.rutaSelectedDate || currentISOTime.split('T')[0],
+                    "days": JSON.stringify(selectedDays),
+                    "createdAt": currentISOTime
+                };
+
+                // Pushing to Cloud
+                const res = await DulceAPI.createRecord('PEDIDOS', fields);
+                var realId = res.id || ('man-' + Date.now());
+
+                // Update Local Cache
+                if (typeof globalStats !== 'undefined') {
+                    if (!globalStats.pedidos) globalStats.pedidos = [];
+                    globalStats.pedidos.push({
+                        id: realId,
+                        type: 'manual',
+                        product: name,
+                        quantity: qty,
+                        unit: unit,
+                        days: selectedDays,
+                        note: note,
+                        completed: false,
+                        completedAt: null,
+                        fecha_entrega: fields.fecha_entrega
+                    });
+                }
+            } catch (err) {
+                console.error("Error inyectando pedido:", err);
+                alert("Error de conexión: No se pudo guardar el pedido en Airtable.");
+            } finally {
+                renderRuta();
+            }
         };
 
         // Day chip toggle
@@ -7541,23 +8545,34 @@
         // FAB Tarea -> abrir modal
         (function() {
             var fab = document.getElementById('fabAddTask');
-            if (fab) fab.addEventListener('click', function() { openTaskModal(); });
-
-            // Cerrar modal al hacer click en overlay
-            var modal = document.getElementById('taskModal');
-            if (modal) {
-                modal.addEventListener('click', function(e) {
-                    if (e.target === modal) closeTaskModal();
+            if (fab) {
+                fab.addEventListener('click', function() {
+                    const activeTab = document.querySelector('.nav-item.active')?.dataset.tab;
+                    if (activeTab === 'agenda') {
+                        const modal = document.getElementById('contactModal');
+                        if (modal) {
+                            modal.classList.add('open');
+                            document.getElementById('cNombre')?.focus();
+                        }
+                    } else {
+                        openTaskModal();
+                    }
                 });
             }
 
-            // Cerrar modal editar al hacer click en overlay
-            var editModal = document.getElementById('editTaskModal');
-            if (editModal) {
-                editModal.addEventListener('click', function(e) {
-                    if (e.target === editModal) closeEditModal();
+            // Cerrar modal al hacer click en overlay (Asegurar soporte para ambas clases)
+            document.querySelectorAll('.professional-modal-overlay, .ruta-modal-overlay').forEach(ov => {
+                ov.addEventListener('click', function(e) {
+                    if (e.target === ov) ov.classList.remove('open');
                 });
-            }
+            });
+
+            // Botones cerrar manuales
+            document.querySelectorAll('#closeModal').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    btn.closest('.professional-modal-overlay, .ruta-modal-overlay')?.classList.remove('open');
+                });
+            });
         })();
 
         // ===== THEME TOGGLE LOGIC (INVERSIÓN: CLARO = DEFAULT) =====
@@ -7579,7 +8594,7 @@
             }
         }
     </script>
-    <script src="agenda.js"></script>
+    <script src="public/js/agenda.js"></script>
     <script src="public/js/api.js"></script>
     <script src="public/js/dashboard.js"></script>
     <script>
