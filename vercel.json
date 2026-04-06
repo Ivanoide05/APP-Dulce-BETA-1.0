@@ -4,12 +4,42 @@
     {
       "src": "backend/server.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "login.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "admin.html",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "manifest.json",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "icon-*.png",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "backend/server.js"
-    }
+    { "src": "/api/(.*)",     "dest": "backend/server.js" },
+    { "src": "/webhook/(.*)", "dest": "backend/server.js" },
+    { "src": "/health",       "dest": "backend/server.js" },
+    { "src": "/index.html",   "dest": "/index.html" },
+    { "src": "/login.html",   "dest": "/login.html" },
+    { "src": "/admin.html",   "dest": "/admin.html" },
+    { "src": "/manifest.json","dest": "/manifest.json" },
+    { "src": "/icon-(.*)",    "dest": "/icon-$1" },
+    { "src": "/public/(.*)",  "dest": "/public/$1" },
+    { "src": "^/$",           "dest": "/index.html" }
   ]
 }

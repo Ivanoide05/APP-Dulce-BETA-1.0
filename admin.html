@@ -2,67 +2,105 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dulce y Jaleo - Panel Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dulce y Jaleo — Panel Admin</title>
+    <meta name="description" content="Panel de administración para gestionar clientes y configuración de Dulce y Jaleo">
 
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts (Unified with main app) -->
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <!-- SweetAlert2 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Toastify -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <!-- Auth Module -->
     <script src="public/js/auth.js"></script>
     <script>
-        // Protección de ruta inmediata (Perfil Admin)
-        if (typeof DulceAuth !== 'undefined') {
-            const user = DulceAuth.checkAuth();
-            if (user && user.role !== 'admin') {
-                window.location.href = '/index.html';
+        // Route protection (Admin-only) — respects dev bypass on localhost/file://
+        (function() {
+            const isDevMode = window.location.protocol === 'file:' ||
+                window.location.hostname === 'localhost' ||
+                window.location.hostname === '127.0.0.1' ||
+                window.location.hostname === '::1';
+            if (!isDevMode && typeof DulceAuth !== 'undefined') {
+                const user = DulceAuth.checkAuth();
+                if (!user || user.role !== 'admin') {
+                    window.location.href = '/index.html';
+                }
             }
-        }
+        })();
     </script>
 
     <style>
-        /* ========== CSS VARIABLES ========== */
+        /* ========== LUXURY APPLE PREMIUM — DESIGN TOKENS ========== */
         :root {
-            --bg: #F7F7F7;
-            --card-bg: #FFFFFF;
-            --card-shadow: 0 2px 12px rgba(0,0,0,0.06);
-            --text-primary: #1A1A1A;
-            --text-secondary: #6B7280;
-            --text-muted: #9CA3AF;
-            --border: #E5E7EB;
-            --input-bg: #F5F5F5;
-            --row-alt: #F9F9F9;
-            --row-base: transparent;
-            --primary: #C8860A;
-            --primary-hover: #B5780A;
-            --primary-light: rgba(200,134,10,0.1);
-            --green: #00C896;
-            --green-light: rgba(0,200,150,0.12);
-            --red: #E05252;
-            --red-light: rgba(224,82,82,0.1);
-            --overlay-bg: rgba(0,0,0,0.4);
-            --skeleton-base: #E5E7EB;
-            --skeleton-shine: #F3F4F6;
+            /* Palette: Qantas/Apple Light */
+            --bg-page: #f8f9fb;
+            --bg-card: #ffffff;
+            --bg-card-hover: rgba(0, 0, 0, 0.015);
+            --premium-red: #e40000;
+            --gold: #D4AF37;
+            --gold-soft: rgba(212, 175, 55, 0.12);
+            --gold-glow: rgba(212, 175, 55, 0.25);
+            --text-primary: #1a1c1d;
+            --text-secondary: #5f6368;
+            --text-muted: #8e8e93;
+
+            /* Glass & Depth */
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-blur: blur(20px);
+            --border: rgba(0, 0, 0, 0.06);
+            --border-soft: rgba(0, 0, 0, 0.03);
+
+            /* Shadows Apple Style */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 12px 32px rgba(26, 28, 29, 0.08);
+            --shadow-lg: 0 24px 64px rgba(26, 28, 29, 0.12);
+
+            /* Status Colors */
+            --green: #34C759;
+            --green-bg: rgba(52, 199, 89, 0.1);
+            --red: #FF3B30;
+            --red-bg: rgba(255, 59, 48, 0.1);
+
+            /* Geometry */
+            --radius-sm: 12px;
+            --radius-md: 20px;
+            --radius-lg: 28px;
+            --radius-pill: 50px;
+
+            /* Motion */
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-fast: all 0.15s ease;
+
+            /* Input */
+            --input-bg: #f0f1f3;
+
+            /* Skeleton */
+            --skeleton-base: #e8e8ed;
+            --skeleton-shine: #f5f5f7;
         }
 
+        /* DARK THEME (OLED Premium) */
         body.dark-theme {
-            --bg: #0F0F0F;
-            --card-bg: #1A1A1A;
-            --card-shadow: 0 2px 12px rgba(0,0,0,0.3);
-            --text-primary: #F3F4F6;
-            --text-secondary: #9CA3AF;
-            --text-muted: #6B7280;
-            --border: #2A2A2A;
-            --input-bg: #2A2A2A;
-            --row-alt: #1A1A1A;
-            --row-base: #151515;
-            --overlay-bg: rgba(0,0,0,0.7);
-            --skeleton-base: #2A2A2A;
-            --skeleton-shine: #333333;
+            --bg-page: #0a0a0a;
+            --bg-card: #151515;
+            --bg-card-hover: rgba(255, 255, 255, 0.03);
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --text-muted: #666666;
+            --glass-bg: rgba(20, 20, 20, 0.8);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-soft: rgba(255, 255, 255, 0.03);
+            --shadow-md: 0 12px 48px rgba(0, 0, 0, 0.5);
+            --input-bg: #1e1e1e;
+            --skeleton-base: #1e1e1e;
+            --skeleton-shine: #2a2a2a;
+            --green-bg: rgba(52, 199, 89, 0.15);
+            --red-bg: rgba(255, 59, 48, 0.15);
         }
 
         /* ========== RESET & BASE ========== */
@@ -70,85 +108,133 @@
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg);
+            background: var(--bg-page);
             color: var(--text-primary);
             min-height: 100vh;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            transition: var(--transition);
+        }
+
+        h1, h2, h3 {
+            font-family: 'Manrope', sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.04em;
         }
 
         /* ========== SCROLLBAR ========== */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
 
-        /* ========== HEADER ========== */
+        /* ========== HEADER (Floating Pill — Matches Main App) ========== */
         .admin-header {
-            background: var(--card-bg);
-            box-shadow: var(--card-shadow);
-            padding: 16px 32px;
+            position: fixed;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 1200px;
+            width: calc(100% - 32px);
+            padding: 14px 24px;
+            background: var(--glass-bg);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-pill);
+            box-shadow: var(--shadow-md);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            z-index: 950;
+            transition: var(--transition);
         }
 
         .header-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
         }
 
+        .header-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gold-soft);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-icon i { color: var(--gold); width: 20px; height: 20px; }
+
         .brand-name {
+            font-family: 'Manrope', sans-serif;
             font-size: 18px;
-            font-weight: 700;
+            font-weight: 800;
+            letter-spacing: -0.04em;
             color: var(--text-primary);
-            letter-spacing: -0.3px;
+        }
+
+        .brand-divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
         }
 
         .brand-subtitle {
+            font-family: 'Outfit', sans-serif;
             font-size: 13px;
             font-weight: 500;
             color: var(--text-muted);
-            padding-left: 12px;
-            border-left: 2px solid var(--border);
+            letter-spacing: 0.02em;
         }
 
         .header-right {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 10px;
         }
 
         .admin-name {
-            font-size: 14px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 13px;
             font-weight: 500;
             color: var(--text-secondary);
+            padding: 6px 14px;
+            background: var(--gold-soft);
+            border-radius: var(--radius-pill);
         }
 
-        .btn-theme-toggle {
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--card-bg);
-            color: var(--text-secondary);
-            cursor: pointer;
+        .action-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
-            transition: all 120ms ease;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: var(--transition);
         }
-        .btn-theme-toggle:hover { opacity: 0.85; }
-        .btn-theme-toggle:active { transform: scale(0.97); }
 
-        .btn-logout {
-            padding: 8px 18px;
-            border-radius: 12px;
+        .action-circle:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+
+        .action-circle:active { transform: scale(0.92); }
+
+        .action-circle i { width: 20px; height: 20px; }
+
+        .btn-back {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: var(--radius-pill);
             border: 1px solid var(--border);
             background: transparent;
             color: var(--text-secondary);
@@ -156,91 +242,186 @@
             font-size: 13px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 120ms ease;
+            text-decoration: none;
+            transition: var(--transition-fast);
         }
-        .btn-logout:hover { color: var(--red); border-color: var(--red); }
-        .btn-logout:active { transform: scale(0.97); }
+        .btn-back:hover { border-color: var(--gold); color: var(--gold); }
+        .btn-back:active { transform: scale(0.96); }
+        .btn-back i { width: 16px; height: 16px; }
 
         /* ========== MAIN CONTENT ========== */
         .main-content {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 32px;
+            padding: 110px 24px 60px;
         }
 
-        /* ========== TABS ========== */
-        .tabs-container {
-            display: flex;
-            gap: 4px;
-            background: var(--card-bg);
-            padding: 4px;
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
-            width: fit-content;
-            margin-bottom: 32px;
-            transition: background-color 0.3s ease;
+        /* ========== PAGE TITLE (Editorial) ========== */
+        .page-title {
+            font-size: 38px;
+            margin-bottom: 6px;
+            color: var(--text-primary);
         }
-
-        .tab-btn {
-            padding: 10px 28px;
-            border-radius: 12px;
-            border: none;
-            background: transparent;
-            color: var(--text-secondary);
+        body.dark-theme .page-title {
+            background: linear-gradient(to bottom, #fff, #aaa);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .page-subtitle {
             font-family: 'Inter', sans-serif;
             font-size: 14px;
             font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 36px;
+            color: var(--text-muted);
+        }
+
+        /* ========== STAT CARDS ROW ========== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 36px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 22px 24px;
+            transition: var(--transition);
+            cursor: default;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--gold-soft);
+        }
+
+        .stat-card-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+        }
+
+        .stat-card-label i { width: 14px; height: 14px; color: var(--gold); }
+
+        .stat-card-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+
+        .stat-card-delta {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--green);
+            margin-top: 6px;
+        }
+
+        /* ========== TABS (Pill Group) ========== */
+        .tabs-container {
+            display: inline-flex;
+            gap: 4px;
+            background: var(--bg-card);
+            padding: 4px;
+            border-radius: var(--radius-pill);
+            border: 1px solid var(--border);
+            margin-bottom: 28px;
+            transition: var(--transition);
+        }
+
+        .tab-btn {
+            padding: 10px 26px;
+            border-radius: var(--radius-pill);
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 120ms ease;
+            transition: var(--transition-fast);
+            white-space: nowrap;
         }
         .tab-btn:hover { color: var(--text-primary); }
         .tab-btn.active {
-            background: var(--primary);
-            color: #FFFFFF;
+            background: var(--gold);
+            color: #000;
             font-weight: 600;
+            box-shadow: 0 4px 12px var(--gold-glow);
         }
-        .tab-btn:active { transform: scale(0.97); }
+        .tab-btn:active { transform: scale(0.96); }
 
         /* ========== SECTION HEADER ========== */
         .section-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
-        .section-title {
+        .section-title-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title-row h2 {
             font-size: 22px;
-            font-weight: 700;
             color: var(--text-primary);
-            letter-spacing: -0.3px;
+        }
+
+        .section-title-row .count-badge {
+            font-family: 'Outfit', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            background: var(--gold-soft);
+            color: var(--gold);
+            padding: 3px 10px;
+            border-radius: var(--radius-pill);
         }
 
         .btn-primary {
-            padding: 10px 24px;
-            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 22px;
+            border-radius: var(--radius-pill);
             border: none;
-            background: var(--primary);
-            color: #FFFFFF;
-            font-family: 'Inter', sans-serif;
+            background: var(--gold);
+            color: #000;
+            font-family: 'Outfit', sans-serif;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 120ms ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            transition: var(--transition-fast);
+            box-shadow: 0 4px 16px var(--gold-glow);
         }
-        .btn-primary:hover { background: var(--primary-hover); }
-        .btn-primary:active { transform: scale(0.97); }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px var(--gold-glow); }
+        .btn-primary:active { transform: scale(0.96); }
+        .btn-primary i { width: 16px; height: 16px; }
 
-        /* ========== TABLE CARD ========== */
+        /* ========== TABLE CARD (Glass) ========== */
         .table-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: var(--card-shadow);
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
             overflow: hidden;
-            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            transition: var(--transition);
         }
 
         .table-scroll {
@@ -255,29 +436,33 @@
         }
 
         thead th {
-            padding: 14px 20px;
+            padding: 16px 22px;
             text-align: left;
+            font-family: 'Outfit', sans-serif;
             font-size: 11px;
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.06em;
             border-bottom: 1px solid var(--border);
             white-space: nowrap;
         }
 
         tbody tr {
-            transition: background-color 120ms ease;
+            transition: background 0.15s ease;
         }
-        tbody tr:nth-child(odd) { background: var(--row-alt); }
-        tbody tr:nth-child(even) { background: var(--row-base); }
-        tbody tr:hover { background: var(--primary-light); }
+        tbody tr:hover { background: var(--bg-card-hover); }
+        tbody tr:not(:last-child) td { border-bottom: 1px solid var(--border-soft); }
 
         tbody td {
-            padding: 14px 20px;
+            padding: 16px 22px;
             font-size: 14px;
             color: var(--text-primary);
             white-space: nowrap;
+        }
+
+        .td-name {
+            font-weight: 600;
         }
 
         .td-email {
@@ -286,29 +471,33 @@
         }
 
         .td-base-id {
-            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
             font-size: 12px;
             color: var(--text-muted);
+            background: var(--input-bg);
+            padding: 4px 10px;
+            border-radius: 8px;
         }
 
-        /* ========== BADGES ========== */
+        /* ========== BADGES (Pill Style) ========== */
         .badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 4px 12px;
-            border-radius: 8px;
+            padding: 5px 14px;
+            border-radius: var(--radius-pill);
+            font-family: 'Outfit', sans-serif;
             font-size: 12px;
             font-weight: 600;
         }
 
         .badge-active {
-            background: var(--green-light);
+            background: var(--green-bg);
             color: var(--green);
         }
 
         .badge-inactive {
-            background: var(--red-light);
+            background: var(--red-bg);
             color: var(--red);
         }
 
@@ -317,6 +506,12 @@
             height: 6px;
             border-radius: 50%;
             background: currentColor;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
         }
 
         /* ========== ACTION BUTTONS ========== */
@@ -327,39 +522,41 @@
         }
 
         .btn-action {
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
             border: 1px solid var(--border);
             background: transparent;
-            color: var(--text-secondary);
+            color: var(--text-muted);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 15px;
-            transition: all 120ms ease;
+            transition: var(--transition-fast);
         }
-        .btn-action:hover { border-color: var(--primary); color: var(--primary); }
-        .btn-action:active { transform: scale(0.97); }
-        .btn-action.btn-danger:hover { border-color: var(--red); color: var(--red); background: var(--red-light); }
+        .btn-action:hover { border-color: var(--gold); color: var(--gold); background: var(--gold-soft); }
+        .btn-action:active { transform: scale(0.92); }
+        .btn-action.btn-danger:hover { border-color: var(--red); color: var(--red); background: var(--red-bg); }
+
+        .btn-action i { width: 15px; height: 15px; }
 
         /* ========== EMPTY STATE ========== */
         .empty-state {
-            padding: 60px 20px;
+            padding: 80px 20px;
             text-align: center;
         }
 
         .empty-icon {
             font-size: 48px;
             margin-bottom: 16px;
-            opacity: 0.4;
+            opacity: 0.3;
         }
 
         .empty-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: var(--text-secondary);
+            font-family: 'Manrope', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
             margin-bottom: 6px;
         }
 
@@ -369,11 +566,11 @@
         }
 
         /* ========== SHIMMER SKELETON ========== */
-        .skeleton-row td { padding: 14px 20px; }
+        .skeleton-row td { padding: 16px 22px; }
 
         .skeleton-bar {
             height: 14px;
-            border-radius: 6px;
+            border-radius: 8px;
             background: linear-gradient(90deg, var(--skeleton-base) 25%, var(--skeleton-shine) 50%, var(--skeleton-base) 75%);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite ease-in-out;
@@ -383,57 +580,77 @@
         .skeleton-bar.w-60 { width: 60%; }
         .skeleton-bar.w-30 { width: 30%; }
         .skeleton-bar.w-20 { width: 20%; }
-        .skeleton-bar.w-badge { width: 70px; height: 24px; border-radius: 8px; }
+        .skeleton-bar.w-badge { width: 70px; height: 24px; border-radius: 20px; }
 
         @keyframes shimmer {
             0% { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
 
-        /* ========== MODAL ========== */
+        /* ========== MODAL (Apple Sheet Style) ========== */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: var(--overlay-bg);
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             z-index: 1000;
             display: none;
             align-items: center;
             justify-content: center;
             padding: 20px;
-            animation: fadeIn 150ms ease;
+            animation: modalFadeIn 0.2s ease;
         }
         .modal-overlay.visible { display: flex; }
 
-        @keyframes fadeIn {
+        @keyframes modalFadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
 
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px) scale(0.98); }
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: translateY(24px) scale(0.97); }
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .modal-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
             width: 100%;
-            max-width: 500px;
-            animation: slideUp 200ms ease;
-            transition: background-color 0.3s ease;
+            max-width: 480px;
+            animation: modalSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            transition: var(--transition);
         }
 
         .modal-header {
-            padding: 24px 28px 0;
+            padding: 28px 28px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .modal-title {
-            font-size: 20px;
-            font-weight: 700;
+            font-size: 22px;
             color: var(--text-primary);
-            letter-spacing: -0.3px;
         }
+
+        .modal-close-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: var(--input-bg);
+            color: var(--text-muted);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition-fast);
+        }
+        .modal-close-btn:hover { background: var(--red-bg); color: var(--red); }
+        .modal-close-btn i { width: 16px; height: 16px; }
 
         .modal-body {
             padding: 24px 28px;
@@ -445,6 +662,7 @@
 
         .form-group label {
             display: block;
+            font-family: 'Outfit', sans-serif;
             font-size: 13px;
             font-weight: 500;
             color: var(--text-secondary);
@@ -453,25 +671,26 @@
 
         .form-group input {
             width: 100%;
-            padding: 12px 16px;
-            border-radius: 12px;
+            padding: 13px 16px;
+            border-radius: var(--radius-sm);
             border: 1.5px solid var(--border);
             background: var(--input-bg);
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
             font-size: 14px;
-            transition: all 150ms ease;
+            transition: var(--transition-fast);
             outline: none;
         }
         .form-group input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px var(--primary-light);
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px var(--gold-soft);
         }
         .form-group input::placeholder {
             color: var(--text-muted);
         }
 
         .form-error {
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
             color: var(--red);
             margin-top: 4px;
@@ -479,99 +698,155 @@
         }
 
         .modal-footer {
-            padding: 0 28px 24px;
+            padding: 0 28px 28px;
             display: flex;
             justify-content: flex-end;
             gap: 10px;
         }
 
         .btn-cancel {
-            padding: 10px 22px;
-            border-radius: 12px;
-            border: 1.5px solid var(--border);
+            padding: 11px 22px;
+            border-radius: var(--radius-pill);
+            border: 1px solid var(--border);
             background: transparent;
             color: var(--text-secondary);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Outfit', sans-serif;
             font-size: 14px;
             font-weight: 500;
             cursor: pointer;
-            transition: all 120ms ease;
+            transition: var(--transition-fast);
         }
         .btn-cancel:hover { border-color: var(--text-muted); color: var(--text-primary); }
-        .btn-cancel:active { transform: scale(0.97); }
+        .btn-cancel:active { transform: scale(0.96); }
 
         .btn-save {
-            padding: 10px 28px;
-            border-radius: 12px;
+            padding: 11px 28px;
+            border-radius: var(--radius-pill);
             border: none;
-            background: var(--primary);
-            color: #FFFFFF;
-            font-family: 'Inter', sans-serif;
+            background: var(--gold);
+            color: #000;
+            font-family: 'Outfit', sans-serif;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 120ms ease;
+            transition: var(--transition-fast);
+            box-shadow: 0 4px 12px var(--gold-glow);
         }
-        .btn-save:hover { background: var(--primary-hover); }
-        .btn-save:active { transform: scale(0.97); }
-        .btn-save:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+        .btn-save:hover { box-shadow: 0 6px 20px var(--gold-glow); }
+        .btn-save:active { transform: scale(0.96); }
+        .btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
         /* ========== VIEW TOGGLE ========== */
         .view-section { display: none; }
-        .view-section.active { display: block; }
+        .view-section.active { display: block; animation: fadeUp 0.3s ease; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         /* ========== RESPONSIVE ========== */
         @media (max-width: 768px) {
-            .admin-header { padding: 14px 16px; }
-            .brand-subtitle { display: none; }
+            .admin-header { padding: 12px 16px; top: 10px; width: calc(100% - 20px); }
+            .brand-divider, .brand-subtitle { display: none; }
             .admin-name { display: none; }
-            .main-content { padding: 20px 16px; }
+            .main-content { padding: 100px 16px 40px; }
+            .page-title { font-size: 28px; }
             .section-header { flex-wrap: wrap; gap: 12px; }
-            .section-title { font-size: 18px; }
+            .stats-row { grid-template-columns: 1fr 1fr; }
         }
 
         @media (max-width: 480px) {
-            .header-left { gap: 8px; }
+            .header-left { gap: 10px; }
             .brand-name { font-size: 16px; }
-            .header-right { gap: 8px; }
+            .header-right { gap: 6px; }
             .tabs-container { width: 100%; }
-            .tab-btn { flex: 1; text-align: center; padding: 10px 16px; font-size: 13px; }
+            .tab-btn { flex: 1; text-align: center; padding: 10px 14px; font-size: 13px; }
+            .stat-card-value { font-size: 26px; }
+            .stats-row { gap: 10px; }
         }
     </style>
 </head>
 <body>
 
-    <!-- ========== HEADER ========== -->
+    <!-- ========== FLOATING PILL HEADER ========== -->
     <header class="admin-header">
         <div class="header-left">
+            <div class="header-icon">
+                <i data-lucide="shield-check"></i>
+            </div>
             <span class="brand-name">Dulce y Jaleo</span>
+            <div class="brand-divider"></div>
             <span class="brand-subtitle">Panel Admin</span>
         </div>
         <div class="header-right">
             <span class="admin-name" id="admin-display-name"></span>
-            <button class="btn-theme-toggle" id="btn-theme" onclick="toggleTheme()" title="Cambiar tema"></button>
-            <button class="btn-logout" onclick="logout()">Cerrar sesion</button>
+            <a href="index.html" class="btn-back" title="Volver a la App">
+                <i data-lucide="arrow-left"></i>
+                App
+            </a>
+            <button class="action-circle" id="btn-theme" onclick="toggleTheme()" title="Cambiar tema">
+                <i data-lucide="moon"></i>
+            </button>
+            <button class="action-circle" onclick="logout()" title="Cerrar sesión">
+                <i data-lucide="log-out"></i>
+            </button>
         </div>
     </header>
 
     <!-- ========== MAIN CONTENT ========== -->
     <div class="main-content">
 
+        <!-- Page Title (Editorial) -->
+        <h1 class="page-title">Administración</h1>
+        <p class="page-subtitle">Gestión de clientes y configuración</p>
+
+        <!-- Stat Cards -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-card-label">
+                    <i data-lucide="users"></i>
+                    Clientes Activos
+                </div>
+                <div class="stat-card-value" id="stat-active-clients">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-label">
+                    <i data-lucide="user-check"></i>
+                    Total Registrados
+                </div>
+                <div class="stat-card-value" id="stat-total-clients">—</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-card-label">
+                    <i data-lucide="shield"></i>
+                    Administradores
+                </div>
+                <div class="stat-card-value" id="stat-total-admins">—</div>
+            </div>
+        </div>
+
         <!-- Tabs -->
         <div class="tabs-container">
-            <button class="tab-btn active" onclick="switchTab('clients', this)">Clientes</button>
-            <button class="tab-btn" onclick="switchTab('admins', this)">Administradores</button>
+            <button class="tab-btn active" onclick="switchTab('clients', this)">
+                <i data-lucide="users" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>
+                Clientes
+            </button>
+            <button class="tab-btn" onclick="switchTab('admins', this)">
+                <i data-lucide="shield" style="width:14px;height:14px;vertical-align:-2px;margin-right:4px;"></i>
+                Administradores
+            </button>
         </div>
 
         <!-- ===== CLIENTES SECTION ===== -->
         <section id="view-clients" class="view-section active">
             <div class="section-header">
-                <h2 class="section-title">Clientes</h2>
+                <div class="section-title-row">
+                    <h2>Clientes</h2>
+                    <span class="count-badge" id="clients-count">0</span>
+                </div>
                 <button class="btn-primary" onclick="openModal()">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    <i data-lucide="plus"></i>
                     Nuevo Cliente
                 </button>
             </div>
@@ -585,12 +860,12 @@
                                 <th>Email</th>
                                 <th>Estado</th>
                                 <th>Airtable Base ID</th>
-                                <th>Ultima conexion</th>
+                                <th>Última conexión</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="clients-tbody">
-                            <!-- Contenido dinamico -->
+                            <!-- Dynamic content -->
                         </tbody>
                     </table>
                 </div>
@@ -600,7 +875,10 @@
         <!-- ===== ADMINISTRADORES SECTION ===== -->
         <section id="view-admins" class="view-section">
             <div class="section-header">
-                <h2 class="section-title">Administradores</h2>
+                <div class="section-title-row">
+                    <h2>Administradores</h2>
+                    <span class="count-badge" id="admins-count">0</span>
+                </div>
             </div>
 
             <div class="table-card">
@@ -610,11 +888,11 @@
                             <tr>
                                 <th>Nombre</th>
                                 <th>Email</th>
-                                <th>Fecha de creacion</th>
+                                <th>Fecha de creación</th>
                             </tr>
                         </thead>
                         <tbody id="admins-tbody">
-                            <!-- Contenido dinamico -->
+                            <!-- Dynamic content -->
                         </tbody>
                     </table>
                 </div>
@@ -627,6 +905,9 @@
         <div class="modal-card">
             <div class="modal-header">
                 <h3 class="modal-title" id="modal-title">Nuevo Cliente</h3>
+                <button class="modal-close-btn" onclick="closeModal()">
+                    <i data-lucide="x"></i>
+                </button>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="modal-client-id">
@@ -640,13 +921,13 @@
                 <div class="form-group">
                     <label for="modal-email">Email</label>
                     <input type="email" id="modal-email" placeholder="email@ejemplo.com">
-                    <div class="form-error" id="error-email">Introduce un email valido</div>
+                    <div class="form-error" id="error-email">Introduce un email válido</div>
                 </div>
 
                 <div class="form-group">
-                    <label for="modal-password" id="label-password">Contrasena</label>
-                    <input type="password" id="modal-password" placeholder="Contrasena">
-                    <div class="form-error" id="error-password">La contrasena es obligatoria</div>
+                    <label for="modal-password" id="label-password">Contraseña</label>
+                    <input type="password" id="modal-password" placeholder="Contraseña">
+                    <div class="form-error" id="error-password">La contraseña es obligatoria</div>
                 </div>
 
                 <div class="form-group">
@@ -686,17 +967,21 @@
         }
 
         // ============================================================
-        // THEME
+        // THEME (Synced with Main App)
         // ============================================================
         function applyTheme() {
             const theme = localStorage.getItem('dulce_jaleo_theme') || 'light';
             const btn = document.getElementById('btn-theme');
             if (theme === 'dark') {
                 document.body.classList.add('dark-theme');
-                btn.textContent = '\u2600\uFE0F'; // sol
+                if (btn) btn.innerHTML = '<i data-lucide="sun"></i>';
             } else {
                 document.body.classList.remove('dark-theme');
-                btn.textContent = '\uD83C\uDF19'; // luna
+                if (btn) btn.innerHTML = '<i data-lucide="moon"></i>';
+            }
+            // Re-render Lucide icons in the button
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons({ attrs: { 'stroke-width': 1.8, 'stroke': 'currentColor' } });
             }
         }
 
@@ -708,15 +993,7 @@
         }
 
         // ============================================================
-        // LOGOUT
-        // ============================================================
-        function logout() {
-            localStorage.removeItem('auth_token');
-            window.location.href = '/login.html';
-        }
-
-        // ============================================================
-        // HANDLE 401
+        // AUTH FETCH (Handle 401)
         // ============================================================
         async function authFetch(url, options = {}) {
             const response = await fetch(url, {
@@ -737,20 +1014,12 @@
         // TABS
         // ============================================================
         function switchTab(tab, btn) {
-            // Desactivar todas las secciones y tabs
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-
-            // Activar
             document.getElementById('view-' + tab).classList.add('active');
             btn.classList.add('active');
-
-            // Cargar datos de la pestaña activa
-            if (tab === 'clients') {
-                loadClients();
-            } else if (tab === 'admins') {
-                loadAdmins();
-            }
+            if (tab === 'clients') loadClients();
+            else if (tab === 'admins') loadAdmins();
         }
 
         // ============================================================
@@ -793,35 +1062,23 @@
         // DATE FORMATTING
         // ============================================================
         const dateFormatter = new Intl.DateTimeFormat('es-ES', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
+            day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
         });
 
         const dateFormatterShort = new Intl.DateTimeFormat('es-ES', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric'
+            day: '2-digit', month: 'short', year: 'numeric'
         });
 
         function formatDate(dateStr) {
-            if (!dateStr) return '-';
-            try {
-                return dateFormatter.format(new Date(dateStr));
-            } catch {
-                return '-';
-            }
+            if (!dateStr) return '—';
+            try { return dateFormatter.format(new Date(dateStr)); }
+            catch { return '—'; }
         }
 
         function formatDateShort(dateStr) {
-            if (!dateStr) return '-';
-            try {
-                return dateFormatterShort.format(new Date(dateStr));
-            } catch {
-                return '-';
-            }
+            if (!dateStr) return '—';
+            try { return dateFormatterShort.format(new Date(dateStr)); }
+            catch { return '—'; }
         }
 
         // ============================================================
@@ -835,20 +1092,18 @@
             try {
                 const response = await authFetch(API_BASE + '/api/admin/clients');
                 if (!response) return;
-
-                if (!response.ok) {
-                    throw new Error('Error cargando clientes');
-                }
+                if (!response.ok) throw new Error('Error cargando clientes');
 
                 const data = await response.json();
                 clientsData = data.clients || [];
                 renderClients(clientsData);
+                updateStats();
             } catch (e) {
                 console.error('Error cargando clientes:', e);
                 document.getElementById('clients-tbody').innerHTML = `
                     <tr><td colspan="6">
                         <div class="empty-state">
-                            <div class="empty-icon">&#9888;</div>
+                            <div class="empty-icon">⚠️</div>
                             <div class="empty-title">Error al cargar clientes</div>
                             <div class="empty-subtitle">${e.message}</div>
                         </div>
@@ -859,12 +1114,13 @@
 
         function renderClients(clients) {
             const tbody = document.getElementById('clients-tbody');
+            document.getElementById('clients-count').textContent = clients.length;
 
             if (!clients || clients.length === 0) {
                 tbody.innerHTML = `
                     <tr><td colspan="6">
                         <div class="empty-state">
-                            <div class="empty-icon">&#128101;</div>
+                            <div class="empty-icon">👥</div>
                             <div class="empty-title">No hay clientes registrados</div>
                             <div class="empty-subtitle">Pulsa "Nuevo Cliente" para crear el primero</div>
                         </div>
@@ -875,40 +1131,33 @@
 
             let html = '';
             clients.forEach(client => {
-                const isActive = client.active !== false; // default true
+                const isActive = client.active !== false;
                 const badgeClass = isActive ? 'badge-active' : 'badge-inactive';
                 const badgeText = isActive ? 'Activo' : 'Inactivo';
                 const toggleLabel = isActive ? 'Desactivar' : 'Activar';
 
                 html += `
                     <tr>
-                        <td><strong>${escapeHtml(client.name || '-')}</strong></td>
-                        <td class="td-email">${escapeHtml(client.email || '-')}</td>
+                        <td class="td-name">${escapeHtml(client.name || '—')}</td>
+                        <td class="td-email">${escapeHtml(client.email || '—')}</td>
                         <td>
                             <span class="badge ${badgeClass}">
                                 <span class="badge-dot"></span>
                                 ${badgeText}
                             </span>
                         </td>
-                        <td class="td-base-id">${escapeHtml(client.airtable_base_id || '-')}</td>
+                        <td><span class="td-base-id">${escapeHtml(client.airtable_base_id || '—')}</span></td>
                         <td>${formatDate(client.last_login || client.updated_at)}</td>
                         <td>
                             <div class="actions-cell">
                                 <button class="btn-action" title="${toggleLabel}" onclick="toggleClient(${client.id}, '${escapeHtml(client.name || '')}', ${isActive})">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                        <rect x="1" y="4" width="14" height="8" rx="4" stroke="currentColor" stroke-width="1.5"/>
-                                        <circle cx="${isActive ? '11' : '5'}" cy="8" r="2.5" fill="currentColor"/>
-                                    </svg>
+                                    <i data-lucide="${isActive ? 'toggle-right' : 'toggle-left'}"></i>
                                 </button>
                                 <button class="btn-action" title="Editar" onclick="editClient(${client.id})">
-                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-                                        <path d="M10.5 2.5l2 2-7 7H3.5v-2l7-7z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
+                                    <i data-lucide="pencil"></i>
                                 </button>
                                 <button class="btn-action btn-danger" title="Eliminar" onclick="deleteClient(${client.id}, '${escapeHtml(client.name || '')}')">
-                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
-                                        <path d="M3 4.5h9M5.5 4.5V3a1 1 0 011-1h2a1 1 0 011 1v1.5M6 7v3.5M9 7v3.5M4 4.5l.5 7.5a1 1 0 001 1h4a1 1 0 001-1l.5-7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
+                                    <i data-lucide="trash-2"></i>
                                 </button>
                             </div>
                         </td>
@@ -917,6 +1166,18 @@
             });
 
             tbody.innerHTML = html;
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons({ attrs: { 'stroke-width': 1.8, 'stroke': 'currentColor' } });
+            }
+        }
+
+        // ============================================================
+        // UPDATE STATS
+        // ============================================================
+        function updateStats() {
+            const activeCount = clientsData.filter(c => c.active !== false).length;
+            document.getElementById('stat-active-clients').textContent = activeCount;
+            document.getElementById('stat-total-clients').textContent = clientsData.length;
         }
 
         // ============================================================
@@ -928,20 +1189,18 @@
             try {
                 const response = await authFetch(API_BASE + '/api/admin/admins');
                 if (!response) return;
-
-                if (!response.ok) {
-                    throw new Error('Error cargando administradores');
-                }
+                if (!response.ok) throw new Error('Error cargando administradores');
 
                 const data = await response.json();
                 const admins = data.admins || [];
                 renderAdmins(admins);
+                document.getElementById('stat-total-admins').textContent = admins.length;
             } catch (e) {
                 console.error('Error cargando admins:', e);
                 document.getElementById('admins-tbody').innerHTML = `
                     <tr><td colspan="3">
                         <div class="empty-state">
-                            <div class="empty-icon">&#9888;</div>
+                            <div class="empty-icon">⚠️</div>
                             <div class="empty-title">Error al cargar administradores</div>
                             <div class="empty-subtitle">${e.message}</div>
                         </div>
@@ -952,12 +1211,13 @@
 
         function renderAdmins(admins) {
             const tbody = document.getElementById('admins-tbody');
+            document.getElementById('admins-count').textContent = admins.length;
 
             if (!admins || admins.length === 0) {
                 tbody.innerHTML = `
                     <tr><td colspan="3">
                         <div class="empty-state">
-                            <div class="empty-icon">&#128119;</div>
+                            <div class="empty-icon">🛡️</div>
                             <div class="empty-title">No hay administradores</div>
                         </div>
                     </td></tr>
@@ -969,8 +1229,8 @@
             admins.forEach(admin => {
                 html += `
                     <tr>
-                        <td><strong>${escapeHtml(admin.name || '-')}</strong></td>
-                        <td class="td-email">${escapeHtml(admin.email || '-')}</td>
+                        <td class="td-name">${escapeHtml(admin.name || '—')}</td>
+                        <td class="td-email">${escapeHtml(admin.email || '—')}</td>
                         <td>${formatDateShort(admin.created_at)}</td>
                     </tr>
                 `;
@@ -990,7 +1250,7 @@
             const passwordLabel = document.getElementById('label-password');
             const passwordInput = document.getElementById('modal-password');
 
-            // Limpiar formulario
+            // Clear form
             document.getElementById('modal-client-id').value = '';
             document.getElementById('modal-name').value = '';
             document.getElementById('modal-email').value = '';
@@ -999,11 +1259,10 @@
             clearFormErrors();
 
             if (clientId) {
-                // Modo edicion
                 isEditMode = true;
                 title.textContent = 'Editar Cliente';
-                passwordLabel.textContent = 'Contrasena (opcional)';
-                passwordInput.placeholder = 'Dejar vacio para no cambiar';
+                passwordLabel.textContent = 'Contraseña (opcional)';
+                passwordInput.placeholder = 'Dejar vacío para no cambiar';
                 passwordInput.required = false;
 
                 const client = clientsData.find(c => c.id === clientId);
@@ -1014,15 +1273,18 @@
                     document.getElementById('modal-base-id').value = client.airtable_base_id || '';
                 }
             } else {
-                // Modo creacion
                 isEditMode = false;
                 title.textContent = 'Nuevo Cliente';
-                passwordLabel.textContent = 'Contrasena';
-                passwordInput.placeholder = 'Contrasena';
+                passwordLabel.textContent = 'Contraseña';
+                passwordInput.placeholder = 'Contraseña';
                 passwordInput.required = true;
             }
 
             modal.classList.add('visible');
+            // Re-render icons in modal
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons({ attrs: { 'stroke-width': 1.8, 'stroke': 'currentColor' } });
+            }
         }
 
         function closeModal() {
@@ -1033,7 +1295,7 @@
             openModal(clientId);
         }
 
-        // Cerrar modal haciendo clic fuera
+        // Close on overlay click
         document.getElementById('client-modal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
@@ -1060,27 +1322,14 @@
             const password = document.getElementById('modal-password').value;
             const baseId = document.getElementById('modal-base-id').value.trim();
 
-            if (!name) {
-                showFieldError('modal-name', 'error-name');
-                valid = false;
-            }
+            if (!name) { showFieldError('modal-name', 'error-name'); valid = false; }
 
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!email || !emailRegex.test(email)) {
-                showFieldError('modal-email', 'error-email');
-                valid = false;
-            }
+            if (!email || !emailRegex.test(email)) { showFieldError('modal-email', 'error-email'); valid = false; }
 
-            // Contrasena obligatoria solo en creacion
-            if (!isEditMode && !password) {
-                showFieldError('modal-password', 'error-password');
-                valid = false;
-            }
+            if (!isEditMode && !password) { showFieldError('modal-password', 'error-password'); valid = false; }
 
-            if (!baseId) {
-                showFieldError('modal-base-id', 'error-base-id');
-                valid = false;
-            }
+            if (!baseId) { showFieldError('modal-base-id', 'error-base-id'); valid = false; }
 
             return valid;
         }
@@ -1105,16 +1354,13 @@
                 let response;
 
                 if (isEditMode && clientId) {
-                    // UPDATE
                     const body = { name, email, airtable_base_id: baseId };
                     if (password) body.password = password;
-
                     response = await authFetch(API_BASE + '/api/admin/clients/' + clientId, {
                         method: 'PUT',
                         body: JSON.stringify(body)
                     });
                 } else {
-                    // CREATE
                     response = await authFetch(API_BASE + '/api/admin/clients', {
                         method: 'POST',
                         body: JSON.stringify({ name, email, password, airtable_base_id: baseId })
@@ -1128,9 +1374,8 @@
                     throw new Error(errData.error || errData.message || 'Error al guardar');
                 }
 
-                // Exito
                 closeModal();
-                showToast(isEditMode ? 'Cliente actualizado correctamente' : 'Cliente creado correctamente');
+                showToast(isEditMode ? '✅ Cliente actualizado' : '✅ Cliente creado');
                 loadClients();
             } catch (e) {
                 console.error('Error guardando cliente:', e);
@@ -1138,7 +1383,7 @@
                     icon: 'error',
                     title: 'Error',
                     text: e.message,
-                    confirmButtonColor: '#C8860A'
+                    confirmButtonColor: '#D4AF37'
                 });
             } finally {
                 btnSave.disabled = false;
@@ -1152,15 +1397,15 @@
         async function toggleClient(clientId, clientName, isCurrentlyActive) {
             const action = isCurrentlyActive ? 'Desactivar' : 'Activar';
             const result = await Swal.fire({
-                title: `\u00BF${action} a ${clientName}?`,
+                title: `¿${action} a ${clientName}?`,
                 text: isCurrentlyActive
-                    ? 'El cliente no podra acceder a la aplicacion.'
-                    : 'El cliente volvera a tener acceso.',
+                    ? 'El cliente no podrá acceder a la aplicación.'
+                    : 'El cliente volverá a tener acceso.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: action,
                 cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#C8860A',
+                confirmButtonColor: '#D4AF37',
                 cancelButtonColor: '#6B7280'
             });
 
@@ -1172,21 +1417,13 @@
                 });
 
                 if (!response) return;
+                if (!response.ok) throw new Error('Error al cambiar estado');
 
-                if (!response.ok) {
-                    throw new Error('Error al cambiar estado');
-                }
-
-                showToast(`Cliente ${isCurrentlyActive ? 'desactivado' : 'activado'} correctamente`);
+                showToast(`${isCurrentlyActive ? '🔴' : '🟢'} Cliente ${isCurrentlyActive ? 'desactivado' : 'activado'}`);
                 loadClients();
             } catch (e) {
                 console.error('Error toggle:', e);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: e.message,
-                    confirmButtonColor: '#C8860A'
-                });
+                Swal.fire({ icon: 'error', title: 'Error', text: e.message, confirmButtonColor: '#D4AF37' });
             }
         }
 
@@ -1195,13 +1432,13 @@
         // ============================================================
         async function deleteClient(clientId, clientName) {
             const result = await Swal.fire({
-                title: `\u00BFEliminar a ${clientName}?`,
-                text: 'Esta accion no se puede deshacer.',
+                title: `¿Eliminar a ${clientName}?`,
+                text: 'Esta acción no se puede deshacer.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Eliminar',
                 cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#E05252',
+                confirmButtonColor: '#FF3B30',
                 cancelButtonColor: '#6B7280'
             });
 
@@ -1213,21 +1450,13 @@
                 });
 
                 if (!response) return;
+                if (!response.ok) throw new Error('Error al eliminar cliente');
 
-                if (!response.ok) {
-                    throw new Error('Error al eliminar cliente');
-                }
-
-                showToast('Cliente eliminado correctamente');
+                showToast('🗑️ Cliente eliminado');
                 loadClients();
             } catch (e) {
                 console.error('Error delete:', e);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: e.message,
-                    confirmButtonColor: '#C8860A'
-                });
+                Swal.fire({ icon: 'error', title: 'Error', text: e.message, confirmButtonColor: '#D4AF37' });
             }
         }
 
@@ -1241,13 +1470,14 @@
                 gravity: 'top',
                 position: 'right',
                 style: {
-                    background: '#00C896',
-                    borderRadius: '12px',
-                    fontFamily: 'Inter, sans-serif',
-                    fontWeight: '500',
+                    background: 'linear-gradient(135deg, #D4AF37, #c8860a)',
+                    borderRadius: '50px',
+                    fontFamily: 'Outfit, sans-serif',
+                    fontWeight: '600',
                     fontSize: '14px',
-                    padding: '12px 20px',
-                    boxShadow: '0 4px 16px rgba(0,200,150,0.25)'
+                    padding: '12px 24px',
+                    boxShadow: '0 8px 24px rgba(212, 175, 55, 0.3)',
+                    color: '#000'
                 }
             }).showToast();
         }
@@ -1265,19 +1495,24 @@
         // INIT
         // ============================================================
         (function init() {
-            // Verificar autenticacion
-            const payload = checkAuth();
-            if (!payload) return;
+            // Verify auth
+            const payload = DulceAuth.checkAuth();
 
-            // Mostrar nombre admin
-            const adminName = payload.name || payload.email || 'Admin';
+            // Display admin name
+            const adminName = (payload && payload.name) || (payload && payload.email) || 'Admin';
             document.getElementById('admin-display-name').textContent = adminName;
 
-            // Aplicar tema
+            // Apply theme (synced with main app)
             applyTheme();
 
-            // Cargar datos iniciales
+            // Render Lucide icons
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons({ attrs: { 'stroke-width': 1.8, 'stroke': 'currentColor' } });
+            }
+
+            // Load data
             loadClients();
+            loadAdmins();
         })();
     </script>
 </body>
