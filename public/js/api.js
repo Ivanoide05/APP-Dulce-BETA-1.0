@@ -13,7 +13,8 @@ const DEFAULT_TABLES = {
     ALBARANES: 'tblX9EQUmwItNJCZI',
     GASTOS_VARIOS: 'tblHzVIPEde7zWnUv',
     PEDIDOS: '', // Se detectará automáticamente
-    AGENDA: ''   // Se detectará automáticamente
+    AGENDA: '',  // Se detectará automáticamente
+    PRODUCTOS: '' // Catálogo específico del cliente
 };
 
 // Obtener mapeo actual con prioridad a lo guardado en localStorage
@@ -23,7 +24,8 @@ function getTablesMap() {
         ALBARANES: localStorage.getItem('AIRTABLE_TABLE_ALBARANES') || DEFAULT_TABLES.ALBARANES,
         GASTOS_VARIOS: localStorage.getItem('AIRTABLE_TABLE_GASTOS') || DEFAULT_TABLES.GASTOS_VARIOS,
         PEDIDOS: localStorage.getItem('AIRTABLE_TABLE_PEDIDOS') || DEFAULT_TABLES.PEDIDOS,
-        AGENDA: localStorage.getItem('AIRTABLE_TABLE_AGENDA') || DEFAULT_TABLES.AGENDA
+        AGENDA: localStorage.getItem('AIRTABLE_TABLE_AGENDA') || DEFAULT_TABLES.AGENDA,
+        PRODUCTOS: localStorage.getItem('AIRTABLE_TABLE_PRODUCTOS') || DEFAULT_TABLES.PRODUCTOS
     };
 }
 
@@ -106,12 +108,14 @@ const DulceAPI = {
             if (name.includes('GASTO') || name.includes('VARIOS')) found.GASTOS_VARIOS = t.id;
             if (name.includes('PEDIDO') || name.includes('ORDER') || name.includes('RUTA')) found.PEDIDOS = t.id;
             if (name.includes('AGENDA') || name.includes('CLIENTE')) found.AGENDA = t.id;
+            if (name.includes('PRODUCT') || name.includes('CATALOG') || name.includes('ARTICULO')) found.PRODUCTOS = t.id;
         });
         if (found.FACTURAS) localStorage.setItem('AIRTABLE_TABLE_FACTURAS', found.FACTURAS);
         if (found.ALBARANES) localStorage.setItem('AIRTABLE_TABLE_ALBARANES', found.ALBARANES);
         if (found.GASTOS_VARIOS) localStorage.setItem('AIRTABLE_TABLE_GASTOS', found.GASTOS_VARIOS);
         if (found.PEDIDOS) localStorage.setItem('AIRTABLE_TABLE_PEDIDOS', found.PEDIDOS);
         if (found.AGENDA) localStorage.setItem('AIRTABLE_TABLE_AGENDA', found.AGENDA);
+        if (found.PRODUCTOS) localStorage.setItem('AIRTABLE_TABLE_PRODUCTOS', found.PRODUCTOS);
         return found;
     },
 
@@ -132,7 +136,7 @@ const DulceAPI = {
                 if (res.ok) return res.json();
                 if (res.status === 401) handle401(res);
             }
-        } catch (e) {}
+        } catch (e) { }
         const map = getTablesMap();
         const tasks = [
             airtableDirectFetch(map.FACTURAS),
@@ -142,22 +146,24 @@ const DulceAPI = {
         if (map.PEDIDOS) tasks.push(airtableDirectFetch(map.PEDIDOS));
         // Si Agenda está en el mapa, será el índice 4
         if (map.AGENDA) tasks.push(airtableDirectFetch(map.AGENDA));
-        
-        const results = await Promise.all(tasks);
-        
-        // El array results puede tener 3, 4 o 5 elementos dependiendo de si Pedidos y Agenda existen.
-        // Para asegurar seguridad, buscamos índices usando la longitud final
-        let resPedidos = [], resAgenda = [];
-        if (map.PEDIDOS && map.AGENDA) { resPedidos = results[3]; resAgenda = results[4]; }
-        else if (map.PEDIDOS && !map.AGENDA) { resPedidos = results[3]; }
-        else if (!map.PEDIDOS && map.AGENDA) { resAgenda = results[3]; }
+        if (map.PRODUCTOS) tasks.push(airtableDirectFetch(map.PRODUCTOS));
 
-        return { 
-            facturas: results[0].records || [], 
-            albaranes: results[1].records || [], 
+        const results = await Promise.all(tasks);
+
+        // El array results puede tener 3, 4, 5 o 6 elementos.
+        let resPedidos = [], resAgenda = [], resProductos = [];
+        let cursor = 3;
+        if (map.PEDIDOS) { resPedidos = results[cursor]; cursor++; }
+        if (map.AGENDA) { resAgenda = results[cursor]; cursor++; }
+        if (map.PRODUCTOS) { resProductos = results[cursor]; cursor++; }
+
+        return {
+            facturas: results[0].records || [],
+            albaranes: results[1].records || [],
             gastos: results[2].records || [],
             pedidos: resPedidos.records || [],
-            agenda: resAgenda.records || []
+            agenda: resAgenda.records || [],
+            productos: resProductos.records || []
         };
     },
 
@@ -169,7 +175,7 @@ const DulceAPI = {
                 const res = await fetch(`${API_BASE}/api/records/${tableName}`, { headers: getAuthHeaders() });
                 if (res.ok) return res.json();
             }
-        } catch(e) {}
+        } catch (e) { }
         const map = getTablesMap();
         const tableId = map[tableName.toUpperCase()];
         if (!tableId) throw new Error('Tabla no encontrada: ' + tableName);
@@ -188,7 +194,7 @@ const DulceAPI = {
                 });
                 if (res.ok) return res.json();
             }
-        } catch(e) {}
+        } catch (e) { }
         // Fallback directo a Airtable
         const keys = getAirtableKeys();
         const map = getTablesMap();
@@ -215,7 +221,7 @@ const DulceAPI = {
                 });
                 if (res.ok) return res.json();
             }
-        } catch(e) {}
+        } catch (e) { }
         // Fallback directo a Airtable
         const keys = getAirtableKeys();
         const map = getTablesMap();

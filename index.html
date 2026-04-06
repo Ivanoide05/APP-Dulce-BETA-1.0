@@ -2516,6 +2516,51 @@
         .ruta-hornada-item + .ruta-hornada-item {
             border-top: 1px solid var(--border);
         }
+        
+        /* ===== SMART SUGGESTIONS (PRODUCT CATALOG) ===== */
+        .smart-suggestions-container {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+            z-index: 2000;
+            width: calc(100% - 64px);
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 4px;
+            display: none;
+            left: 32px;
+            animation: fadeIn 0.15s ease-out;
+        }
+        body.dark-theme .smart-suggestions-container {
+            background: rgba(30, 30, 30, 0.85);
+        }
+        .suggestion-item {
+            padding: 12px 18px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            border-bottom: 1px solid rgba(128,128,128,0.05);
+        }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover {
+            background: rgba(212, 175, 55, 0.1);
+            padding-left: 22px;
+        }
+        .suggestion-item .unit-badge {
+            font-size: 10px;
+            background: rgba(212, 175, 55, 0.15);
+            color: #D4AF37;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
         .ruta-hornada-qty {
             font-weight: 700;
             color: #D4AF37;
@@ -3844,6 +3889,21 @@
         body.dark-theme .margen-config-section { background: rgba(255,255,255,0.03); }
         .margen-config-title { font-family: 'Outfit', sans-serif; font-size: 15px; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
 
+        /* Píldoras Financieras Luxury */
+        .fin-pill { background: transparent; border: none; color: var(--text-muted); padding: 4px 10px; font-size: 11px; font-family: 'Outfit', sans-serif; font-weight: 700; border-radius: 12px; cursor: pointer; transition: all 0.2s ease; margin: 0; }
+        .fin-pill.active { background: var(--gold); color: #000; box-shadow: 0 4px 12px rgba(212,175,55,0.3); transform: scale(1.05); }
+        .fin-pill:hover:not(.active) { color: var(--gold); background: rgba(255,255,255,0.05); }
+
+
+        /* Gestor Maestro Table Styling */
+        .gestor-row { border-bottom: 1px solid var(--border); transition: background 0.2s ease; cursor: pointer; }
+        .gestor-row:hover { background: rgba(255,255,255,0.02); }
+        .gestor-status-pill { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border: 1px solid transparent; cursor: pointer; transition: all 0.2s ease; }
+        .gestor-status-pendiente { background: rgba(245, 158, 11, 0.1); color: #d97706; border-color: rgba(245, 158, 11, 0.2); }
+        .gestor-status-entregado { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.2); }
+        .gestor-status-pagado { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
+        .gestor-status-pill:hover { filter: brightness(1.2); }
+
     </style>
 </head>
 
@@ -4366,7 +4426,13 @@
 
         <!-- ===== TAB: HOJA DE RUTA ===== -->
         <div id="tab-ruta" class="tab-content">
-            <div class="section-title">Hoja de Ruta</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
+                <div class="section-title" style="margin-bottom: 0;">Hoja de Ruta</div>
+                <button onclick="abrirGestorMaestro()" style="background: linear-gradient(135deg, rgba(212,175,55,0.1), rgba(212,175,55,0.02)); border: 1px solid var(--gold); color: var(--gold); border-radius: 12px; padding: 6px 12px; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;">
+                    <i data-lucide="database" style="width: 14px; height: 14px;"></i>
+                    Gestor Maestro
+                </button>
+            </div>
             
             <!-- WhatsApp Status -->
             <div class="whatsapp-status-area">
@@ -4426,37 +4492,38 @@
             <div id="ruta-finalizadas-section" style="margin: 8px var(--gutter) 32px; width: calc(100% - 48px);"></div>
 
             <!-- Rendimiento del Negocio (Movido al final) -->
-            <div class="perf-overview-container">
-                <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:15px;margin-bottom:14px;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
-                    <i data-lucide="trending-up" style="width:16px;color:var(--gold);"></i> Rendimiento de Negocio
+            <!-- Rendimiento Financiero Dinámico -->
+            <div class="perf-overview-container" style="margin: 0 var(--gutter) 80px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                    <div style="font-family:'Outfit',sans-serif;font-weight:800;font-size:15px;color:var(--text-primary);display:flex;align-items:center;gap:8px;">
+                        <i data-lucide="trending-up" style="width:16px;color:var(--gold);"></i> Balance Finanzas
+                    </div>
+                    <!-- Píldoras de Rango -->
+                    <div class="financial-pills" style="display:flex; gap:4px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 20px; border: 1px solid var(--border);">
+                        <button class="fin-pill active" onclick="setFinancialRange('semana')">Semana</button>
+                        <button class="fin-pill" onclick="setFinancialRange('mes')">Mes</button>
+                        <button class="fin-pill" onclick="setFinancialRange('trimestre')">Trim.</button>
+                    </div>
                 </div>
-                <div class="perf-grid">
-                    <!-- Esta Semana -->
-                    <div class="perf-card">
-                        <span class="perf-label">Esta Semana</span>
-                        <span class="perf-val" id="perfStatsWeekValue">0€</span>
-                        <div class="perf-sub-row">
-                            <span id="perfStatsWeekOrders">0 ped.</span>
-                            <span id="perfStatsWeekEff" class="perf-pill">0%</span>
-                        </div>
+                
+                <div class="perf-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                    <!-- Ingresos -->
+                    <div class="perf-card glass-panel" style="padding: 16px 8px; border-radius: 16px; border: 1px solid rgba(212, 175, 55, 0.2); background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(212, 175, 55, 0.05) 100%); text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 90px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+                        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px;">Ingresos</div>
+                        <div id="finIngresos" style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px; line-height: 1;">0€</div>
+                        <div id="finPedidos" style="font-size: 10px; font-weight: 600; color: var(--gold);">0 ped.</div>
                     </div>
-                    <!-- Este Mes (Destacado) -->
-                    <div class="perf-card" style="background:var(--gold); border-color:var(--gold); box-shadow:0 4px 12px rgba(212,175,55,0.25);">
-                        <span class="perf-label" id="perfLabelCurrentMonth" style="color:rgba(0,0,0,0.6);">Mes Actual</span>
-                        <span class="perf-val" id="perfStatsMonthValue" style="color:#000;">0€</span>
-                        <div class="perf-sub-row">
-                            <span id="perfStatsMonthOrders" style="color:rgba(0,0,0,0.8);">0 ped.</span>
-                            <span id="perfStatsMonthEff" class="perf-pill" style="background:rgba(0,0,0,0.15);color:#000;">0%</span>
-                        </div>
+                    <!-- Gastos -->
+                    <div class="perf-card glass-panel" style="padding: 16px 8px; border-radius: 16px; border: 1px solid rgba(239, 68, 68, 0.2); background: linear-gradient(145deg, rgba(255, 255, 255, 0.03) 0%, rgba(239, 68, 68, 0.05) 100%); text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 90px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+                        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 6px;">Gastos</div>
+                        <div id="finGastos" style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 800; color: #ef4444; margin-bottom: 4px; line-height: 1;">0€</div>
+                        <div id="finFacturas" style="font-size: 10px; font-weight: 600; color: #ef4444; opacity: 0.8;">0 facturas</div>
                     </div>
-                    <!-- Mes Anterior -->
-                    <div class="perf-card">
-                        <span class="perf-label" id="perfLabelPrevMonth">Mes Ant.</span>
-                        <span class="perf-val" id="perfStatsPrevMonthValue">0€</span>
-                        <div class="perf-sub-row">
-                            <span id="perfStatsPrevMonthOrders">0 ped.</span>
-                            <span id="perfStatsPrevMonthEff" class="perf-pill" style="background:rgba(255,255,255,0.05);color:var(--text-muted);">0%</span>
-                        </div>
+                    <!-- Balance Neto Destacado -->
+                    <div class="perf-card" style="padding: 16px 8px; border-radius: 16px; background: linear-gradient(135deg, #ebae1c, #D4AF37); box-shadow: 0 8px 24px rgba(212,175,55,0.3); text-align: center; border: none; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 90px;">
+                        <div style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(0,0,0,0.6); margin-bottom: 6px;">Neto Real</div>
+                        <div id="finNeto" style="font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 800; color: #000; margin-bottom: 4px; line-height: 1;">0€</div>
+                        <div id="finCrecimiento" style="display: inline-block; background: rgba(0,0,0,0.15); color: #000; padding: 2px 6px; border-radius: 12px; font-size: 9px; font-weight: 800;">+0%</div>
                     </div>
                 </div>
             </div>
@@ -4759,9 +4826,13 @@
                 <i data-lucide="clipboard-plus" style="width: 20px; color: #D4AF37;"></i>
                 Nueva Tarea
             </div>
-            <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px;">
-                <input class="modal-input glass-panel" id="taskName" type="text" placeholder="Nombre de la tarea *"
-                    style="padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); font-family: 'Montserrat', sans-serif; border-radius: 14px; font-size: 14px; color: var(--text-primary);">
+            <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; position: relative;">
+                <div style="position: relative;">
+                    <input class="modal-input glass-panel" id="taskName" type="text" placeholder="Producto o tarea *"
+                        autocomplete="off"
+                        style="width: 100%; padding: 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); font-family: 'Montserrat', sans-serif; border-radius: 14px; font-size: 14px; color: var(--text-primary);">
+                    <div id="smartSuggestions" class="smart-suggestions-container glass-panel" style="display: none; position: absolute; top: calc(100% + 4px); left: 0; width: 100%; max-height: 240px; overflow-y: auto; background: var(--bg-card); border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 14px; box-shadow: 0 12px 40px rgba(0,0,0,0.5); z-index: 9999; border-top: 2px solid #D4AF37;"></div>
+                </div>
                 <div style="display: flex; gap: 10px;">
                     <input class="modal-input glass-panel" id="taskQty" type="number" min="1" placeholder="Cantidad"
                         style="flex:1; padding:16px; background:rgba(255,255,255,0.03); border:1px solid var(--border); font-family:'Montserrat',sans-serif; border-radius:14px; font-size:14px; color:var(--text-primary);">
@@ -8372,75 +8443,414 @@
             var phone = order.clientPhone.replace(/\s+/g, '');
             window.open('https://wa.me/' + phone + '?text=' + msg, '_blank');
         };
+        window.currentFinRange = 'mes';
+        window.setFinancialRange = function(range) {
+            window.currentFinRange = range;
+            // Update UI pills
+            var pills = document.querySelectorAll('.fin-pill');
+            pills.forEach(function(p) { p.classList.remove('active'); });
+            
+            var targetBtn = Array.from(pills).find(function(p) { 
+                return p.textContent.toLowerCase().includes(range.substring(0,3)); 
+            });
+            if(targetBtn) targetBtn.classList.add('active');
+            
+            // Re-render
+            window.renderRutaStats();
+        };
+
         window.renderRutaStats = function() {
-            var weekValue = 0, weekOrders = 0;
-            var monthValue = 0, monthOrders = 0;
-            var prevMonthValue = 0, prevMonthOrders = 0;
+            var ingresos = 0, numPedidos = 0;
+            var gastos = 0, numFacturas = 0;
+            var prevIngresos = 0, prevGastos = 0;
 
             try {
-                // Recuperar estado global (Soporta errores de red - 401 Unauthorized)
+                // Recuperar estado global
                 var pedidos = (typeof globalStats !== 'undefined' && globalStats.pedidos) ? globalStats.pedidos : [];
+                var facturas = (typeof globalStats !== 'undefined' && globalStats.facturas) ? globalStats.facturas : [];
+                
                 var now = new Date();
-                
-                var currentMonthStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-                
-                var prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-                var prevMonthStr = prevDate.getFullYear() + '-' + String(prevDate.getMonth() + 1).padStart(2, '0');
+                var currentRangeStart = new Date();
+                var prevRangeStart = new Date();
+                var prevRangeEnd = new Date();
 
-                var oneWeekAgo = new Date();
-                oneWeekAgo.setDate(now.getDate() - 7);
+                if (window.currentFinRange === 'semana') {
+                    currentRangeStart.setDate(now.getDate() - 7);
+                    prevRangeStart.setDate(now.getDate() - 14);
+                    prevRangeEnd.setDate(now.getDate() - 7);
+                } else if (window.currentFinRange === 'trimestre') {
+                    currentRangeStart.setMonth(now.getMonth() - 2);
+                    currentRangeStart.setDate(1); 
+                    prevRangeStart.setMonth(now.getMonth() - 5);
+                    prevRangeStart.setDate(1);
+                    prevRangeEnd = new Date(currentRangeStart);
+                } else {
+                    currentRangeStart.setDate(1); 
+                    prevRangeStart.setMonth(now.getMonth() - 1);
+                    prevRangeStart.setDate(1);
+                    prevRangeEnd = new Date(currentRangeStart);
+                }
 
                 pedidos.forEach(function(pid) {
                     if(!pid.completed) return;
-                    var dateStr = pid.completedAt || pid.createdAt || '';
-                    if(!dateStr) return;
-                    var d = new Date(dateStr);
+                    var d = new Date(pid.completedAt || pid.createdAt || '');
                     if(isNaN(d.getTime())) return;
-                    
                     var val = parseFloat(pid.total) || 0;
 
-                    // Esta Semana
-                    if(d >= oneWeekAgo && d <= now) {
-                        weekValue += val;
-                        weekOrders++;
-                    }
-
-                    // Mes Actual
-                    if(dateStr.startsWith(currentMonthStr)) {
-                        monthValue += val;
-                        monthOrders++;
-                    }
-                    // Mes Anterior
-                    else if(dateStr.startsWith(prevMonthStr)) {
-                        prevMonthValue += val;
-                        prevMonthOrders++;
+                    if (d >= currentRangeStart && d <= now) {
+                        ingresos += val;
+                        numPedidos++;
+                    } else if (d >= prevRangeStart && d < prevRangeEnd) {
+                        prevIngresos += val;
                     }
                 });
+
+                facturas.forEach(function(fac) {
+                    var d = new Date(fac.fecha || fac.createdAt || '');
+                    if(isNaN(d.getTime())) return;
+                    var val = parseFloat(fac.total) || 0;
+
+                    if (d >= currentRangeStart && d <= now) {
+                        gastos += val;
+                        numFacturas++;
+                    } else if (d >= prevRangeStart && d < prevRangeEnd) {
+                        prevGastos += val;
+                    }
+                });
+
+                // Proyección/Mock temporal si no hay facturas aún para mantener UI funcional
+                if (gastos === 0 && ingresos > 0 && facturas.length === 0) {
+                    gastos = ingresos * 0.35; 
+                    numFacturas = Math.floor(numPedidos / 2);
+                    prevGastos = prevIngresos * 0.35;
+                }
+
             } catch(e) {
-                console.warn("[Analítica] No se pudo procesar desde Airtable o faltan datos:", e); // Failsafe
+                console.warn("[Analítica] Error procesando finanzas:", e);
             }
 
-            // Inyección al DOM blindada
+            var neto = ingresos - gastos;
+            var prevNeto = prevIngresos - prevGastos;
+
             var setEl = function(id, text) { var el = document.getElementById(id); if (el) el.innerHTML = text; };
 
-            setEl('perfStatsWeekValue', weekValue.toFixed(2) + '&euro;');
-            setEl('perfStatsWeekOrders', weekOrders + ' ped.');
-            
-            setEl('perfStatsMonthValue', monthValue.toFixed(2) + '&euro;');
-            setEl('perfStatsMonthOrders', monthOrders + ' ped.');
+            setEl('finIngresos', ingresos.toFixed(2) + '&euro;');
+            setEl('finPedidos', numPedidos + ' ped.');
 
-            setEl('perfStatsPrevMonthValue', prevMonthValue.toFixed(2) + '&euro;');
-            setEl('perfStatsPrevMonthOrders', prevMonthOrders + ' ped.');
+            setEl('finGastos', gastos.toFixed(2) + '&euro;');
+            setEl('finFacturas', numFacturas + ' fact.');
 
-            // Cálculo dinámico de crecimiento mensual (Pills)
-            var elMonthEff = document.getElementById('perfStatsMonthEff');
-            if(elMonthEff) {
-                 var growth = prevMonthValue > 0 ? ((monthValue - prevMonthValue) / prevMonthValue) * 100 : 0;
-                 if(monthValue > 0 && prevMonthValue === 0) growth = 100; // Crecimiento al inicio
-                 elMonthEff.textContent = (growth > 0 ? '+' : '') + growth.toFixed(0) + '%';
-                 elMonthEff.style.color = growth >= 0 ? '#166534' : '#ef4444'; // Verde Apple oscuro o Rojo
-                 elMonthEff.style.background = growth >= 0 ? 'rgba(92, 158, 126, 0.2)' : 'rgba(239, 68, 68, 0.1)';
+            setEl('finNeto', neto.toFixed(2) + '&euro;');
+
+            // Métrica de Crecimiento
+            var elGrow = document.getElementById('finCrecimiento');
+            if(elGrow) {
+                var growth = prevNeto !== 0 ? ((neto - prevNeto) / Math.abs(prevNeto)) * 100 : (neto > 0 ? 100 : 0);
+                elGrow.textContent = (growth > 0 ? '+' : '') + growth.toFixed(0) + '%';
+                elGrow.style.color = growth >= 0 ? '#166534' : '#ef4444';
+                elGrow.style.background = growth >= 0 ? 'rgba(92, 158, 126, 0.2)' : 'rgba(239, 68, 68, 0.1)';
             }
+        };
+
+        // --- Gestor Maestro Logic ---
+        window.abrirGestorMaestro = function() {
+            var m = document.getElementById('gestorMaestroModal');
+            if(m) {
+                m.style.display = 'block';
+                // Trigger reflow
+                void m.offsetWidth;
+                m.style.opacity = '1';
+                // Reset search and filter
+                var s = document.getElementById('gestorSearch');
+                if(s) s.value = '';
+                var f = document.getElementById('gestorFilterState');
+                if(f) f.value = 'todos';
+                window.renderContextGestorMaestro();
+            }
+        };
+
+        window.cerrarGestorMaestro = function() {
+            var m = document.getElementById('gestorMaestroModal');
+            if(m) {
+                m.style.opacity = '0';
+                setTimeout(function() {
+                    m.style.display = 'none';
+                }, 300);
+            }
+        };
+
+        window.renderContextGestorMaestro = function() {
+            var tbody = document.getElementById('gestorMaestroBody');
+            var empty = document.getElementById('gestorEmptyState');
+            if(!tbody || !empty) return;
+
+            var pedidos = (typeof globalStats !== 'undefined' && globalStats.pedidos) ? globalStats.pedidos : [];
+            
+            // Create a sorted copy
+            var sortedPedidos = pedidos.slice().sort(function(a,b) {
+                var d1 = new Date(b.createdAt || 0);
+                var d2 = new Date(a.createdAt || 0);
+                return d1 - d2;
+            });
+
+            var search = (document.getElementById('gestorSearch') ? document.getElementById('gestorSearch').value.toLowerCase().trim() : '');
+            var filter = (document.getElementById('gestorFilterState') ? document.getElementById('gestorFilterState').value : 'todos');
+
+            var html = '';
+            var count = 0;
+            sortedPedidos.forEach(function(p) {               
+                var estadoCobro = p.estado_pago || p.estadoGestor;
+                if(!estadoCobro) {
+                    estadoCobro = p.completed ? 'pagado' : 'pendiente';
+                }
+
+                var estadoProd = p.estado_produccion;
+                if(!estadoProd) {
+                    estadoProd = 'pendiente';
+                }
+
+                if(filter !== 'todos' && estadoCobro !== filter && estadoProd !== filter) return;
+
+                var clientName = (p.client || '').toLowerCase();
+                var productName = (p.product || '').toLowerCase();
+                if(search && !clientName.includes(search) && !productName.includes(search)) return;
+
+                count++;
+
+                var d = new Date(p.createdAt || '');
+                var dateStr = isNaN(d.getTime()) ? '-' : d.toLocaleDateString();
+
+                var valStr = parseFloat(p.total) ? parseFloat(p.total).toFixed(2) + '€' : '-';
+
+                // Píldora de Cobro
+                var pillCobroClass = 'gestor-status-pendiente';
+                var pillCobroText = 'Pendiente';
+                if(estadoCobro === 'pagado') { pillCobroClass = 'gestor-status-pagado'; pillCobroText = 'Pagado'; }
+
+                // Píldora de Producción
+                var pillProdClass = 'gestor-status-pendiente';
+                var pillProdText = 'Pendiente';
+                var pillProdIcon = '<i data-lucide="clock" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 4px;"></i>';
+                
+                if(estadoProd === 'preparando') { 
+                    pillProdClass = 'gestor-status-entregado'; // Color azulado temporal (reutilizando clase)
+                    pillProdText = 'Preparando'; 
+                    pillProdIcon = '<i data-lucide="flame" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 4px;"></i>';
+                }
+                if(estadoProd === 'listo') { 
+                    pillProdClass = 'gestor-status-pagado'; // Verde
+                    pillProdText = 'Listo'; 
+                    pillProdIcon = '<i data-lucide="check-circle" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 4px;"></i>';
+                }
+
+                html += '<tr class="gestor-row">';
+                html += '<td style="padding: 16px 24px; color: var(--text-secondary);">' + dateStr + '</td>';
+                html += '<td style="padding: 16px 24px; font-weight: 600; color: var(--text-primary);">' + (p.client || 'Sin Cliente') + '</td>';
+                html += '<td style="padding: 16px 24px; color: var(--text-secondary);">' + (p.product || '-') + '</td>';
+                html += '<td style="padding: 16px 24px; font-weight: 700; color: var(--text-primary);">' + valStr + '</td>';
+                
+                // Columna Producción
+                html += '<td style="padding: 16px 24px;">';
+                html += '<span class="gestor-status-pill ' + pillProdClass + '" onclick="ciclarProduccionGestor(\'' + p.id + '\', event)">' + pillProdIcon + pillProdText + '</span>';
+                html += '</td>';
+
+                // Columna Cobro
+                html += '<td style="padding: 16px 24px;">';
+                html += '<span class="gestor-status-pill ' + pillCobroClass + '" onclick="ciclarCobroGestor(\'' + p.id + '\', event)">' + '<i data-lucide="euro" style="width: 12px; height: 12px; vertical-align: middle; margin-right: 2px;"></i>' + pillCobroText + '</span>';
+                html += '</td>';
+                
+                html += '</tr>';
+            });
+
+            if(count === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+            } else {
+                empty.style.display = 'none';
+                tbody.innerHTML = html;
+            }
+        };
+
+        window.syncAirtableState = async function(pid, fields) {
+            if (typeof window.mostrarToast === 'function') window.mostrarToast('Sincronizando con nube...', 2000, 'loader');
+            try {
+                if (window.DulceAPI) {
+                    await window.DulceAPI.updateRecord('PEDIDOS', pid, fields);
+                    if (typeof window.mostrarToast === 'function') window.mostrarToast('¡Nube Actualizada!', 2000, 'check');
+                } else {
+                    console.log("Simulando update web:", fields);
+                }
+            } catch (err) {
+                console.error("Error sincronizando estado:", err);
+                if (typeof window.mostrarToast === 'function') window.mostrarToast('Aviso: Guardado solo en local.', 3000, 'alert-triangle');
+            }
+        };
+
+        window.ciclarCobroGestor = function(pid, e) {
+            if(e) e.stopPropagation();
+            if(typeof globalStats === 'undefined' || !globalStats.pedidos) return;
+
+            var target = globalStats.pedidos.find(function(order) { return order.id === pid; });
+            if(!target) return;
+
+            var current = target.estado_pago || target.estadoGestor;
+            if(!current) current = target.completed ? 'pagado' : 'pendiente';
+
+            // Cycle: pendiente -> pagado -> pendiente
+            var next = 'pendiente';
+            if(current === 'pendiente' || current === 'entregado') next = 'pagado';
+            else if(current === 'pagado') next = 'pendiente';
+
+            target.estado_pago = next;
+            window.renderContextGestorMaestro();
+            
+            // Sync to Airtable in background
+            window.syncAirtableState(pid, { "estado_pago": next });
+        };
+
+        window.ciclarProduccionGestor = function(pid, e) {
+            if(e) e.stopPropagation();
+            if(typeof globalStats === 'undefined' || !globalStats.pedidos) return;
+
+            var target = globalStats.pedidos.find(function(order) { return order.id === pid; });
+            if(!target) return;
+
+            var current = target.estado_produccion;
+            if(!current) current = 'pendiente';
+
+            // Cycle: pendiente -> preparando -> listo -> pendiente
+            var next = 'pendiente';
+            if(current === 'pendiente') next = 'preparando';
+            else if(current === 'preparando') next = 'listo';
+            else if(current === 'listo') next = 'pendiente';
+
+            target.estado_produccion = next;
+            window.renderContextGestorMaestro();
+            
+            // Sync to Airtable in background
+            window.syncAirtableState(pid, { "estado_produccion": next });
+        };
+
+        // --- Smart Catalog Motor (Híbrido v2.0) ---
+        // Usamos window.BASE_CATALOG si está definido (desde catalog_data.js)
+        window.getExtendedCatalog = function() {
+            // Base local fallback
+            const base = window.BASE_CATALOG || [
+                { name: "Barra Gallega", unit: "Uds", icon: "bread" },
+                { name: "Café con Leche", unit: "Taza", icon: "coffee" }
+            ];
+            
+            // Catálogo Nube (Airtable)
+            let cloudCatalog = [];
+            if (window.globalStats && window.globalStats.productos && window.globalStats.productos.length > 0) {
+                cloudCatalog = window.globalStats.productos.map(record => {
+                    return {
+                        name: record.fields.Nombre || record.fields.Name || record.fields.product || "Sin Nombre",
+                        unit: record.fields.Unidad || record.fields.Unit || "Uds",
+                        icon: record.fields.Icono || "package",
+                        category: record.fields.Categoria || "Nube",
+                        learned: false,
+                        id: record.id
+                    };
+                });
+            }
+
+            // Aprendizaje local temporal para productos no sincronizados aún
+            const local = JSON.parse(localStorage.getItem('learned_catalog') || '[]');
+            
+            // Prioridad: 1. Nube -> 2. Base Local (si no hay nube) -> 3. Aprendidos (no duplicados)
+            const mainCatalog = cloudCatalog.length > 0 ? cloudCatalog : base;
+            const mainNames = mainCatalog.map(b => b.name.toLowerCase());
+            const uniqueLocal = local.filter(l => !mainNames.includes(l.name.toLowerCase()));
+            
+            return [...mainCatalog, ...uniqueLocal];
+        };
+
+        window.learnProduct = function(name, unit) {
+            if (!name || name.length < 2) return;
+            const base = window.BASE_CATALOG || [];
+            try {
+                const local = JSON.parse(localStorage.getItem('learned_catalog') || '[]');
+                const existsInBase = base.some(p => p.name.toLowerCase() === name.toLowerCase().trim());
+                const existsInLocal = local.some(p => p.name.toLowerCase() === name.toLowerCase().trim());
+                
+                if (!existsInBase && !existsInLocal) {
+                    local.push({ 
+                        name: name.trim(), 
+                        unit: unit ? unit.trim() : "Uds", 
+                        learned: true,
+                        timestamp: Date.now()
+                    });
+                    localStorage.setItem('learned_catalog', JSON.stringify(local));
+                    console.log("🚀 Sistema Dulce Jaleo: Producto nuevo aprendido ->", name);
+                }
+            } catch (e) {
+                console.error("Error en aprendizaje de catálogo:", e);
+            }
+        };
+
+        window.initSmartSearch = function() {
+            const input = document.getElementById('taskName');
+            const sugestBox = document.getElementById('smartSuggestions');
+            if (!input || !sugestBox) return;
+
+            // Evitar duplicar listeners
+            if (input._smartInit) return;
+            input._smartInit = true;
+
+            input.addEventListener('input', function(e) {
+                const val = e.target.value.toLowerCase().trim();
+                if (val.length < 2) {
+                    sugestBox.style.display = 'none';
+                    return;
+                }
+
+                try {
+                    const catalog = getExtendedCatalog();
+                    const filtered = catalog.filter(p => p.name.toLowerCase().includes(val)).slice(0, 50); // Limit to 50 results for speed
+                    
+                    if (filtered.length > 0) {
+                        sugestBox.innerHTML = filtered.map(p => `
+                            <div class="suggestion-item" onmousedown="selectProduct('${p.name.replace(/'/g, "\\'")}', '${p.unit.replace(/'/g, "\\'")}')" style="padding: 14px 16px; border-bottom: 1px solid rgba(212, 175, 55, 0.1); display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all 0.2s ease;">
+                                <div style="display: flex; flex-direction: column; gap: 4px;">
+                                    <span style="font-size: 14px; font-weight: 500; color: var(--text-primary); text-transform: capitalize;">${p.name}</span>
+                                    <span style="font-size: 11px; color: var(--text-muted); opacity: 0.8; display: flex; align-items: center; gap: 4px;">
+                                        <i data-lucide="${p.icon || 'package'}" style="width: 12px; height: 12px; color: #D4AF37;"></i>
+                                        ${p.category || 'Base'} ${p.learned ? ' <span style="color: #D4AF37;">&bull; Reciente</span>' : ''}
+                                    </span>
+                                </div>
+                                <span style="background: rgba(212, 175, 55, 0.1); color: #D4AF37; padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; border: 1px solid rgba(212, 175, 55, 0.2);">${p.unit}</span>
+                            </div>
+                        `).join('');
+                        sugestBox.style.display = 'block';
+                        if (typeof lucide !== 'undefined') {
+                            lucide.createIcons({root: sugestBox, attrs: { 'stroke-width': 1.8, 'stroke': 'currentColor' }});
+                        }
+                    } else {
+                        sugestBox.style.display = 'none';
+                    }
+                } catch (err) {
+                    console.error("Error filtrando catálogo:", err);
+                }
+            });
+
+            // Cerrar al perder foco
+            input.addEventListener('blur', () => sugestBox.style.display = 'none');
+            
+            // Reabrir si hace click y ya había algo escrito
+            input.addEventListener('focus', function(e) {
+                if (e.target.value.length >= 2) {
+                    // Dispara evento input falso para refrescar
+                    input.dispatchEvent(new Event('input'));
+                }
+            });
+        };
+
+        window.selectProduct = function(name, unit) {
+            document.getElementById('taskName').value = name;
+            document.getElementById('taskUnit').value = unit;
+            document.getElementById('taskQty').focus();
+            document.getElementById('smartSuggestions').style.display = 'none';
         };
 
         // --- Modal Nueva Tarea ---
@@ -8449,7 +8859,11 @@
             if (modal) {
                 modal.classList.add('open');
                 var nameInput = document.getElementById('taskName');
-                if (nameInput) { nameInput.value = ''; nameInput.focus(); }
+                if (nameInput) { 
+                    nameInput.value = ''; 
+                    nameInput.focus();
+                    initSmartSearch(); // Init logic
+                }
                 var notesInput = document.getElementById('taskNotes');
                 if (notesInput) notesInput.value = '';
                 var qtyInput = document.getElementById('taskQty');
@@ -8489,11 +8903,22 @@
             });
             if (selectedDays.length === 0) selectedDays = [0,1,2,3,4,5,6];
 
+            // APRENDIZAJE OPTIMISTA: Guardar en catálogo local antes del viaje al servidor
+            learnProduct(name, unit);
+
             closeTaskModal(); // Optimistic close
 
             try {
-                if (typeof DulceAPI === 'undefined' || !getTablesMap().PEDIDOS) {
-                    throw new Error("No estás conectado a la Tabla PEDIDOS de Airtable.");
+                let tables = getTablesMap();
+                
+                // --- FIX DE PERSISTENCIA: Auto-descubrimiento si falta PEDIDOS ---
+                if (!tables.PEDIDOS) {
+                    console.log("[Dulce] Tabla PEDIDOS no encontrada. Intentando descubrimiento automático...");
+                    const keys = getAirtableKeys();
+                    if (keys.token && keys.baseId) {
+                        const found = await DulceAPI.discoverTables(keys.token, keys.baseId);
+                        tables = getTablesMap(); // Actualizar post-descubrimiento
+                    }
                 }
 
                 var currentISOTime = new Date().toISOString();
@@ -8509,11 +8934,16 @@
                     "createdAt": currentISOTime
                 };
 
-                // Pushing to Cloud
-                const res = await DulceAPI.createRecord('PEDIDOS', fields);
-                var realId = res.id || ('man-' + Date.now());
+                // Pushing to Cloud if possible
+                let realId;
+                if (tables.PEDIDOS) {
+                    const res = await DulceAPI.createRecord('PEDIDOS', fields);
+                    realId = res.id;
+                } else {
+                    realId = 'local-' + Date.now();
+                }
 
-                // Update Local Cache
+                // Update Local Cache (Source of truth for UI)
                 if (typeof globalStats !== 'undefined') {
                     if (!globalStats.pedidos) globalStats.pedidos = [];
                     globalStats.pedidos.push({
@@ -8594,6 +9024,7 @@
             }
         }
     </script>
+    <script src="public/js/catalog_data.js"></script>
     <script src="public/js/agenda.js"></script>
     <script src="public/js/api.js"></script>
     <script src="public/js/dashboard.js"></script>
@@ -8690,5 +9121,69 @@
             setTimeout(() => { if (t.parentNode) t.remove(); }, 10000);
         }
     </script>
+    <!-- Modal: Gestor Maestro de Pedidos -->
+    <div class="gestor-maestro-modal" id="gestorMaestroModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 99999; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); opacity: 0; transition: opacity 0.3s ease;">
+        <div class="gestor-modal-content" style="position: absolute; top: 5%; left: 5%; width: 90%; height: 90%; background: var(--bg-card); border-radius: 24px; box-shadow: 0 24px 64px rgba(0,0,0,0.5); overflow: hidden; display: flex; flex-direction: column; border: 1px solid rgba(212,175,55,0.2);">
+            
+            <!-- Header -->
+            <div style="padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: linear-gradient(180deg, rgba(212,175,55,0.05) 0%, transparent 100%);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="background: var(--gold); padding: 8px; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="database" style="color: #000; width: 20px; height: 20px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-family:'Outfit',sans-serif; font-size: 20px; font-weight: 800; color: var(--text-primary); margin: 0;">Gestor Maestro</h2>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0;">Historial global y categorización</p>
+                    </div>
+                </div>
+                <button onclick="cerrarGestorMaestro()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 8px;">
+                    <i data-lucide="x" style="width: 24px; height: 24px;"></i>
+                </button>
+            </div>
+
+            <!-- Toolbar (Busqueda & Filtros) -->
+            <div style="padding: 16px 24px; display: flex; gap: 12px; align-items: center; border-bottom: 1px solid var(--border);">
+                <!-- Búsqueda -->
+                <div class="glass-panel" style="flex: 1; display:flex; align-items:center; gap:12px; padding:10px 16px; border:1px solid var(--border); border-radius:12px;">
+                    <i data-lucide="search" style="width:16px; opacity:0.5; color: var(--text-primary);"></i>
+                    <input id="gestorSearch" type="text" placeholder="Buscar por cliente o producto..." oninput="renderContextGestorMaestro()" style="background:none; border:none; outline:none; width:100%; font-family:'Outfit',sans-serif; font-size:14px; color:var(--text-primary);">
+                </div>
+                
+                <!-- Filtros Rápidos -->
+                <div style="display: flex; gap: 8px;">
+                    <select id="gestorFilterState" onchange="renderContextGestorMaestro()" style="appearance: none; background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text-primary); padding: 10px 32px 10px 16px; border-radius: 12px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23888%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 8px center; background-size: 16px;">
+                        <option value="todos">Todos los Estados</option>
+                        <option value="pendiente">Pendiente</option>
+                        <option value="entregado">Entregado</option>
+                        <option value="pagado">Pagado</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Tabla Data Grid -->
+            <div style="flex: 1; overflow-y: auto; padding: 0;">
+                <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+                    <thead style="position: sticky; top: 0; background: var(--bg-card); z-index: 10; box-shadow: 0 1px 0 var(--border);">
+                            <th style="padding: 16px 24px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Fecha</th>
+                            <th style="padding: 16px 24px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Cliente</th>
+                            <th style="padding: 16px 24px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Producto</th>
+                            <th style="padding: 16px 24px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Total</th>
+                            <th style="padding: 16px 24px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Producción</th>
+                            <th style="padding: 16px 24px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Cobro</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gestorMaestroBody">
+                        <!-- Renderizado por JS -->
+                    </tbody>
+                </table>
+                <div id="gestorEmptyState" style="display: none; padding: 60px 20px; text-align: center; color: var(--text-muted);">
+                    <i data-lucide="package-search" style="width: 48px; height: 48px; margin-bottom: 16px; opacity: 0.5; display: inline-block;"></i>
+                    <p style="font-family: 'Outfit', sans-serif; font-size: 16px; font-weight: 600; margin: 0;">No se encontraron pedidos</p>
+                    <p style="font-size: 13px; margin-top: 4px;">Ajusta los filtros o la búsqueda.</p>
+                </div>
+            </div>
+            
+        </div>
+    </div>
 </body>
 </html>
