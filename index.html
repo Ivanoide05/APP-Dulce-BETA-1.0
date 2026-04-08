@@ -6357,9 +6357,9 @@
         }
 
         // ===== FACTURAS (usa estado global) =====
-        window.allFacturas = window.allFacturas || [];
-        window.currentFilter = window.currentFilter || 'all';
-        window.currentSort = window.currentSort || 'recientes';
+        var allFacturas = window.allFacturas || [];
+        var currentFilter = window.currentFilter || 'all';
+        var currentSort = window.currentSort || 'recientes';
 
         window.setSortFacturas = function(type) {
             currentSort = type;
