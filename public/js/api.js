@@ -238,15 +238,33 @@ const DulceAPI = {
 
     /** ESCÁNER: Procesa imagen con IA Gemini (Requiere Servidor) */
     async scanInvoice(base64Image, mimeType = 'image/jpeg') {
-        const res = await fetch(`${API_BASE}/webhook/scan-invoice`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ image: base64Image, mimeType })
-        });
-        if (res.status === 401) handle401(res);
-        if (!res.ok) {
-            const err = await res.text();
-            throw new Error(`Fallo en escáner (${res.status}): ${err.substring(0, 100)}`);
+        const payload = { image: base64Image, mimeType };
+        let res;
+        try {
+            res = await fetch(`${API_BASE}/webhook/scan-invoice`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(payload)
+            });
+        } catch (err) {
+            // FALLBACK LOCAL SIN BACKEND (Si el usuario no encendió node server.js probando en local)
+            if (window.location.protocol === 'file:' || window.location.hostname === 'localhost') {
+                console.warn('⚠️ Proxy backend inactivo, usando WebView directo a N8N por rescate local.');
+                const DIRECT_N8N = 'https://dulce-y-jaleo-n8n.xm1sa3.easypanel.host/webhook/lovable-webhook-v7';
+                res = await fetch(DIRECT_N8N, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } else {
+                throw err;
+            }
+        }
+        
+        if (res && res.status === 401) handle401(res);
+        if (!res || !res.ok) {
+            const errInfo = res ? await res.text() : 'Sin conexión al servidor proxy ni webhook.';
+            throw new Error(`Fallo en escáner (${res ? res.status : 'offline'}): ${errInfo.substring(0, 100)}`);
         }
         return res.json();
     },

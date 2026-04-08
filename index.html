@@ -6270,7 +6270,7 @@
         function processSelectedFile(file, isCamera) {
             const isImage = file.type && file.type.startsWith('image/');
             const isHEIC = file.name && (file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif'));
-            if (!isImage && !isHEIC) { alert('Por favor selecciona una imagen válida'); return; }
+            if (!isImage && !isHEIC) { mostrarToastConexion('Por favor selecciona una imagen válida'); return; }
 
             const reader = new FileReader();
             reader.onload = ev => {
@@ -6363,7 +6363,7 @@
                 showResult(finalData);
                 // El usuario cierra el resultado manualmente
             } catch (err) {
-                alert('No se pudo procesar la imagen: ' + err.message);
+                mostrarToastConexion('No se pudo procesar la imagen: ' + err.message);
                 sendBtn.disabled = false;
                 sendBtn.innerHTML = '🚀 Reintentar Procesado';
             }
