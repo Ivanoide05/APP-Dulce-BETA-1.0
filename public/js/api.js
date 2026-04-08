@@ -277,7 +277,14 @@ Responde ÚNICAMENTE con JSON válido con los campos: tabla_destino, PROVEDOR/TI
                     })
                 });
 
-                if (!gRes.ok) throw new Error('Falló el motor de IA local.');
+                if (!gRes.ok) {
+                    const errorDetail = await gRes.json();
+                    const errMsg = errorDetail.error?.message || '';
+                    if (errMsg.includes('leaked') || gRes.status === 403) {
+                        throw new Error('La clave del motor de IA ha sido bloqueada por Google (leaked/403). Debes poner una nueva clave en api.js o arrancar el servidor backend.');
+                    }
+                    throw new Error('Falló el motor de IA local: ' + errMsg);
+                }
                 const gData = await gRes.json();
                 let txt = gData.candidates[0].content.parts[0].text;
                 txt = txt.replace(/```json/g, '').replace(/```/g, '').trim();
