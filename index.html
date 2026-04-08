@@ -6357,9 +6357,9 @@
         }
 
         // ===== FACTURAS (usa estado global) =====
-        let allFacturas = [];
-        let currentFilter = 'all';
-        let currentSort = 'recientes';
+        window.allFacturas = window.allFacturas || [];
+        window.currentFilter = window.currentFilter || 'all';
+        window.currentSort = window.currentSort || 'recientes';
 
         window.setSortFacturas = function(type) {
             currentSort = type;
@@ -6402,7 +6402,7 @@
             try {
                 // Usar estado global centralizado (una sola consulta)
                 await fetchGlobalData();
-                allFacturas = globalStats.allRecords;
+                window.allFacturas = globalStats.allRecords;
 
                 updateStats();
                 renderFacturas();
@@ -6510,11 +6510,11 @@
 
         function renderFacturas() {
             const list = document.getElementById('facturasList');
-            let filtered = currentFilter === 'all' ? allFacturas : allFacturas.filter(f => f.categoria === currentFilter);
+            let filtered = window.currentFilter === 'all' ? window.allFacturas : window.allFacturas.filter(f => f.categoria === window.currentFilter);
 
             // Aplicar ordenación
             filtered = [...filtered];
-            if (currentSort === 'recientes') {
+            if (window.currentSort === 'recientes') {
                 filtered.sort((a, b) => {
                     // Soporta DD/MM/YYYY y YYYY-MM-DD
                     function parseFecha(f) {
@@ -6637,8 +6637,16 @@
         function showError(msg) {
             const el = document.getElementById('errorBanner');
             if (el) {
-                el.textContent = '⚠ ' + msg;
+                el.innerHTML = `
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                        <div>⚠️ ${msg}</div>
+                        <div onclick="document.getElementById('errorBanner').style.display='none'" style="cursor:pointer; background:rgba(255,255,255,0.2); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center;">
+                            <i data-lucide="x" style="width:16px;height:16px;color:#fff;"></i>
+                        </div>
+                    </div>
+                `;
                 el.style.display = 'block';
+                if (typeof lucide !== 'undefined') lucide.createIcons({root: el});
             } else {
                 console.error('[Dulce] Error:', msg);
                 // Fallback a toast si el banner no existe
@@ -7134,7 +7142,7 @@
 
             // Simular búsqueda para filtrar lista
             setTimeout(() => {
-                const results = allFacturas.filter(f => normalize(f.proveedor).includes(normalize(window.contactSelected.nombre)));
+                const results = window.allFacturas.filter(f => normalize(f.proveedor).includes(normalize(window.contactSelected.nombre)));
                 updateListWithCustomData(results, `Historial: ${window.contactSelected.nombre}`);
                 // Si llegamos de la vista contacto, mostramos el tab facturas sin hacer más
             }, 100);
@@ -9044,7 +9052,23 @@
                 'box-shadow:0 8px 24px rgba(0,0,0,0.25)', 'max-width:320px', 'text-align:center',
                 'cursor:pointer', 'backdrop-filter:blur(10px)'
             ].join(';');
-            t.innerHTML = '⚠️ ' + msg + '<br><span style="font-size:11px;opacity:0.75;display:block;margin-top:4px">Toca aquí para abrir ⚙️ Ajustes</span>';
+            t.innerHTML = `
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                    <div>
+                        ⚠️ ${msg}<br>
+                        <span style="font-size:11px;opacity:0.75;display:block;margin-top:4px">Toca aquí para ir a ⚙️ Ajustes</span>
+                    </div>
+                    <div onclick="event.stopPropagation(); this.closest('#dulce-toast').remove()" style="cursor:pointer; background:rgba(0,0,0,0.15); border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i data-lucide="x" style="width:16px;height:16px;"></i>
+                    </div>
+                </div>
+            `;
+            
+            // Re-renderizar iconos solo dentro del toast
+            if (typeof lucide !== 'undefined') {
+                setTimeout(() => lucide.createIcons({ root: t }), 10);
+            }
+
             t.onclick = () => {
                 const m = document.getElementById('configModal');
                 if (m) m.classList.add('open');
