@@ -3947,10 +3947,6 @@
             <div class="action-circle" onclick="activateTab('agenda')" title="Buscar">
                 <i data-lucide="search"></i>
             </div>
-            <!-- Cerrar Sesión -->
-            <div class="action-circle" title="Cerrar Sesión" onclick="DulceAuth.logout()" style="color: var(--premium-red);">
-                <i data-lucide="log-out"></i>
-            </div>
             <!-- Tema (Sol/Luna) -->
             <div class="action-circle" title="Cambiar Tema" id="btn-theme-toggle" onclick="toggleTheme()">
                 <i data-lucide="moon"></i>
@@ -3962,10 +3958,6 @@
             <!-- Ajustes Técnicos -->
             <div class="action-circle" id="headerGearBtn" title="Ajustes Técnicos" onclick="openSettings()" style="cursor:pointer;">
                 <i data-lucide="settings"></i>
-            </div>
-            <!-- Cerrar sesión -->
-            <div class="action-circle" onclick="if(window.DulceAuth) DulceAuth.logout();" title="Cerrar sesión" style="cursor:pointer;">
-                <i data-lucide="log-out"></i>
             </div>
         </div>
     </header>
@@ -5261,7 +5253,7 @@
 
         // ===== ESTADO GLOBAL CENTRALIZADO =====
         // Fuente de verdad única: una sola consulta a Airtable alimenta TODAS las pestañas
-        let globalStats = {
+        window.globalStats = Object.assign(window.globalStats || {}, {
             allRecords: [],       // Todos los registros normalizados
             mesActual: '',        // 'YYYY-MM' del mes en curso
             // Contadores GLOBALES (todos los registros, sin filtro de mes)
@@ -5278,7 +5270,7 @@
             countTotalMes: 0,
             totalGastosMes: 0,    // Suma € de todos los docs del mes actual
             loaded: false
-        };
+        });
 
         async function fetchGlobalData() {
             const now = new Date();
