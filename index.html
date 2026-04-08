@@ -5092,15 +5092,12 @@
         // ===== CONFIG =====
 
         function loadConfig() {
-            // URL FIJA - NUNCA usar la de localStorage (causa Error 404)
-            const FIXED_WEBHOOK = 'https://dulce-y-jaleo-n8n.xm1sa3.easypanel.host/webhook/lovable-webhook-v7';
             const saved = localStorage.getItem(CONFIG_KEY);
             let cfg;
             if (saved) {
                 cfg = JSON.parse(saved);
-                cfg.webhookUrl = FIXED_WEBHOOK;
             } else {
-                cfg = { webhookUrl: FIXED_WEBHOOK, airtableToken: '' };
+                cfg = { airtableToken: '' };
             }
 
             // Cargar desde localStorage individual (prioridad para api.js)
@@ -5111,7 +5108,6 @@
             const tblAlbaranes = localStorage.getItem('AIRTABLE_TABLE_ALBARANES') || '';
             const tblGastos = localStorage.getItem('AIRTABLE_TABLE_GASTOS') || '';
 
-            document.getElementById('cfgWebhookUrl').value = cfg.webhookUrl;
             if(document.getElementById('cfgAirtableToken')) {
                 document.getElementById('cfgAirtableToken').value = airtableKey;
             }
@@ -5193,7 +5189,6 @@
         async function saveConfig() {
             const aToken = document.getElementById('cfgAirtableToken').value.trim();
             const aBaseInput = document.getElementById('cfgAirtableBase').value.trim();
-            const webhook = document.getElementById('cfgWebhookUrl').value.trim();
             const statusMsg = document.getElementById('configStatusMsg');
 
             const tFacturas = document.getElementById('cfgTableFacturas').value.trim();
@@ -5203,7 +5198,6 @@
             const aBase = aBaseInput.split('/')[0].split('?')[0].trim();
 
             const cfg = {
-                webhookUrl: webhook,
                 airtableToken: aToken
             };
 
@@ -6185,7 +6179,7 @@
         function processSelectedFile(file, isCamera) {
             const isImage = file.type && file.type.startsWith('image/');
             const isHEIC = file.name && (file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif'));
-            if (!isImage && !isHEIC) { alert('Por favor selecciona una imagen válida'); return; }
+            if (!isImage && !isHEIC) { mostrarToastConexion('Por favor selecciona una imagen válida'); return; }
 
             const reader = new FileReader();
             reader.onload = ev => {
@@ -6278,7 +6272,7 @@
                 showResult(finalData);
                 // El usuario cierra el resultado manualmente
             } catch (err) {
-                alert('No se pudo procesar la imagen: ' + err.message);
+                mostrarToastConexion('No se pudo procesar la imagen: ' + err.message);
                 sendBtn.disabled = false;
                 sendBtn.innerHTML = '🚀 Reintentar Procesado';
             }
@@ -8963,6 +8957,12 @@
         // ===== PUNTO ÚNICO DE INICIALIZACIÓN =====
         // Todo se ejecuta AQUÍ, cuando el DOM ya existe al 100%
         document.addEventListener('DOMContentLoaded', () => {
+            // Registrar PWA Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('Service Worker Registrado!', reg.scope))
+                    .catch(err => console.warn('Fallo al registrar Service Worker', err));
+            }
             // 1. Restaurar el tema guardado ANTES de renderizar iconos
             const savedTheme = localStorage.getItem('dulce_jaleo_theme');
             const isDark = savedTheme !== 'light'; // Dark por defecto

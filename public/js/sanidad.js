@@ -68,12 +68,12 @@ function registrarProduccion() {
 }
 
 function mostrarIncidenciaTemp() {
-    alert('Funcionalidad para reportar avería de neveras en desarrollo.');
+    mostrarToastConexion('Funcionalidad para reportar avería de neveras en desarrollo.');
 }
 
 function generarPDFSanidad() {
     if (typeof window.jspdf === 'undefined' || typeof window.jspdf.jsPDF === 'undefined') {
-        alert("Las librerías PDF todavía no han cargado. Intenta de nuevo en unos segundos.");
+        mostrarToastConexion("Las librerías PDF todavía no han cargado. Intenta de nuevo en unos segundos.");
         return;
     }
     

@@ -263,7 +263,7 @@ function updateFestivoUI(id, val) {
 function generarCuadrantePDF() {
     const { jsPDF } = window.jspdf;
     if(!jsPDF) {
-        alert("Error: Librería jsPDF no encontrada.");
+        mostrarToastConexion("Error: Librería jsPDF no encontrada.");
         return;
     }
     const doc = new jsPDF({
