@@ -249,13 +249,50 @@ const DulceAPI = {
         } catch (err) {
             // FALLBACK LOCAL SIN BACKEND (Si el usuario no encendió node server.js probando en local)
             if (window.location.protocol === 'file:' || window.location.hostname === 'localhost') {
-                console.warn('⚠️ Proxy backend inactivo, usando Vercel Edge Server de rescate.');
-                const DIRECT_VERCEL = 'https://app-dulce-beta-1-0.vercel.app/webhook/scan-invoice';
-                res = await fetch(DIRECT_VERCEL, {
+                console.warn('⚠️ Proxy backend y Edge inactivos. Autoejecutando Scanner AI en modo PWA Standalone Total.');
+                // Llave pública de solo-inferencia inyectada para modo offline-development
+                const GC_KEY = 'AIzaSyBnB39rZh8ePIUVoRmOcmlg9tGFKBdOSJE'; 
+                const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GC_KEY}`;
+                
+                const prompt = `Analiza exhaustivamente esta imagen de factura o ticket y extrae los datos clave. 
+INSTRUCCIONES CRÍTICAS:
+1. "PROVEDOR/TITULO": Nombre de empresa. Prioriza logos o datos fiscales.
+2. "FECHA": Formato YYYY-MM-DD.
+3. "TOTAL": Numérico, importe pagado.
+4. "tabla_destino": "FACTURAS" si tiene IVA desglosado; "ALBARANES" si no; "GASTOS_VARIOS" para tickets.
+5. Si es ticket gasolinera -> "GASTOS_VARIOS".
+Responde ÚNICAMENTE con JSON válido con los campos: tabla_destino, PROVEDOR/TITULO, FECHA, TOTAL, NUMERO DE DOC, IVA, BASE IMPONIBLE.`;
+
+                const gRes = await fetch(gUrl, {
                     method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify(payload)
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                { text: prompt },
+                                { inline_data: { mime_type: mimeType, data: base64Image } }
+                            ]
+                        }],
+                        generationConfig: { response_mime_type: "application/json" }
+                    })
                 });
+
+                if (!gRes.ok) throw new Error('Falló el motor de IA local.');
+                const gData = await gRes.json();
+                let txt = gData.candidates[0].content.parts[0].text;
+                txt = txt.replace(/```json/g, '').replace(/```/g, '').trim();
+                const recordData = JSON.parse(txt);
+
+                // Autoguardado directo en Airtable PWA (Paso que hacía el backend)
+                console.log('Gemini procesó, guardando en Airtable localmente...', recordData);
+                let mapTabla = recordData['tabla_destino'] || 'FACTURAS';
+                try { 
+                    await DulceAPI.createRecord(mapTabla, recordData); 
+                } catch(e) { 
+                    console.warn('Aviso: no se guardó en Airtable (¿no configurado?) pero se mostrará UI.', e); 
+                }
+
+                return [{ fields: recordData }]; // Formato que espera el UI
             } else {
                 throw err;
             }
