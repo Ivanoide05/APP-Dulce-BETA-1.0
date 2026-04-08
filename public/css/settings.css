@@ -1,0 +1,37 @@
+/* Estilos para las tabs del hub de configuración (inyectar en script / manual) */
+.settings-tab {
+    opacity: 0.6;
+    transition: 0.2s;
+    border-left: 3px solid transparent;            
+}
+.settings-tab:hover {
+    opacity: 1;
+    background: rgba(0,0,0,0.03);
+}
+.settings-tab.active {
+    opacity: 1;
+    background: rgba(0,0,0,0.05);
+    border-left: 3px solid var(--brand-color);
+}
+.legal-card:hover .lc-hover {
+    opacity: 1 !important;
+}
+.legal-content-prose h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 24px;
+    margin-bottom: 12px;
+}
+.legal-content-prose p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+.legal-content-prose ul {
+    margin-left: 20px;
+    margin-bottom: 16px;
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+}

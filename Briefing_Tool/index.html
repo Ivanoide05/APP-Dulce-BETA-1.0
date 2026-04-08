@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Briefing Post Pastelería - Dulce Jaleo</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <div class="logo">🍰 DULCE JALEO</div>
+            <h1>Briefing Semanal</h1>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+        </header>
+
+        <main id="formSteps">
+            <!-- Step 1: Context & Product -->
+            <section class="step active" data-step="1">
+                <h2>📦 Producto y Contexto</h2>
+                <div class="form-group">
+                    <label for="semana">Semana Nº</label>
+                    <input type="number" id="semana" placeholder="Ej: 14">
+                </div>
+                <div class="form-group">
+                    <label for="fecha">Fecha de publicación</label>
+                    <input type="date" id="fecha">
+                </div>
+                <hr>
+                <div class="form-group">
+                    <label for="productoNombre">Nombre del Producto</label>
+                    <input type="text" id="productoNombre" placeholder="Tarta de Queso con Pistacho...">
+                </div>
+                <div class="form-group">
+                    <label for="productoDesc">Descripción (1-2 frases)</label>
+                    <textarea id="productoDesc" placeholder="Lo que le dirías al cliente..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="productoPrecio">Precio / Encargo</label>
+                    <input type="text" id="productoPrecio" placeholder="45€ / Solo por encargo">
+                </div>
+            </section>
+
+            <!-- Step 2: Goal & Text -->
+            <section class="step" data-step="2">
+                <h2>🎯 Objetivo y Contenido</h2>
+                <div class="form-group">
+                    <label>Objetivo principal</label>
+                    <div class="radio-group">
+                        <label class="radio-item"><input type="radio" name="objetivo" value="Venta directa"> Venta directa</label>
+                        <label class="radio-item"><input type="radio" name="objetivo" value="Mostrar proceso"> Mostrar proceso</label>
+                        <label class="radio-item"><input type="radio" name="objetivo" value="Temporada"> Producto temporada</label>
+                        <label class="radio-item"><input type="radio" name="objetivo" value="Especial"> Pedido especial</label>
+                        <label class="radio-item"><input type="radio" name="objetivo" id="objetivoOtroRadio" value="Otro"> Otro:</label>
+                        <input type="text" id="objetivoOtroText" placeholder="Especificar...">
+                    </div>
+                </div>
+                <hr>
+                <div class="form-group">
+                    <label for="gancho">Gancho (Primera línea)</label>
+                    <input type="text" id="gancho" placeholder="Ej: La vida es demasiado corta para pasteles mediocres...">
+                </div>
+                <div class="form-group">
+                    <label for="cuerpo">Cuerpo del texto</label>
+                    <textarea id="cuerpo" placeholder="2-3 frases explicando el producto..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Call to Action</label>
+                    <div class="radio-group">
+                        <label class="radio-item"><input type="radio" name="cta" value="DM para encargar"> DM para encargar</label>
+                        <label class="radio-item"><input type="radio" name="cta" value="Disponible esta semana"> Disponible esta semana</label>
+                        <label class="radio-item"><input type="radio" name="cta" value="Link en bio"> Link en bio</label>
+                        <label class="radio-item"><input type="radio" name="cta" id="ctaOtroRadio" value="Otro"> Otro:</label>
+                        <input type="text" id="ctaOtroText" placeholder="Especificar...">
+                    </div>
+                </div>
+            </section>
+
+            <!-- Step 3: Visuals & Technical -->
+            <section class="step" data-step="3">
+                <h2>🎨 Estética y Formato</h2>
+                <div class="form-group">
+                    <label>Mood Visual</label>
+                    <div class="radio-group">
+                        <label class="radio-item"><input type="radio" name="mood" value="Elegante y lujoso"> Elegante y lujoso</label>
+                        <label class="radio-item"><input type="radio" name="mood" value="Casero y cálido"> Casero y cálido</label>
+                        <label class="radio-item"><input type="radio" name="mood" value="Divertido y colorido"> Divertido y colorido</label>
+                        <label class="radio-item"><input type="radio" name="mood" value="Minimalista"> Minimalista</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="musica">Música / Referencia</label>
+                    <input type="text" id="musica" placeholder="Canción o tipo de música...">
+                </div>
+                <hr>
+                <div class="form-group">
+                    <label>Formato Final</label>
+                    <div class="radio-group">
+                        <label class="radio-item"><input type="radio" name="formato" value="Reels (9:16)"> Reels (9:16)</label>
+                        <label class="radio-item"><input type="radio" name="formato" value="Carrusel (1:1)"> Carrusel (1:1)</label>
+                    </div>
+                </div>
+                <div class="form-group checkbox-row">
+                    <label><input type="checkbox" id="incluirLogo"> ¿Incluir logo?</label>
+                    <label><input type="checkbox" id="incluirTexto"> ¿Texto en pantalla?</label>
+                </div>
+                <div class="form-group" id="detalleTextoGroup" style="display:none;">
+                    <label for="detalleTexto">¿Qué texto?</label>
+                    <input type="text" id="detalleTexto" placeholder="Ej: Nueva Tarta de Queso...">
+                </div>
+            </section>
+
+            <!-- Step 4: Review & Generate -->
+            <section class="step" data-step="4">
+                <h2>✅ Revisión Final</h2>
+                <div class="checklist">
+                    <label><input type="checkbox" id="checkProducto"> He rellenado el producto</label>
+                    <label><input type="checkbox" id="checkPlanos"> Sé qué planos voy a grabar</label>
+                    <label><input type="checkbox" id="checkMood"> He elegido el mood visual</label>
+                    <label><input type="checkbox" id="checkDeuda"> Este post descuenta 30€ de deuda</label>
+                </div>
+                <div class="preview-card">
+                    <p>Todo listo. Haz clic en el botón para generar tu briefing en Markdown.</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <button id="prevBtn" disabled>Atrás</button>
+            <button id="nextBtn">Siguiente</button>
+            <button id="downloadBtn" style="display:none;">Generar & Descargar 📥</button>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
