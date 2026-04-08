@@ -249,11 +249,11 @@ const DulceAPI = {
         } catch (err) {
             // FALLBACK LOCAL SIN BACKEND (Si el usuario no encendió node server.js probando en local)
             if (window.location.protocol === 'file:' || window.location.hostname === 'localhost') {
-                console.warn('⚠️ Proxy backend inactivo, usando WebView directo a N8N por rescate local.');
-                const DIRECT_N8N = 'https://dulce-y-jaleo-n8n.xm1sa3.easypanel.host/webhook/lovable-webhook-v7';
-                res = await fetch(DIRECT_N8N, {
+                console.warn('⚠️ Proxy backend inactivo, usando Vercel Edge Server de rescate.');
+                const DIRECT_VERCEL = 'https://app-dulce-beta-1-0.vercel.app/webhook/scan-invoice';
+                res = await fetch(DIRECT_VERCEL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify(payload)
                 });
             } else {
