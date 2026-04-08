@@ -5252,12 +5252,21 @@
         }
 
         let config = loadConfig();
-        document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
-        document.getElementById('testConfigBtn').addEventListener('click', testConfig);
-        document.getElementById('discoverTablesBtn').addEventListener('click', discoverAndSaveTables);
-        document.getElementById('closeConfigModal').addEventListener('click', () => {
-            document.getElementById('configModal').classList.remove('open');
-            document.getElementById('configStatusMsg').style.display = 'none';
+        const svBtn = document.getElementById('saveConfigBtn');
+        if (svBtn) svBtn.addEventListener('click', saveConfig);
+        
+        const tstBtn = document.getElementById('testConfigBtn');
+        if (tstBtn) tstBtn.addEventListener('click', testConfig);
+        
+        const dBtn = document.getElementById('discoverTablesBtn');
+        if (dBtn) dBtn.addEventListener('click', discoverAndSaveTables);
+        
+        const cBtn = document.getElementById('closeConfigModal');
+        if (cBtn) cBtn.addEventListener('click', () => {
+            const m = document.getElementById('configModal');
+            if (m) m.classList.remove('open');
+            const msg = document.getElementById('configStatusMsg');
+            if (msg) msg.style.display = 'none';
         });
 
         // ===== ESTADO GLOBAL CENTRALIZADO =====
