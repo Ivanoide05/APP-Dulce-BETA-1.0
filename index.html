@@ -5,8 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>DulceOS - Gestión Inteligente</title>
-    <meta name="description" content="App de gestión integral y operaciones B2B/B2E">
+    <title>Dulce Jaleo - Gestión Inteligente</title>
+    <meta name="description" content="App de gestión de facturas y documentos para Dulce Jaleo panadería artesanal">
 
     <!-- PWA: Manifest -->
     <link rel="manifest" href="manifest.json?v=3">
@@ -20,7 +20,7 @@
     <!-- Apple PWA (iOS Safari/Brave/Chrome) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="DulceOS">
+    <meta name="apple-mobile-web-app-title" content="Dulce Jaleo">
     <link rel="apple-touch-icon" href="icon-512.png?v=3">
     <!-- Icono redundante para asegurar detección en versiones antiguas de iOS -->
     <link rel="apple-touch-icon" sizes="180x180" href="icon-512.png?v=3">
@@ -3928,7 +3928,7 @@
 
     <!-- SPLASH SCREEN PWA -->
     <div class="splash-screen" id="splashScreen">
-        <img src="icon-512.png" alt="DulceOS" class="splash-logo">
+        <img src="icon-512.png" alt="Dulce Jaleo" class="splash-logo">
     </div>
 
     <!-- ZONA ALTA (HEADER PREMIUM) -->
@@ -3955,12 +3955,8 @@
             <div class="action-circle" title="Cambiar Tema" id="btn-theme-toggle" onclick="toggleTheme()">
                 <i data-lucide="moon"></i>
             </div>
-            <!-- Sanidad APPCC -->
-            <div class="action-circle" id="headerSanidadBtn" title="Sanidad y Registros" onclick="openSanidad()" style="cursor:pointer; color: #10b981;">
-                <i data-lucide="clipboard-check"></i>
-            </div>
             <!-- Ajustes Técnicos -->
-            <div class="action-circle" id="headerGearBtn" title="Ajustes Técnicos" onclick="openSettings()" style="cursor:pointer;">
+            <div class="action-circle" id="headerGearBtn" title="Ajustes Técnicos" onclick="const m=document.getElementById('configModal'); if(m) m.classList.add('open');" style="cursor:pointer;">
                 <i data-lucide="settings"></i>
             </div>
             <!-- Cerrar sesión -->
@@ -4064,7 +4060,22 @@
                             </div>
                         </div>
 
-
+                        <!-- Widget Control Horario -->
+                        <div class="horario-widget">
+                            <div class="horario-widget-header">
+                                <div class="hw-title">
+                                    <i data-lucide="clock" style="width: 12px;"></i>
+                                    Control de Horario
+                                </div>
+                                <div style="display:flex;align-items:center;gap:8px;">
+                                    <div class="hw-link" onclick="event.stopPropagation();">Ver todo →</div>
+                                    <div class="hw-gear" onclick="event.stopPropagation(); openGN();" title="Gestión del Negocio">
+                                        <i data-lucide="settings" style="width:12px;height:12px;"></i>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="horario-list" id="hwDynamicList"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -4520,191 +4531,255 @@
 
     </main>
 
+    <!-- Modal Config Técnica (desde header ⚙️) -->
+    <div class="config-modal-overlay" id="configModal">
+        <div class="config-modal">
+            <h2 class="config-modal-title"
+                style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
+                Ajustes Técnicos
+            </h2>
+            <p class="config-modal-desc" style="margin-bottom:20px;color:var(--text-muted);font-size:13px;">
+                Configuración unificada</p>
 
-
-    <!-- ===== PANEL SANIDAD / INSPECCIÓN ===== -->
-    <div id="sanidadOverlay" class="gn-overlay" onclick="if(event.target===this)closeSanidad()">
-        <div class="gn-panel" style="background: var(--bg-card);">
-            <div class="gn-header">
-                <div class="gn-back" onclick="closeSanidad()"><i data-lucide="x" style="width:18px;height:18px;"></i></div>
-                <div class="gn-title">Sanidad e Inspección</div>
-                <div style="width:36px;"></div>
+            <div class="config-field">
+                <label class="config-label">🔑 Airtable Personal Access Token</label>
+                <input class="config-input" id="cfgAirtableToken" type="password" placeholder="patXXXXXXXXXXXXXX"
+                    required>
+                <div class="config-help">Token de acceso personal de Airtable.</div>
             </div>
-            
-            <div class="gn-body" style="padding: 20px;">
-                <div id="sanidadMesAlert"></div>
-                <!-- Limpieza Rápida -->
-                <div class="glass-panel" style="padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(16,185,129,0.3);">
-                    <i data-lucide="sparkles" style="color: #10b981; width: 32px; height: 32px; margin-bottom: 12px; margin-left: auto; margin-right: auto;"></i>
-                    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Limpieza Diaria</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Obrador, chocolatera, mesa y suelos.</p>
-                    <button onclick="registrarLimpieza()" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid #10b981; border-radius: 12px; padding: 12px 24px; font-weight: 700; width: 100%; cursor: pointer;">
-                        ✅ Confirmar Limpieza Hoy
-                    </button>
-                    <div id="limpiezaStatus" style="font-size: 11px; margin-top: 8px; color: var(--text-muted);"></div>
-                </div>
 
-                <!-- Temperaturas -->
-                <div class="glass-panel" style="padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(59,130,246,0.3);">
-                    <i data-lucide="thermometer-snowflake" style="color: #3b82f6; width: 32px; height: 32px; margin-bottom: 12px; margin-left: auto; margin-right: auto;"></i>
-                    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Registro Temperaturas</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Mesa fría: 4ºC | Congelador: -18ºC | Arcón: -18ºC</p>
-                    <button onclick="registrarTemperaturas()" style="background: rgba(59,130,246,0.1); color: #3b82f6; border: 1px solid #3b82f6; border-radius: 12px; padding: 12px 24px; font-weight: 700; width: 100%; cursor: pointer;">
-                        ✅ Confirmar Correctas
-                    </button>
-                    <button onclick="mostrarIncidenciaTemp()" style="background: transparent; color: var(--text-muted); border: none; font-size: 12px; margin-top: 12px; text-decoration: underline; cursor: pointer;">Reportar Incidencia</button>
-                    <div id="temperaturasStatus" style="font-size: 11px; margin-top: 8px; color: var(--text-muted);"></div>
-                </div>
+            <div class="config-field">
+                <label class="config-label">🆔 Airtable Base ID</label>
+                <input class="config-input" id="cfgAirtableBase" type="text" placeholder="appXXXXXXXXXXXXXX"
+                    required>
+                <div class="config-help">El ID de tu base de Airtable (empieza por 'app').</div>
+            </div>
 
-                <!-- Producción -->
-                <div class="glass-panel" style="padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(212,175,55,0.3);">
-                    <i data-lucide="croissant" style="color: var(--gold); width: 32px; height: 32px; margin-bottom: 12px; margin-left: auto; margin-right: auto;"></i>
-                    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Producción</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Aplicar plantilla base de producción diaria.</p>
-                    <button onclick="registrarProduccion()" style="background: rgba(212,175,55,0.1); color: var(--gold); border: 1px solid var(--gold); border-radius: 12px; padding: 12px 24px; font-weight: 700; width: 100%; cursor: pointer;">
-                        📝 Usar Plantilla Base
-                    </button>
-                    <div id="produccionStatus" style="font-size: 11px; margin-top: 8px; color: var(--text-muted);"></div>
+            <div style="background:var(--warm-50); padding:10px; border-radius:10px; border:1px solid var(--border); margin-bottom:15px;">
+                <label class="config-label" style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">📊 IDs de Tablas (Opcional - solo si falla el auto)</label>
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-top:5px;">
+                    <input class="config-input" id="cfgTableFacturas" type="text" placeholder="tbl... (Facturas)" style="font-size:10px; padding:6px;">
+                    <input class="config-input" id="cfgTableAlbaranes" type="text" placeholder="tbl... (Albaranes)" style="font-size:10px; padding:6px;">
+                    <input class="config-input" id="cfgTableGastos" type="text" placeholder="tbl... (Gastos)" style="font-size:10px; padding:6px;">
                 </div>
+            </div>
 
-                <!-- Botón Exportar PDF -->
-                <button onclick="generarPDFSanidad()" class="glass-panel" style="width: 100%; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05); color: #ef4444; margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer;">
-                    <i data-lucide="file-down" style="width: 18px;"></i>
-                    Modo Inspector (PDF)
+            <div class="config-field">
+                <label class="config-label">🔗 Webhook URL (n8n)</label>
+                <input class="config-input" id="cfgWebhookUrl" type="url" placeholder="https://tu-n8n.com/webhook/..."
+                    required>
+            </div>
+
+
+            <div id="configStatusMsg" style="margin-top:10px; font-size:12px; text-align:center; display:none; padding:8px; border-radius:8px;"></div>
+
+            <div class="config-actions" style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+                <div style="display:flex; gap:10px; margin-bottom:5px;">
+                    <button class="btn btn-secondary" id="testConfigBtn" style="flex:1; background:rgba(212,175,55,0.05); color:var(--amber-dark); font-size:12px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--amber);">
+                        <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
+                        Probar
+                    </button>
+                    <button class="btn btn-secondary" id="discoverTablesBtn" style="flex:1.5; background:rgba(34,197,94,0.05); color:#166534; font-size:12px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #22c55e;">
+                        <i data-lucide="search" style="width: 14px; height: 14px;"></i>
+                        Detectar Tablas
+                    </button>
+                </div>
+                <button class="btn btn-primary" id="saveConfigBtn"
+                    style="width:100%; background:var(--amber); color:var(--amber-dark); display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <i data-lucide="save" style="width: 18px; height: 18px;"></i>
+                    Guardar Configuración
                 </button>
+                <button class="btn" id="closeConfigModal" style="padding:10px; font-size:12px; color:var(--text-muted); background:transparent;">Cerrar sin guardar</button>
+            </div>
+
+            <div class="version-info"
+                style="margin-top:24px;background:var(--warm-50);padding:12px;border-radius:12px;font-size:11px;color:var(--text-muted);border:1px solid var(--border);">
+                <strong>Estado:</strong> WebApp ✓ | n8n Self-hosted ✓ | Airtable Free ✓ | IA ~0.02€/imagen<br>
+                <strong>Versión:</strong> Dulce Jaleo 2.1
             </div>
         </div>
     </div>
 
-    <!-- ===== PANEL DE AJUSTES Y COMPLIANCE ===== -->
-    <div id="settingsOverlay" class="gn-overlay" onclick="if(event.target===this)closeSettings()">
-        <div class="gn-panel" style="background: var(--bg-card); max-width: 600px; padding:0; display:flex; flex-direction:column; overflow:hidden;">
-            <div class="gn-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; background: var(--bg-card); position: sticky; top:0; z-index: 10;">
-                <div class="gn-back" onclick="closeSettings()"><i data-lucide="x" style="width:18px;height:18px;"></i></div>
-                <div class="gn-title" style="flex:1; text-align:center;">Configuración</div>
-                <div style="width:36px;"></div>
-            </div>
-            
-            <div style="display:flex; flex:1; overflow:hidden; min-height: 500px;">
-                <!-- Sidebar Menú -->
-                <div id="settingsSidebar" style="width:180px; background: rgba(0,0,0,0.02); border-right: 1px solid var(--border-color); overflow-y:auto; padding:10px 0;">
-                    <div class="settings-tab active" onclick="activateSettingsTab('airtable', this)" style="padding:16px 20px; cursor:pointer; font-size:14px; font-weight:600; display:flex; align-items:center; gap:10px; color: var(--text-color);">
-                        <i data-lucide="database" style="width:18px;height:18px;"></i> Servidor
-                    </div>
-                    <div class="settings-tab" onclick="activateSettingsTab('empleados', this)" style="padding:16px 20px; cursor:pointer; font-size:14px; font-weight:600; display:flex; align-items:center; gap:10px; color: var(--text-color);">
-                        <i data-lucide="users" style="width:18px;height:18px;"></i> Personal
-                    </div>
-                    <div class="settings-tab" onclick="activateSettingsTab('legal', this)" style="padding:16px 20px; cursor:pointer; font-size:14px; font-weight:600; display:flex; align-items:center; gap:10px; border-top:1px solid var(--border-color); margin-top:10px; padding-top:20px; color: var(--text-color);">
-                        <i data-lucide="shield" style="width:18px;height:18px;"></i> Legal
-                    </div>
+    <!-- ===== GESTIÓN DEL NEGOCIO PANEL ===== -->
+    <div id="gnOverlay" class="gn-overlay" onclick="if(event.target===this)closeGN()">
+        <div class="gn-panel">
+
+            <!-- Page: Menú Principal -->
+            <div id="gnPageMenu" class="gn-page active">
+                <div class="gn-header">
+                    <div class="gn-back" onclick="closeGN()"><i data-lucide="x" style="width:18px;height:18px;"></i></div>
+                    <div class="gn-title">Gestión del Negocio</div>
+                    <div style="width:36px;"></div>
                 </div>
-
-                <!-- Contenido -->
-                <div style="flex:1; overflow-y:auto; padding:24px; position:relative;" id="settingsContentArea">
-                    
-                    <!-- TAB AIRTABLE -->
-                    <div id="settingsTab-airtable" class="settings-tab-content">
-                        <h3 style="font-size:18px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
-                            <i data-lucide="database" style="color:#10b981;"></i> Gateway de Conexión
-                        </h3>
-                        <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px; line-height:1.5;">Configuración global del servidor Airtable. Esto impactará en la sincronización de toda la infraestructura.</p>
-                        
-                        <div style="margin-bottom:16px;">
-                            <label style="font-size:12px; font-weight:600; color:var(--text-muted); display:block; margin-bottom:6px;">Airtable Base ID</label>
-                            <input type="text" id="settingAirtableBase" placeholder="appXXXXXXXXX" style="width:100%; border-radius:8px; border:1px solid var(--border-color); padding:12px; background:transparent; color:var(--text-color);">
-                        </div>
-                        <div style="margin-bottom:24px;">
-                            <label style="font-size:12px; font-weight:600; color:var(--text-muted); display:block; margin-bottom:6px;">Personal Access Token (API Key)</label>
-                            <input type="password" id="settingAirtableKey" placeholder="patXXXXXXXXX" style="width:100%; border-radius:8px; border:1px solid var(--border-color); padding:12px; background:transparent; color:var(--text-color);">
-                        </div>
-                        
-                        <button onclick="saveAirtableSettings()" style="background:#10b981; color:#fff; border:none; border-radius:8px; width:100%; padding:14px; font-size:14px; font-weight:700; cursor:pointer;">
-                            Salvar Configuración
-                        </button>
+                <div class="gn-body">
+                    <div class="gn-menu-item" onclick="gnShowPage('gnPageEmpleados')">
+                        <div class="gn-menu-icon" style="background:rgba(212,175,55,0.12);"><i data-lucide="users" style="color:#D4AF37;width:20px;height:20px;"></i></div>
+                        <div class="gn-menu-text"><div class="gn-menu-label">Empleados</div><div class="gn-menu-sub">Gestionar equipo y contactos</div></div>
+                        <i data-lucide="chevron-right" style="color:var(--text-muted);width:18px;height:18px;"></i>
                     </div>
-
-                    <!-- TAB EMPLEADOS -->
-                    <div id="settingsTab-empleados" class="settings-tab-content" style="display:none;">
-                        <h3 style="font-size:18px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
-                            <i data-lucide="users" style="color:#f59e0b;"></i> Recursos Humanos
-                        </h3>
-                        <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px; line-height:1.5;">Gestión del personal y turnos de la pastelería.</p>
-                        
-                        <div style="background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:16px; margin-bottom:24px;">
-                            <h4 style="font-size:14px; font-weight:600; margin-bottom:12px; border-bottom:1px solid rgba(245,158,11,0.2); padding-bottom:8px; color:#f59e0b;">Accesos Rápidos</h4>
-                            <div style="display:flex; gap:10px; margin-bottom:10px;">
-                                <button onclick="showHRTab('lista')" style="flex:1; background:var(--bg-body); color:var(--text-color); border:1px solid var(--border-color); padding:10px; border-radius:8px; font-size:12px; cursor:pointer;"><i data-lucide="users" style="width:14px; margin-right:4px;"></i> Lista</button>
-                                <button onclick="showHRTab('turnos')" style="flex:1; background:var(--bg-body); color:var(--text-color); border:1px solid var(--border-color); padding:10px; border-radius:8px; font-size:12px; cursor:pointer;"><i data-lucide="calendar" style="width:14px; margin-right:4px;"></i> Turnos</button>
-                                <button onclick="showHRTab('festivos')" style="flex:1; background:var(--bg-body); color:var(--text-color); border:1px solid var(--border-color); padding:10px; border-radius:8px; font-size:12px; cursor:pointer;"><i data-lucide="palm-tree" style="width:14px; margin-right:4px;"></i> Festivos</button>
-                            </div>
-                        </div>
-
-                        <!-- CONTENIDO DINÁMICO HR -->
-                        <div id="hr-lista" class="hr-section" style="display:block; margin-bottom: 20px;">
-                            <h4 style="font-size:14px; font-weight:600; margin-bottom:12px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">Alta y Baja de Empleados</h4>
-                            <div style="display:flex; gap:10px; margin-bottom:16px;">
-                                <input type="text" id="newEmpName" placeholder="Nombre completo..." style="flex:1; border-radius:8px; border:1px solid var(--border-color); padding:12px; background:transparent; color:var(--text-color);">
-                                <button onclick="addEmployeeUI()" style="background:var(--text-color); color:var(--bg-body); border:none; border-radius:8px; padding:10px 20px; font-weight:700; cursor:pointer;">Añadir</button>
-                            </div>
-                            <div id="hrEmpListContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
-                        </div>
-
-                        <div id="hr-turnos" class="hr-section" style="display:none; margin-bottom: 20px;">
-                            <h4 style="font-size:14px; font-weight:600; margin-bottom:12px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">Turnos por Empleado (Plantilla)</h4>
-                            <div id="hrTurnosContainer" style="display:flex; flex-direction:column; gap:20px;"></div>
-                        </div>
-
-                        <div id="hr-festivos" class="hr-section" style="display:none; margin-bottom: 20px;">
-                            <h4 style="font-size:14px; font-weight:600; margin-bottom:12px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">Control de Vacaciones y Bajas</h4>
-                            <div id="hrFestivosContainer" style="display:flex; flex-direction:column; gap:15px;"></div>
-                        </div>
-                        
-                        <!-- BOTÓN DE EXPORTACIÓN (Siempre visible al final) -->
-                        <button onclick="generarCuadrantePDF()" style="background:#f59e0b; color:#fff; border:none; border-radius:8px; width:100%; padding:14px; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
-                            <i data-lucide="printer"></i> Generar Cuadrante Semanal (PDF)
-                        </button>
+                    <div class="gn-menu-item" onclick="gnShowPage('gnPageHorarios')">
+                        <div class="gn-menu-icon" style="background:rgba(59,130,246,0.12);"><i data-lucide="clock" style="color:#3b82f6;width:20px;height:20px;"></i></div>
+                        <div class="gn-menu-text"><div class="gn-menu-label">Horarios del Negocio</div><div class="gn-menu-sub">Apertura y cierre por día</div></div>
+                        <i data-lucide="chevron-right" style="color:var(--text-muted);width:18px;height:18px;"></i>
                     </div>
-
-                    <!-- TAB LEGAL -->
-                    <div id="settingsTab-legal" class="settings-tab-content" style="display:none;">
-                        <h3 style="font-size:18px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
-                            <i data-lucide="shield" style="color:#ef4444;"></i> Compliance 
-                        </h3>
-                        <p style="font-size:13px; color:var(--text-muted); margin-bottom:24px; line-height:1.5;">Estatutos legales sobre el Tratamiento de Datos del Personal en base a normativas EU y Privacidad IT.</p>
-                        
-                        <div style="display:flex; flex-direction:column; gap:12px;">
-                            <div class="legal-card" onclick="openLegalModal('aviso')" style="border:1px solid var(--border-color); border-radius:12px; padding:16px; cursor:pointer; position:relative; overflow:hidden;">
-                                <div style="position:absolute; inset:0; background:rgba(255,255,255,0.03); opacity:0; transition:0.2s;" class="lc-hover"></div>
-                                <h4 style="font-size:15px; font-weight:700; margin-bottom:6px; display:flex; justify-content:space-between;">Aviso Legal y LSSI-CE <i data-lucide="chevron-right" style="width:16px;height:16px; color:var(--text-muted);"></i></h4>
-                                <p style="font-size:12px; color:var(--text-muted); line-height:1.4;">Titularidad jurídica, propiedad del código e información de la empresa proveedora JaleOS.</p>
-                            </div>
-                            <div class="legal-card" onclick="openLegalModal('privacidad')" style="border:1px solid var(--border-color); border-radius:12px; padding:16px; cursor:pointer; position:relative; overflow:hidden;">
-                                <div style="position:absolute; inset:0; background:rgba(255,255,255,0.03); opacity:0; transition:0.2s;" class="lc-hover"></div>
-                                <h4 style="font-size:15px; font-weight:700; margin-bottom:6px; display:flex; justify-content:space-between;">Política de Privacidad Integral <i data-lucide="chevron-right" style="width:16px;height:16px; color:var(--text-muted);"></i></h4>
-                                <p style="font-size:12px; color:var(--text-muted); line-height:1.4;">Declaración de uso de datos laborales bajo RGPD/LOPDGDD y Derechos ARCO para el Staff.</p>
-                            </div>
-                            <div class="legal-card" onclick="openLegalModal('terminos')" style="border:1px solid var(--border-color); border-radius:12px; padding:16px; cursor:pointer; position:relative; overflow:hidden;">
-                                <div style="position:absolute; inset:0; background:rgba(255,255,255,0.03); opacity:0; transition:0.2s;" class="lc-hover"></div>
-                                <h4 style="font-size:15px; font-weight:700; margin-bottom:6px; display:flex; justify-content:space-between;">Términos Internos de Uso <i data-lucide="chevron-right" style="width:16px;height:16px; color:var(--text-muted);"></i></h4>
-                                <p style="font-size:12px; color:var(--text-muted); line-height:1.4;">Obligación de Confidencialidad Laboral respecto a recetas y normativas de operación interna.</p>
-                            </div>
-                        </div>
+                    <div class="gn-menu-item" onclick="gnShowPage('gnPageTurnos')">
+                        <div class="gn-menu-icon" style="background:rgba(139,92,246,0.12);"><i data-lucide="calendar-clock" style="color:#8b5cf6;width:20px;height:20px;"></i></div>
+                        <div class="gn-menu-text"><div class="gn-menu-label">Turnos</div><div class="gn-menu-sub">Asignar turnos por empleado</div></div>
+                        <i data-lucide="chevron-right" style="color:var(--text-muted);width:18px;height:18px;"></i>
+                    </div>
+                    <div class="gn-menu-item" onclick="gnShowPage('gnPageFestivos')">
+                        <div class="gn-menu-icon" style="background:rgba(16,185,129,0.12);"><i data-lucide="palm-tree" style="color:#10b981;width:20px;height:20px;"></i></div>
+                        <div class="gn-menu-text"><div class="gn-menu-label">Festivos y Vacaciones</div><div class="gn-menu-sub">Días libres y festivos</div></div>
+                        <i data-lucide="chevron-right" style="color:var(--text-muted);width:18px;height:18px;"></i>
+                    </div>
+                    <div class="gn-menu-item" onclick="gnShowPage('gnPageRoles')">
+                        <div class="gn-menu-icon" style="background:rgba(245,158,11,0.12);"><i data-lucide="shield" style="color:#f59e0b;width:20px;height:20px;"></i></div>
+                        <div class="gn-menu-text"><div class="gn-menu-label">Roles y Permisos</div><div class="gn-menu-sub">Definir roles con colores</div></div>
+                        <i data-lucide="chevron-right" style="color:var(--text-muted);width:18px;height:18px;"></i>
+                    </div>
+                    <div class="gn-menu-item" onclick="gnShowPage('gnPageObjetivos')">
+                        <div class="gn-menu-icon" style="background:rgba(239,68,68,0.12);"><i data-lucide="target" style="color:#ef4444;width:20px;height:20px;"></i></div>
+                        <div class="gn-menu-text"><div class="gn-menu-label">Objetivos del Equipo</div><div class="gn-menu-sub">Metas de ventas y KPIs</div></div>
+                        <i data-lucide="chevron-right" style="color:var(--text-muted);width:18px;height:18px;"></i>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- MODAL DE VISUALIZACIÓN LEGAL TEXT -->
-    <div id="legalTextOverlay" class="gn-overlay" onclick="if(event.target===this)closeLegalModal()" style="z-index: 1000000; display:none;">
-        <div class="gn-panel" style="background: var(--bg-card); max-width: 800px; height: 80vh; padding:0; display:flex; flex-direction:column; border: 1px solid var(--border-color);">
-            <div class="gn-header" style="padding: 20px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
-                <div class="gn-back" onclick="closeLegalModal()"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
-                <div class="gn-title" id="legalModalTitle" style="flex:1; text-align:center;">Documento Legal</div>
-                <div style="width:36px;"></div>
+            <!-- Page: Lista de Empleados -->
+            <div id="gnPageEmpleados" class="gn-page">
+                <div class="gn-header">
+                    <div class="gn-back" onclick="gnShowPage('gnPageMenu')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
+                    <div class="gn-title">Empleados</div>
+                    <div style="width:36px;"></div>
+                </div>
+                <div class="gn-body" id="gnEmpleadosList"></div>
+                <div class="gn-fab"><button onclick="gnShowEmpleadoForm()"><i data-lucide="plus" style="width:18px;height:18px;"></i> Añadir empleado</button></div>
             </div>
-            <div class="gn-body" style="flex:1; overflow-y:auto; padding: 30px;" id="legalModalContent">
+
+            <!-- Page: Formulario Empleado -->
+            <div id="gnPageEmpleadoForm" class="gn-page">
+                <div class="gn-header">
+                    <div class="gn-back" onclick="gnShowPage('gnPageEmpleados')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
+                    <div class="gn-title" id="gnFormTitle">Nuevo Empleado</div>
+                    <div style="width:36px;"></div>
+                </div>
+                <div class="gn-body">
+                    <form id="gnEmpleadoForm" onsubmit="gnSaveEmpleado(event)">
+                        <input type="hidden" id="gnEmpId">
+                        <div class="gn-form-group">
+                            <label class="gn-form-label">Nombre *</label>
+                            <input type="text" id="gnEmpNombre" class="gn-form-input" required placeholder="Nombre">
+                        </div>
+                        <div class="gn-form-group">
+                            <label class="gn-form-label">Apellido</label>
+                            <input type="text" id="gnEmpApellido" class="gn-form-input" placeholder="Apellido">
+                        </div>
+                        <div class="gn-form-group">
+                            <label class="gn-form-label">Teléfono</label>
+                            <input type="tel" id="gnEmpTelefono" class="gn-form-input" placeholder="600 000 000">
+                        </div>
+                        <div class="gn-form-group">
+                            <label class="gn-form-label">Email</label>
+                            <input type="email" id="gnEmpEmail" class="gn-form-input" placeholder="correo@ejemplo.com">
+                        </div>
+                        <div class="gn-form-group">
+                            <label class="gn-form-label">Rol</label>
+                            <select id="gnEmpRol" class="gn-form-select"></select>
+                        </div>
+                        <button type="submit" class="gn-form-submit">
+                            <i data-lucide="save" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;"></i>
+                            Guardar Empleado
+                        </button>
+                    </form>
+                </div>
             </div>
+
+            <!-- Page: Horarios del Negocio -->
+            <div id="gnPageHorarios" class="gn-page">
+                <div class="gn-header">
+                    <div class="gn-back" onclick="gnShowPage('gnPageMenu')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
+                    <div class="gn-title">Horarios del Negocio</div>
+                    <div style="width:36px;"></div>
+                </div>
+                <div class="gn-body" id="gnHorariosList"></div>
+            </div>
+
+            <!-- Page: Turnos -->
+            <div id="gnPageTurnos" class="gn-page">
+                <div class="gn-header">
+                    <div class="gn-back" onclick="gnShowPage('gnPageMenu')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
+                    <div class="gn-title">Turnos</div>
+                    <div style="width:36px;"></div>
+                </div>
+                <div class="gn-body">
+                    <div class="gn-turno-week">
+                        <div class="gn-turno-weekbtn" onclick="gnTurnoWeek(-1)"><i data-lucide="chevron-left" style="width:16px;height:16px;"></i></div>
+                        <div class="gn-turno-weeklabel" id="gnTurnoWeekLabel"></div>
+                        <div class="gn-turno-weekbtn" onclick="gnTurnoWeek(1)"><i data-lucide="chevron-right" style="width:16px;height:16px;"></i></div>
+                    </div>
+                    <div class="gn-turno-grid" id="gnTurnoGrid"></div>
+                </div>
+            </div>
+
+            <!-- Page: Festivos y Vacaciones -->
+            <div id="gnPageFestivos" class="gn-page">
+                <div class="gn-header">
+                    <div class="gn-back" onclick="gnShowPage('gnPageMenu')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
+                    <div class="gn-title">Festivos y Vacaciones</div>
+                    <div style="width:36px;"></div>
+                </div>
+                <div class="gn-body" id="gnFestivosBody"></div>
+            </div>
+
+            <!-- Page: Roles y Permisos -->
+            <div id="gnPageRoles" class="gn-page">
+                <div class="gn-header">
+                    <div class="gn-back" onclick="gnShowPage('gnPageMenu')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
+                    <div class="gn-title">Roles y Permisos</div>
+                    <div style="width:36px;"></div>
+                </div>
+                <div class="gn-body" id="gnRolesList"></div>
+                <div class="gn-fab"><button onclick="gnShowRolForm()"><i data-lucide="plus" style="width:18px;height:18px;"></i> Nuevo rol</button></div>
+            </div>
+
+            <!-- Page: Formulario de Rol -->
+            <div id="gnPageRolForm" class="gn-page">
+                <div class="gn-header">
+                    <div class="gn-back" onclick="gnShowPage('gnPageRoles')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
+                    <div class="gn-title" id="gnRolFormTitle">Nuevo Rol</div>
+                    <div style="width:36px;"></div>
+                </div>
+                <div class="gn-body">
+                    <form id="gnRolForm" onsubmit="gnSaveRol(event)">
+                        <input type="hidden" id="gnRolId">
+                        <div class="gn-form-group">
+                            <label class="gn-form-label">Nombre del rol *</label>
+                            <input type="text" id="gnRolNombre" class="gn-form-input" required placeholder="Ej: Pastelero">
+                        </div>
+                        <div class="gn-form-group">
+                            <label class="gn-form-label">Color</label>
+                            <div class="gn-color-picker" id="gnRolColorPicker"></div>
+                            <input type="hidden" id="gnRolColor" value="#D4AF37">
+                        </div>
+                        <button type="submit" class="gn-form-submit">
+                            <i data-lucide="save" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;"></i>
+                            Guardar Rol
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Page: Objetivos del Equipo -->
+            <div id="gnPageObjetivos" class="gn-page">
+                <div class="gn-header">
+                    <div class="gn-back" onclick="gnShowPage('gnPageMenu')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
+                    <div class="gn-title">Objetivos del Equipo</div>
+                    <div style="width:36px;"></div>
+                </div>
+                <div class="gn-body" id="gnObjetivosBody"></div>
+            </div>
+
         </div>
     </div>
 
@@ -5092,12 +5167,15 @@
         // ===== CONFIG =====
 
         function loadConfig() {
+            // URL FIJA - NUNCA usar la de localStorage (causa Error 404)
+            const FIXED_WEBHOOK = 'https://dulce-y-jaleo-n8n.xm1sa3.easypanel.host/webhook/lovable-webhook-v7';
             const saved = localStorage.getItem(CONFIG_KEY);
             let cfg;
             if (saved) {
                 cfg = JSON.parse(saved);
+                cfg.webhookUrl = FIXED_WEBHOOK;
             } else {
-                cfg = { airtableToken: '' };
+                cfg = { webhookUrl: FIXED_WEBHOOK, airtableToken: '' };
             }
 
             // Cargar desde localStorage individual (prioridad para api.js)
@@ -5108,6 +5186,7 @@
             const tblAlbaranes = localStorage.getItem('AIRTABLE_TABLE_ALBARANES') || '';
             const tblGastos = localStorage.getItem('AIRTABLE_TABLE_GASTOS') || '';
 
+            document.getElementById('cfgWebhookUrl').value = cfg.webhookUrl;
             if(document.getElementById('cfgAirtableToken')) {
                 document.getElementById('cfgAirtableToken').value = airtableKey;
             }
@@ -5189,6 +5268,7 @@
         async function saveConfig() {
             const aToken = document.getElementById('cfgAirtableToken').value.trim();
             const aBaseInput = document.getElementById('cfgAirtableBase').value.trim();
+            const webhook = document.getElementById('cfgWebhookUrl').value.trim();
             const statusMsg = document.getElementById('configStatusMsg');
 
             const tFacturas = document.getElementById('cfgTableFacturas').value.trim();
@@ -5198,6 +5278,7 @@
             const aBase = aBaseInput.split('/')[0].split('?')[0].trim();
 
             const cfg = {
+                webhookUrl: webhook,
                 airtableToken: aToken
             };
 
@@ -5244,13 +5325,23 @@
         }
 
         let config = loadConfig();
-        document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
-        document.getElementById('testConfigBtn').addEventListener('click', testConfig);
-        document.getElementById('discoverTablesBtn').addEventListener('click', discoverAndSaveTables);
-        document.getElementById('closeConfigModal').addEventListener('click', () => {
-            document.getElementById('configModal').classList.remove('open');
-            document.getElementById('configStatusMsg').style.display = 'none';
-        });
+        const btnSave = document.getElementById('saveConfigBtn');
+        if (btnSave) btnSave.addEventListener('click', saveConfig);
+
+        const btnTest = document.getElementById('testConfigBtn');
+        if (btnTest) btnTest.addEventListener('click', testConfig);
+
+        const btnDisc = document.getElementById('discoverTablesBtn');
+        if (btnDisc) btnDisc.addEventListener('click', discoverAndSaveTables);
+
+        const btnClose = document.getElementById('closeConfigModal');
+        if (btnClose) {
+            btnClose.addEventListener('click', () => {
+                document.getElementById('configModal').classList.remove('open');
+                const statMsg = document.getElementById('configStatusMsg');
+                if (statMsg) statMsg.style.display = 'none';
+            });
+        }
 
         // ===== ESTADO GLOBAL CENTRALIZADO =====
         // Fuente de verdad única: una sola consulta a Airtable alimenta TODAS las pestañas
@@ -6179,7 +6270,7 @@
         function processSelectedFile(file, isCamera) {
             const isImage = file.type && file.type.startsWith('image/');
             const isHEIC = file.name && (file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif'));
-            if (!isImage && !isHEIC) { mostrarToastConexion('Por favor selecciona una imagen válida'); return; }
+            if (!isImage && !isHEIC) { alert('Por favor selecciona una imagen válida'); return; }
 
             const reader = new FileReader();
             reader.onload = ev => {
@@ -6272,7 +6363,7 @@
                 showResult(finalData);
                 // El usuario cierra el resultado manualmente
             } catch (err) {
-                mostrarToastConexion('No se pudo procesar la imagen: ' + err.message);
+                alert('No se pudo procesar la imagen: ' + err.message);
                 sendBtn.disabled = false;
                 sendBtn.innerHTML = '🚀 Reintentar Procesado';
             }
@@ -8947,22 +9038,10 @@
     <script src="public/js/agenda.js"></script>
     <script src="public/js/api.js"></script>
     <script src="public/js/dashboard.js"></script>
-    
-    <!-- Sanidad PDF Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    
-    <script src="public/js/sanidad.js"></script>
     <script>
         // ===== PUNTO ÚNICO DE INICIALIZACIÓN =====
         // Todo se ejecuta AQUÍ, cuando el DOM ya existe al 100%
         document.addEventListener('DOMContentLoaded', () => {
-            // Registrar PWA Service Worker
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(reg => console.log('Service Worker Registrado!', reg.scope))
-                    .catch(err => console.warn('Fallo al registrar Service Worker', err));
-            }
             // 1. Restaurar el tema guardado ANTES de renderizar iconos
             const savedTheme = localStorage.getItem('dulce_jaleo_theme');
             const isDark = savedTheme !== 'light'; // Dark por defecto
@@ -9116,7 +9195,5 @@
             
         </div>
     </div>
-    
-    <script src="public/js/settings.js"></script>
 </body>
 </html>
