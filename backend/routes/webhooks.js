@@ -39,9 +39,11 @@ router.post('/scan-invoice', async (req, res) => {
         // Usar airtable_base_id del JWT, con fallback al .env
         const baseId = user.airtable_base_id || FALLBACK_BASE_ID;
 
-        // 1. Enviar a Gemini 1.5 Flash — con JSON mode forzado
-        // 1. Enviar a Gemini 2.0 Flash — con JSON mode forzado
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
+        // 1. Enviar a Gemini — modelo primario 2.0-flash, fallback a 1.5-flash si hay 429/error
+        const GEMINI_MODELS = [
+            'gemini-2.0-flash',
+            'gemini-1.5-flash'
+        ];
 
         const geminiPayload = {
             contents: [{
@@ -80,21 +82,35 @@ Campos:
             generationConfig: {
                 maxOutputTokens: 8192,
                 temperature: 0.1,
-                responseMimeType: 'application/json',
-                thinkingConfig: { thinkingBudget: 0 }
+                responseMimeType: 'application/json'
             }
         };
 
-        const geminiRes = await fetch(geminiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(geminiPayload)
-        });
+        // Intento con cada modelo hasta que uno responda OK
+        let geminiRes, modelUsed;
+        for (const model of GEMINI_MODELS) {
+            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`;
+            geminiRes = await fetch(geminiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(geminiPayload)
+            });
+            modelUsed = model;
+            if (geminiRes.ok) break; // ✅ funciona, salimos
+            const errBody = await geminiRes.json().catch(() => ({}));
+            const code = errBody?.error?.code || geminiRes.status;
+            console.warn(`[SCANNER] ${model} falló (${code}), probando siguiente modelo...`);
+            if (code !== 429 && code !== 500 && code !== 503) {
+                // Error definitivo (ej. 400 clave inválida) — no reintentamos
+                throw new Error(`Gemini error (${code}): ${errBody?.error?.message || 'Error desconocido'}`);
+            }
+        }
 
         if (!geminiRes.ok) {
-            const errText = await geminiRes.text();
-            throw new Error(`Gemini error (${geminiRes.status}): ${errText.substring(0, 300)}`);
+            const errText = await geminiRes.text().catch(() => 'Sin respuesta');
+            throw new Error(`Todos los modelos de IA fallaron. \u00daltimo error (${geminiRes.status}): ${errText.substring(0, 200)}`);
         }
+        console.log(`[SCANNER] Modelo usado: ${modelUsed}`);
 
         const geminiData = await geminiRes.json();
         const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
