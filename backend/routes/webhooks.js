@@ -39,23 +39,27 @@ router.post('/scan-invoice', async (req, res) => {
         // Usar airtable_base_id del JWT, con fallback al .env
         const baseId = user.airtable_base_id || FALLBACK_BASE_ID;
 
+        // 1. Enviar a Gemini 1.5 Flash — con JSON mode forzado
         // 1. Enviar a Gemini 2.0 Flash — con JSON mode forzado
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_KEY}`;
 
         const geminiPayload = {
             contents: [{
                 parts: [
                     {
-                        text: `Analiza exhaustivamente esta imagen de factura o ticket y extrae los datos clave. 
+                        text: `Analiza exhaustivamente esta imagen de factura, ticket o albarán y extrae los datos clave. 
 INSTRUCCIONES CRÍTICAS:
-1. "PROVEDOR/TITULO": Busca el nombre de la empresa, comercio o entidad emisora. Prioriza logos, textos grandes en la parte superior o datos fiscales cerca del CIF. Si no es obvio, busca cualquier indicio comercial.
-2. "FECHA": Formato YYYY-MM-DD. Busca con rigor la fecha de emisión del documento.
-3. "TOTAL": El importe final pagado (numérico).
-4. "tabla_destino": "FACTURAS" si tiene CIF e IVA desglosado; "ALBARANES" si no tiene IVA; "GASTOS_VARIOS" para tickets menores.
+1. "PROVEDOR/TITULO": Busca el nombre comercial del emisor. Prioriza logotipos o textos destacados.
+2. "FECHA": Formato YYYY-MM-DD. Si no hay año, asume el actual.
+3. "TOTAL": Importe final (numérico). Si es un albarán sin precio, pon 0.
+4. "tabla_destino": 
+   - "FACTURAS" si tiene número de factura, CIF/NIF e IVA desglosado.
+   - "ALBARANES" si es una nota de entrega o pedido sin valor fiscal de factura.
+   - "GASTOS_VARIOS" para tickets de parking, gasolina o compras menores sin CIF.
 
-Responde ÚNICAMENTE con un objeto JSON válido.
+Responde estrictamente con un objeto JSON válido.
 Campos:
-- tabla_destino: string
+- tabla_destino: string (FACTURAS, ALBARANES o GASTOS_VARIOS)
 - "PROVEDOR/TITULO": string
 - "TOTAL": number
 - "FECHA": string (YYYY-MM-DD)
@@ -63,7 +67,7 @@ Campos:
 - "BASE IMPONIBLE": number
 - "IVA": number
 - "CIF": string
-- "DETALLES DOC": string (resumen de compra)`
+- "DETALLES DOC": string (resumen breve)`
                     },
                     {
                         inline_data: {

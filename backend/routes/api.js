@@ -41,10 +41,14 @@ async function airtableFetch(req, tableId, options = {}, baseId = null) {
             ...(options.headers || {})
         }
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
     if (!res.ok) {
-        const err = new Error(data.error?.message || 'Airtable error');
+        const errorMsg = data.error?.message || 'Airtable error';
+        console.error(`[AIRTABLE_PROXY] Error ${res.status} in ${effectiveBaseId}/${tableId}:`, errorMsg);
+        
+        const err = new Error(errorMsg);
         err.status = res.status;
+        err.details = data.error; 
         throw err;
     }
     return data;

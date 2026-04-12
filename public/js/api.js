@@ -241,18 +241,23 @@ const DulceAPI = {
         const payload = { image: base64Image, mimeType };
         let res;
         try {
-            res = await fetch(`${API_BASE}/webhook/scan-invoice`, {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify(payload)
-            });
+            const serverOk = await serverIsAvailable();
+            if (serverOk) {
+                res = await fetch(`${API_BASE}/webhook/scan-invoice`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(payload)
+                });
+            } else {
+                // Si el servidor NO está disponible, lanzamos error para disparar el fallback local (solo desarrollo)
+                throw new Error('Server not available');
+            }
         } catch (err) {
-            // FALLBACK LOCAL SIN BACKEND (Si el usuario no encendió node server.js probando en local)
+            // FALLBACK LOCAL (Solo si el servidor Node no está corriendo)
             if (window.location.protocol === 'file:' || window.location.hostname === 'localhost') {
-                console.warn('⚠️ Proxy backend y Edge inactivos. Autoejecutando Scanner AI en modo PWA Standalone Total.');
-                // Llave pública de solo-inferencia inyectada para modo offline-development
+                console.warn('⚠️ Servidor backend inactivo. Usando fallback local para desarrollo.');
                 const GC_KEY = 'AIzaSyBnB39rZh8ePIUVoRmOcmlg9tGFKBdOSJE'; 
-                const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GC_KEY}`;
+                const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GC_KEY}`;
                 
                 const prompt = `Analiza exhaustivamente esta imagen de factura o ticket y extrae los datos clave. 
 INSTRUCCIONES CRÍTICAS:
