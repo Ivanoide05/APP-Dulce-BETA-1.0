@@ -319,3 +319,199 @@ function verificarEstatusSanidad() {
         }
     }
 }
+
+
+// === NUEVO MVP TOUCH & GO ===
+const SANIDAD_CACHE_KEY = (window.DulceOS_CONFIG ? window.DulceOS_CONFIG.storagePrefix : 'dulce_jaleo_') + 'sanidad_logs';
+
+function getSanidadLogs() {
+    try {
+        const data = localStorage.getItem(SANIDAD_CACHE_KEY);
+        return data ? JSON.parse(data) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveSanidadLogs(logs) {
+    localStorage.setItem(SANIDAD_CACHE_KEY, JSON.stringify(logs));
+}
+
+function renderSanidadLogs() {
+    const list = document.getElementById('sanidad-log-list');
+    if (!list) return;
+
+    const logs = getSanidadLogs();
+    
+    // Solo mostrar los de hoy (MVP) 
+    const todayStr = new Date().toLocaleDateString('sv'); // yyyy-mm-dd local
+    
+    // Alternativa estable a ISO local
+    const tzoffset = (new Date()).getTimezoneOffset() * 60000; 
+    const localISOTime = (new Date(Date.now() - tzoffset)).toISOString().split('T')[0];
+    
+    const todayLogs = logs.filter(l => l.timestamp.startsWith(localISOTime) || l.timestamp.startsWith(new Date().toISOString().split('T')[0]));
+
+    if (todayLogs.length === 0) {
+        list.innerHTML = `<div style="text-align:center; font-size:12px; color:var(--text-muted); padding: 20px;">Aún no hay registros hoy.</div>`;
+        return;
+    }
+
+    // Ordenar de más reciente a más antiguo
+    todayLogs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    list.innerHTML = todayLogs.map(log => {
+        const time = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const isTemp = log.type === 'temperature';
+        const icon = isTemp ? 'thermometer-snowflake' : 'spray-can';
+        const color = isTemp ? 'var(--gold)' : '#333';
+        const extra = isTemp ? `<strong>${log.value} ºC</strong>` : `<span style="color:green; font-weight:bold;">Completado</span>`;
+        return `
+            <div class="glass-panel" style="padding: 12px; display:flex; align-items:center; gap: 12px; border-radius:12px; margin-bottom:8px;">
+                <div style="background: rgba(0,0,0,0.05); padding:8px; border-radius:50%;">
+                    <i data-lucide="${icon}" style="width:16px; height:16px; color:${color};"></i>
+                </div>
+                <div style="flex:1;">
+                    <div style="font-size: 13px; font-weight:700;">${log.zone}</div>
+                    <div style="font-size: 11px; color:var(--text-muted);">${time}</div>
+                </div>
+                <div style="font-size: 14px;">
+                    ${extra}
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons({ root: list });
+    }
+}
+
+window.logTemperature = function() {
+    const zone = document.getElementById('sanidad-camara').value;
+    const tempInput = document.getElementById('sanidad-temp');
+    const tempValue = parseFloat(tempInput.value);
+
+    if (isNaN(tempValue)) {
+        alert("Por favor, introduce una temperatura válida.");
+        return;
+    }
+
+    const logs = getSanidadLogs();
+    logs.push({
+        id: 'san-' + Date.now(),
+        type: 'temperature',
+        zone: zone,
+        value: tempValue,
+        timestamp: new Date().toISOString()
+    });
+
+    saveSanidadLogs(logs);
+    tempInput.value = '';
+    renderSanidadLogs();
+    
+    if(window.mostrarToastConexion) window.mostrarToastConexion(`Temp. guardada: ${tempValue}ºC en ${zone}`);
+};
+
+window.logCleaning = function() {
+    const zone = document.getElementById('sanidad-limpieza').value;
+
+    const logs = getSanidadLogs();
+    logs.push({
+        id: 'san-' + Date.now(),
+        type: 'cleaning',
+        zone: zone,
+        value: true,
+        timestamp: new Date().toISOString()
+    });
+
+    saveSanidadLogs(logs);
+    renderSanidadLogs();
+
+    if(window.mostrarToastConexion) window.mostrarToastConexion(`Limpieza registrada para ${zone}.`);
+};
+
+window.generateInspectorReport = function() {
+    const logs = getSanidadLogs();
+    const bgName = window.DulceOS_CONFIG ? window.DulceOS_CONFIG.tenantName : 'Dulce Jaleo';
+    
+    let html = `
+        <html>
+        <head>
+            <title>Registro APPCC - ${bgName}</title>
+            <style>
+                body { font-family: sans-serif; padding: 30px; color: #333; }
+                .header { border-bottom: 2px solid #ddd; padding-bottom: 20px; margin-bottom: 30px; }
+                .header h1 { margin: 0; color: #1a1a1a; }
+                .header p { color: #666; margin: 4px 0 0 0; font-size: 14px; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
+                th, td { border: 1px solid #e0e0e0; padding: 12px; text-align: left; }
+                th { background-color: #f8f9fb; color: #1a1a1a; font-weight: 600; }
+                tr:nth-child(even) { background-color: #fafbfc; }
+                .firma { margin-top: 60px; text-align: right; }
+                .firma p { margin: 0 0 40px 0; color: #666; }
+                .firma-linea { border-bottom: 1px solid #1a1a1a; width: 250px; display: inline-block; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>Registro Oficial APPCC</h1>
+                <p>Establecimiento: <strong>${bgName}</strong></p>
+                <p>Fecha de emisión: ${new Date().toLocaleString()}</p>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha y Hora</th>
+                        <th>Tipo de Control</th>
+                        <th>Zona / Equipo</th>
+                        <th>Resultado / Medición</th>
+                    </tr>
+                </thead>
+                <tbody>
+    `;
+
+    const sortedLogs = logs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+    if (sortedLogs.length === 0) {
+        html += `<tr><td colspan="4" style="text-align:center;">No hay registros disponibles en el sistema.</td></tr>`;
+    } else {
+        sortedLogs.forEach(l => {
+            const time = new Date(l.timestamp).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' });
+            const typeStr = l.type === 'temperature' ? 'Control Temperaturas' : 'Limpieza y Desinfección';
+            const valStr = l.type === 'temperature' ? `<strong>${l.value} ºC</strong>` : '<span style="color:green;">Completado</span>';
+            html += `
+                <tr>
+                    <td>${time}</td>
+                    <td>${typeStr}</td>
+                    <td>${l.zone}</td>
+                    <td>${valStr}</td>
+                </tr>
+            `;
+        });
+    }
+
+    html += `
+                </tbody>
+            </table>
+            <div class="firma">
+                <p>Validado por Responsable / Gerencia:</p>
+                <div class="firma-linea"></div>
+            </div>
+            <script>
+                window.onload = function() { 
+                    setTimeout(() => window.print(), 500); 
+                }
+            </script>
+        </body>
+        </html>
+    `;
+
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(renderSanidadLogs, 300);
+});

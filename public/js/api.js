@@ -253,58 +253,12 @@ const DulceAPI = {
                 throw new Error('Server not available');
             }
         } catch (err) {
-            // FALLBACK LOCAL (Solo si el servidor Node no está corriendo)
+            // El servidor no está disponible — informamos al usuario con claridad
             if (window.location.protocol === 'file:' || window.location.hostname === 'localhost') {
-                console.warn('⚠️ Servidor backend inactivo. Usando fallback local para desarrollo.');
-                const GC_KEY = 'AIzaSyBnB39rZh8ePIUVoRmOcmlg9tGFKBdOSJE'; 
-                const gUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GC_KEY}`;
-                
-                const prompt = `Analiza exhaustivamente esta imagen de factura o ticket y extrae los datos clave. 
-INSTRUCCIONES CRÍTICAS:
-1. "PROVEDOR/TITULO": Nombre de empresa. Prioriza logos o datos fiscales.
-2. "FECHA": Formato YYYY-MM-DD.
-3. "TOTAL": Numérico, importe pagado.
-4. "tabla_destino": "FACTURAS" si tiene IVA desglosado; "ALBARANES" si no; "GASTOS_VARIOS" para tickets.
-5. Si es ticket gasolinera -> "GASTOS_VARIOS".
-Responde ÚNICAMENTE con JSON válido con los campos: tabla_destino, PROVEDOR/TITULO, FECHA, TOTAL, NUMERO DE DOC, IVA, BASE IMPONIBLE.`;
-
-                const gRes = await fetch(gUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{
-                            parts: [
-                                { text: prompt },
-                                { inline_data: { mime_type: mimeType, data: base64Image } }
-                            ]
-                        }],
-                        generationConfig: { response_mime_type: "application/json" }
-                    })
-                });
-
-                if (!gRes.ok) {
-                    const errorDetail = await gRes.json();
-                    const errMsg = errorDetail.error?.message || '';
-                    if (errMsg.includes('leaked') || gRes.status === 403) {
-                        throw new Error('La clave del motor de IA ha sido bloqueada por Google (leaked/403). Debes poner una nueva clave en api.js o arrancar el servidor backend.');
-                    }
-                    throw new Error('Falló el motor de IA local: ' + errMsg);
-                }
-                const gData = await gRes.json();
-                let txt = gData.candidates[0].content.parts[0].text;
-                txt = txt.replace(/```json/g, '').replace(/```/g, '').trim();
-                const recordData = JSON.parse(txt);
-
-                // Autoguardado directo en Airtable PWA (Paso que hacía el backend)
-                console.log('Gemini procesó, guardando en Airtable localmente...', recordData);
-                let mapTabla = recordData['tabla_destino'] || 'FACTURAS';
-                try { 
-                    await DulceAPI.createRecord(mapTabla, recordData); 
-                } catch(e) { 
-                    console.warn('Aviso: no se guardó en Airtable (¿no configurado?) pero se mostrará UI.', e); 
-                }
-
-                return [{ fields: recordData }]; // Formato que espera el UI
+                throw new Error(
+                    '⚠️ El servidor backend no está activo. ' +
+                    'Para escanear documentos, ejecuta "node server.js" en la carpeta /backend y recarga la página.'
+                );
             } else {
                 throw err;
             }

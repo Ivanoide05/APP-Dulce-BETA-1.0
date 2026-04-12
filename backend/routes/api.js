@@ -72,6 +72,7 @@ router.get('/records', async (req, res) => {
             airtableFetch(req, TABLES.GASTOS_VARIOS, {}, baseId)
         ]);
 
+        res.set('Cache-Control', 'max-age=300, stale-while-revalidate=60');
         res.json({
             facturas: facturas.records || [],
             albaranes: albaranes.records || [],
@@ -145,6 +146,40 @@ router.get('/config', (req, res) => {
         tables: Object.keys(TABLES),
         baseConfigured: !!FALLBACK_BASE_ID && !!TOKEN
     });
+});
+
+// ─────────────────────────────────────────────
+// PATCH /api/records/:table/:id — Editar un registro existente
+// Body: { fields: { ... } }
+// ─────────────────────────────────────────────
+router.patch('/records/:table/:id', async (req, res) => {
+    const user = authMiddleware(req, res);
+    if (!user) return;
+
+    const tableKey = req.params.table.toUpperCase();
+    const tableId = TABLES[tableKey];
+    const recordId = req.params.id;
+
+    if (!tableId) {
+        return res.status(400).json({ error: `Tabla desconocida: ${req.params.table}` });
+    }
+
+    try {
+        const baseId = user.airtable_base_id || FALLBACK_BASE_ID;
+        const url = `${AIRTABLE_API}/${baseId}/${tableId}/${recordId}`;
+        const data = await fetch(url, {
+            method: 'PATCH',
+            headers: {
+                'Authorization': `Bearer ${(process.env.AIRTABLE_API_KEY || '').trim()}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ fields: req.body.fields || req.body })
+        }).then(r => r.json());
+        res.json(data);
+    } catch (err) {
+        console.error(`[API] Error updating record in ${tableKey}:`, err.message);
+        res.status(err.status || 500).json({ error: err.message });
+    }
 });
 
 module.exports = router;

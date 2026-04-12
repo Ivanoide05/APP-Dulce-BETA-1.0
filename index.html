@@ -4148,6 +4148,10 @@
                         </div>
                     </div>
                     <div id="resultGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"></div>
+                    <div id="resultDetalles" style="display:none;margin-top:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);"
+                        ><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:6px;">Resumen IA</div>
+                        <div id="resultDetallesText" style="font-size:12px;color:var(--text-muted);line-height:1.5;"></div>
+                    </div>
                     <button onclick="document.getElementById('resultArea').style.display='none'; resetScanner(); hideGlobalScanner();" class="btn btn-secondary" style="margin-top: 16px; width: 100%;">Cerrar y Volver</button>
                 </div>
             </div>
@@ -4156,7 +4160,15 @@
         <!-- ===== TAB: PRODUCTOS (Base: Facturas) ===== -->
         <div id="tab-facturas" class="tab-content">
             <div class="section-title">Documentos</div>
-            <div class="section-subtitle" style="text-align:center;">Gestión de facturas y albaranes</div>
+            <div style="text-align:center;margin-top:-10px;margin-bottom:18px;">
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;opacity:0.35;font-family:'Outfit',sans-serif;">Tu búnker de documentos</span>
+            </div>
+
+            <!-- Banner de estado del backend -->
+            <div id="backendStatusBanner" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:0 var(--gutter) 16px;padding:8px 16px;border-radius:50px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);">
+                <span id="backendStatusDot" style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;flex-shrink:0;"></span>
+                <span id="backendStatusText" style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.05em;">Comprobando conexión...</span>
+            </div>
 
             <!-- STATS 2x2 con iconos dorados -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 var(--gutter);margin-bottom:20px;">
@@ -6330,6 +6342,17 @@
                 </div>
             `).join('');
 
+            // Mostrar DETALLES DOC si los hay
+            const detalles = fields['DETALLES DOC'] || fields['detalles'] || '';
+            const resultDetalles = document.getElementById('resultDetalles');
+            const resultDetallesText = document.getElementById('resultDetallesText');
+            if (resultDetalles && detalles) {
+                resultDetalles.style.display = 'block';
+                resultDetallesText.textContent = detalles;
+            } else if (resultDetalles) {
+                resultDetalles.style.display = 'none';
+            }
+
             // ✨ INTELIGENCIA DE AGENDA ✨
             const entidadNombre = fields['PROVEDOR/TITULO'] || fields['PROVEDOR/ TITULO'] || fields['proveedor'];
             const agendaActionContainer = document.getElementById('agendaActionContainer') || document.createElement('div');
@@ -6363,7 +6386,41 @@
 
             if (typeof lucide !== 'undefined') lucide.createIcons();
             resetScanner();
+
+            // ✅ Auto-refrescar la lista de Facturas después del escaneo
+            setTimeout(() => {
+                if (typeof renderFacturas === 'function') renderFacturas();
+            }, 1500);
         }
+
+        // ───── BACKEND STATUS BANNER ─────
+        async function checkBackendStatus() {
+            const dot  = document.getElementById('backendStatusDot');
+            const text = document.getElementById('backendStatusText');
+            if (!dot || !text) return;
+            try {
+                const ctrl = new AbortController();
+                setTimeout(() => ctrl.abort(), 2000);
+                const res = await fetch((window.DulceAPI?.API_BASE || 'http://localhost:3001') + '/health', { signal: ctrl.signal });
+                if (res.ok) {
+                    dot.style.background  = '#10b981';
+                    dot.style.boxShadow   = '0 0 6px rgba(16,185,129,0.6)';
+                    text.textContent      = 'Backend Seguro Activo';
+                    text.style.color      = '#10b981';
+                } else { throw new Error(); }
+            } catch {
+                dot.style.background  = '#f59e0b';
+                dot.style.boxShadow   = 'none';
+                text.textContent      = 'Modo Local — Inicia el servidor para IA';
+                text.style.color      = 'var(--text-muted)';
+            }
+        }
+        // Llamar al montar el tab de Documentos
+        document.addEventListener('DOMContentLoaded', () => {
+            checkBackendStatus();
+            // Refrescar estado cada 60 segundos
+            setInterval(checkBackendStatus, 60000);
+        });
 
         // ===== FACTURAS (usa estado global) =====
         var allFacturas = window.allFacturas || [];
@@ -8997,6 +9054,32 @@
         // ===== PUNTO ÚNICO DE INICIALIZACIÓN =====
         // Todo se ejecuta AQUÍ, cuando el DOM ya existe al 100%
         document.addEventListener('DOMContentLoaded', () => {
+            // ── Registro del Service Worker (Offline-First) ──
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/public/sw.js')
+                    .then(reg => console.log('[SW] Registrado:', reg.scope))
+                    .catch(err => console.warn('[SW] Fallo al registrar:', err));
+            }
+
+            // ── Banner Offline ──
+            function updateOnlineBanner() {
+                let banner = document.getElementById('offlineBanner');
+                if (!navigator.onLine) {
+                    if (!banner) {
+                        banner = document.createElement('div');
+                        banner.id = 'offlineBanner';
+                        banner.style.cssText = 'position:fixed;bottom:78px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(239,68,68,0.95);color:#fff;padding:8px 20px;border-radius:50px;font-family:Outfit,sans-serif;font-weight:700;font-size:12px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+                        banner.innerHTML = '🔴 Sin conexión &mdash; Usando datos en caché';
+                        document.body.appendChild(banner);
+                    }
+                } else if (banner) {
+                    banner.remove();
+                }
+            }
+            window.addEventListener('online', updateOnlineBanner);
+            window.addEventListener('offline', updateOnlineBanner);
+            updateOnlineBanner();
+
             // 1. Restaurar el tema guardado ANTES de renderizar iconos
             const savedTheme = localStorage.getItem('dulce_jaleo_theme');
             const isDark = savedTheme !== 'light'; // Dark por defecto
