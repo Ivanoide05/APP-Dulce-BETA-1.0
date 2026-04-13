@@ -67,7 +67,19 @@ app.use(generalLimiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// --- Servir el frontend estático desde la carpeta padre ---
+// --- Servir el frontend estático con headers para HTML sin caché ---
+// Esto garantiza que siempre se sirva la versión más reciente del index.html
+app.get(['/', '/index.html'], (req, res) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.sendFile(path.join(__dirname, '..', 'index.html'));
+});
+app.get('/sw.js', (req, res) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Content-Type', 'application/javascript');
+    res.sendFile(path.join(__dirname, '..', 'sw.js'));
+});
 app.use(express.static(path.join(__dirname, '..')));
 
 // --- Rutas de Autenticación ---

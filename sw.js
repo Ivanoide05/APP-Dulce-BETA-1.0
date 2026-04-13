@@ -1,13 +1,13 @@
-const CACHE_NAME = 'dulce-jaleo-cache-v1';
+// DulceOS Service Worker - Network First Strategy
+// v4 - Actualizado para garantizar servicio de versiones frescas del HTML
+const CACHE_NAME = 'dulceos-cache-v4';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png'
 ];
 
-// Install event: cache static assets
+// Install: cachear solo assets estáticos (no el HTML)
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -17,13 +17,14 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate event: clean up old caches
+// Activate: limpiar cachés antiguas
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cache) => {
           if (cache !== CACHE_NAME) {
+            console.log('[SW] Eliminando caché antigua:', cache);
             return caches.delete(cache);
           }
         })
@@ -33,18 +34,29 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch event: Network first, fallback to cache
+// Fetch: Network First para HTML, Cache First para assets
 self.addEventListener('fetch', (event) => {
-  // Only handle GET requests and exclude API / Webhook calls
-  if (event.request.method !== 'GET' || event.request.url.includes('/api/line')) return;
-  if (event.request.url.includes('/api/') || event.request.url.includes('/webhook/')) {
-      return; // Permite a la API fallar naturalmente si estamos offline
+  if (event.request.method !== 'GET') return;
+  
+  // Excluir API y webhooks del service worker
+  const url = event.request.url;
+  if (url.includes('/api/') || url.includes('/webhook/')) return;
+
+  // Para HTML: siempre network first, nunca cachear
+  const acceptHeader = event.request.headers.get('accept') || '';
+  if (acceptHeader.includes('text/html')) {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match('/index.html');
+      })
+    );
+    return;
   }
 
+  // Para otros assets: network first con fallback a cache
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        // Almacenamos copias dinámicas de lo que vamos navegando
         if (response && response.status === 200 && response.type === 'basic') {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -54,14 +66,7 @@ self.addEventListener('fetch', (event) => {
         return response;
       })
       .catch(() => {
-        return caches.match(event.request).then((cachedResponse) => {
-          if (cachedResponse) return cachedResponse;
-          
-          // Si estamos offline y pidiendo HTML, mandamos al index pre-cacheado
-          if (event.request.headers.get('accept').includes('text/html')) {
-             return caches.match('/index.html');
-          }
-        });
+        return caches.match(event.request);
       })
   );
 });

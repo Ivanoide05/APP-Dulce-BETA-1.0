@@ -158,3 +158,115 @@ function updateDashboardPremium() {
     renderMiniChart('miniChartDistribution', analytics.distribution, '#3b82f6', '%', 'bar',  { labels: ['F','A','G'] });
     renderMiniChart('miniChartBalance',      topVals,                '#D4AF37', '€', 'bar',  { labels: analytics.topProveedores.map(p=>p.nombre) });
 }
+
+/**
+ * GEMA AI: Auditoría de Gastos y Mermas
+ */
+async function ejecutarAuditoriaGema() {
+    const btn = document.getElementById('btn-gema-audit');
+    const badge = document.getElementById('margenHealthBadge');
+    const resultsContainer = document.getElementById('gema-results-container');
+    const insightsGrid = document.getElementById('gema-insights-grid');
+
+    if (!btn || !globalStats.loaded) {
+        alert("Faltan datos de Airtable. Espera a que carguen.");
+        return;
+    }
+
+    // UI Loading State
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader" class="spin" style="width: 18px;"></i> Analizando proveedores...`;
+    if (window.lucide) lucide.createIcons();
+
+    // 1. Recopilar Gastos del mes actual
+    const analytics = getDetailedAnalytics(); // uses allRecords up to 6 days for trends, but we need expenses of current month
+    // So let's manually filter the current month's expenses and mermas
+    const now = new Date();
+    const mesStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    const all = (globalStats && globalStats.allRecords) ? globalStats.allRecords : [];
+    
+    // Obtenemos solo facturas y gastos
+    const expenses = all.filter(r => {
+        if (!r.createdAt || !r.createdAt.startsWith(mesStr)) return false;
+        const cat = (r.categoria || '').toUpperCase();
+        return cat.includes('FACTURA') || cat.includes('GASTO');
+    }).map(r => ({
+        proveedor: r.proveedor,
+        fecha: r.createdAt,
+        total: r.total,
+        detalles: r.detalles || ''
+    }));
+
+    // Recopilar Mermas del month actual
+    let mermas = [];
+    try {
+        const storedMermas = JSON.parse(localStorage.getItem('dulce_mermas') || '[]');
+        mermas = storedMermas.filter(m => m.fecha && m.fecha.startsWith(mesStr));
+    } catch(e) {}
+
+    try {
+        // Enviar a la API de Gema
+        const response = await fetch(`${window.DulceAPI.API_BASE}/api/ai/analyze-expenses`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ expenses, mermas })
+        });
+
+        if (!response.ok) throw new Error("Fallo en Gema API");
+        const data = await response.json();
+
+        if (!data.success || !data.insights) throw new Error("Respuesta inválida de Gema");
+
+        const insights = data.insights;
+
+        // Limpiar contenedor
+        insightsGrid.innerHTML = '';
+        
+        // Fuga principal Card
+        insightsGrid.innerHTML += `
+            <div style="background: rgba(228,0,0,0.05); border: 1px solid rgba(228,0,0,0.2); border-radius: 12px; padding: 16px;">
+                <div style="font-size: 11px; color: #ef4444; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">Punto Crítico Detectado</div>
+                <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);"><i data-lucide="alert-triangle" style="width: 14px; display: inline-block; margin-right: 4px; color: #ef4444;"></i>${insights.fugaPrincipal || 'Sin definir'}</div>
+            </div>
+        `;
+
+        // Recomendaciones Cards
+        if (insights.recomendaciones && insights.recomendaciones.length > 0) {
+            insights.recomendaciones.forEach((rec, idx) => {
+                insightsGrid.innerHTML += `
+                    <div style="background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--gold); border-radius: 12px; padding: 16px; box-shadow: var(--shadow-sm); transition: transform 0.2s;">
+                        <div style="font-size: 11px; color: var(--gold); font-weight: 800; margin-bottom: 6px;">CONSEJO #${idx+1}</div>
+                        <div style="font-size: 14px; font-weight: 500; color: var(--text-primary); line-height: 1.4;">${rec}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // Mostrar UI
+        resultsContainer.style.display = 'block';
+        
+        // Update Badge
+        if (badge) {
+            badge.className = "margen-health-indicator";
+            badge.style.background = "rgba(16, 185, 129, 0.1)";
+            badge.style.borderColor = "rgba(16, 185, 129, 0.3)";
+            badge.style.color = "#10b981";
+            badge.innerHTML = `<div class="margen-health-dot" style="background:#10b981"></div><span>Auditoría Completada</span>`;
+        }
+
+        // Replace Button text
+        btn.innerHTML = `<i data-lucide="check" style="width: 18px;"></i> Auditoría Exitosa`;
+        btn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+        
+        if (window.lucide) lucide.createIcons();
+
+    } catch (err) {
+        console.error("Gema Audit Error", err);
+        btn.innerHTML = `<i data-lucide="alert-circle" style="width: 18px;"></i> Reintentar Auditoría`;
+        btn.disabled = false;
+        alert("Gema no pudo completarlo ahora: " + err.message);
+    }
+}

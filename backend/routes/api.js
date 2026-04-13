@@ -7,15 +7,18 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../lib/authMiddleware');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const AIRTABLE_API = 'https://api.airtable.com/v0';
 const FALLBACK_BASE_ID = (process.env.AIRTABLE_BASE_ID || process.env.AIRTABLE_BASE_LEGACY || '').trim();
 const TOKEN = (process.env.AIRTABLE_API_KEY || '').trim();
-
+const GEMINI_KEY = (process.env.GEMINI_API_KEY || '').trim();
 const TABLES = {
-    FACTURAS: process.env.TABLE_FACTURAS || 'tblLC7oMOUQtRWkn7',
-    ALBARANES: process.env.TABLE_ALBARANES || 'tblX9EQUmwItNJCZI',
-    GASTOS_VARIOS: process.env.TABLE_GASTOS_VARIOS || 'tblHzVIPEde7zWnUv'
+    FACTURAS: 'FACTURAS',
+    ALBARANES: 'ALBARANES',
+    GASTOS_VARIOS: 'GASTOS VARIOS',
+    AGENDA: 'AGENDA',
+    PEDIDOS: 'PEDIDOS'
 };
 
 // Helper: fetch nativo de Node 18+
@@ -32,7 +35,7 @@ async function airtableFetch(req, tableId, options = {}, baseId = null) {
         throw new Error('Configuración de Airtable incompleta (Token o Base ID faltante)');
     }
 
-    const url = `${AIRTABLE_API}/${effectiveBaseId}/${tableId}`;
+    const url = `${AIRTABLE_API}/${effectiveBaseId}/${encodeURIComponent(tableId)}`;
     const res = await fetch(url, {
         ...options,
         headers: {
@@ -66,17 +69,21 @@ router.get('/records', async (req, res) => {
         // Usar airtable_base_id del JWT, con fallback al .env
         const baseId = user.airtable_base_id || FALLBACK_BASE_ID;
 
-        const [facturas, albaranes, gastos] = await Promise.all([
+        const [facturas, albaranes, gastos, agenda, pedidos] = await Promise.all([
             airtableFetch(req, TABLES.FACTURAS, {}, baseId),
             airtableFetch(req, TABLES.ALBARANES, {}, baseId),
-            airtableFetch(req, TABLES.GASTOS_VARIOS, {}, baseId)
+            airtableFetch(req, TABLES.GASTOS_VARIOS, {}, baseId),
+            airtableFetch(req, TABLES.AGENDA, {}, baseId).catch(() => ({ records: [] })),
+            airtableFetch(req, TABLES.PEDIDOS, {}, baseId).catch(() => ({ records: [] }))
         ]);
 
         res.set('Cache-Control', 'max-age=300, stale-while-revalidate=60');
         res.json({
             facturas: facturas.records || [],
             albaranes: albaranes.records || [],
-            gastos: gastos.records || []
+            gastos: gastos.records || [],
+            agenda: agenda.records || [],
+            pedidos: pedidos.records || []
         });
     } catch (err) {
         console.error('[API] Error fetching records:', err.message);
@@ -179,6 +186,92 @@ router.patch('/records/:table/:id', async (req, res) => {
     } catch (err) {
         console.error(`[API] Error updating record in ${tableKey}:`, err.message);
         res.status(err.status || 500).json({ error: err.message });
+    }
+});
+
+// ─────────────────────────────────────────────
+// POST /api/ai/analyze-expenses
+// Analiza gastos y mermas del mes actual usando Gemini.
+// ─────────────────────────────────────────────
+router.post('/ai/analyze-expenses', async (req, res) => {
+    const user = authMiddleware(req, res);
+    if (!user) return;
+
+    try {
+        const { expenses, mermas } = req.body;
+
+        if (!expenses || !mermas) {
+            return res.status(400).json({ error: 'Faltan datos de expenses o mermas' });
+        }
+
+        const AI_PROMPT = `Eres Gema, Auditora Financiera Estricta de DulceOS.
+Analiza el siguiente historial de gastos de compras a proveedores (materias primas) y mermas registradas del MES ACTUAL.
+Detecta ineficiencias de gasto u originadas por mermas en producción.
+Devuelve obligatoriamente un JSON estructurado con el área de mayor fuga y 3 recomendaciones hiper-prácticas y cortas (máx 2 líneas cada una) para reducir fugas monetarias.
+
+Datos de Gastos:
+${JSON.stringify(expenses, null, 2)}
+
+Datos de Mermas:
+${JSON.stringify(mermas, null, 2)}
+
+Debes responder ÚNICAMENTE con JSON en el siguiente formato, sin texto Markdown alrededor:
+{
+  "fugaPrincipal": "Nombre del proveedor o producto con mayor gasto ineficiente/merma",
+  "recomendaciones": [
+    "Consejo 1",
+    "Consejo 2",
+    "Consejo 3"
+  ]
+}`;
+
+        const GEMINI_MODELS = [
+            'gemini-flash-latest',
+            'gemini-flash-lite-latest',
+            'gemini-2.0-flash-lite',
+            'gemini-2.0-flash-001',
+            'gemini-3-flash-preview'
+        ];
+
+        const genAI = new GoogleGenerativeAI(GEMINI_KEY);
+        let rawText = '';
+
+        for (const modelName of GEMINI_MODELS) {
+            try {
+                console.log(`[GEMA] Probando modelo: ${modelName}`);
+                const model = genAI.getGenerativeModel({
+                    model: modelName,
+                    generationConfig: { temperature: 0.2, maxOutputTokens: 2048 }
+                });
+                const result = await model.generateContent([
+                    { text: AI_PROMPT }
+                ]);
+                rawText = result.response.text();
+                console.log(`[GEMA] ✅ Éxito con: ${modelName}`);
+                break;
+            } catch (err) {
+                console.warn(`[GEMA] Fallo en ${modelName}:`, err.message);
+                continue;
+            }
+        }
+
+        if (!rawText) {
+            throw new Error('Todos los modelos de Gemini fallaron en el análisis.');
+        }
+
+        let cleanText = rawText.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+        const fb = cleanText.indexOf('{');
+        const lb = cleanText.lastIndexOf('}');
+        if (fb < 0 || lb <= fb) throw new Error('Respuesta no es JSON válido');
+        
+        const cleanJson = cleanText.substring(fb, lb + 1);
+        const extracted = JSON.parse(cleanJson);
+
+        res.json({ success: true, insights: extracted });
+
+    } catch (err) {
+        console.error('[GEMA] Error analyze-expenses:', err.message);
+        res.status(500).json({ error: err.message });
     }
 });
 

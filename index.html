@@ -7,7 +7,11 @@
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>DulceOS - Gestión Inteligente</title>
     <meta name="description" content="App de gestión integral y operaciones B2B/B2E">
-
+    
+    <!-- Evitar caché agresiva en PWA -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <!-- PWA: Manifest -->
     <link rel="manifest" href="manifest.json?v=3">
     <meta name="theme-color" content="#f8f9fb">
@@ -4157,13 +4161,24 @@
             </div>
         </div>
 
-        <!-- ===== TAB: PRODUCTOS (Base: Facturas) ===== -->
-        <div id="tab-facturas" class="tab-content">
-            <div class="section-title">Documentos</div>
-            <div style="text-align:center;margin-top:-10px;margin-bottom:18px;">
-                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;opacity:0.35;font-family:'Outfit',sans-serif;">Tu búnker de documentos</span>
+        <!-- ===== TAB: BÚNKER DE DOCUMENTACIÓN ===== -->
+        <div id="tab-facturas" class="tab-content bunker-mode">
+            <div class="section-title" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+                <i data-lucide="shield-check" style="color:var(--gold);width:28px;height:28px;"></i>
+                Búnker Doc.
+            </div>
+            <div style="text-align:center;margin-top:-10px;margin-bottom:24px;">
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;opacity:0.35;font-family:'Outfit',sans-serif;">Archivo digital seguro y análisis por IA</span>
             </div>
 
+            <!-- Gran Botón de Escáner Integrado -->
+            <div class="glass-panel bunker-upload-zone" onclick="showGlobalScanner()" style="margin: 0 var(--gutter) 24px; padding: 28px 20px; text-align: center; border-radius: 24px; border: 2px dashed rgba(212,175,55,0.3); cursor: pointer; transform: translateZ(0); transition: all 0.3s ease;">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.05) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--gold); border: 1px solid rgba(212,175,55,0.2); box-shadow: 0 8px 16px rgba(0,0,0,0.1);">
+                    <i data-lucide="scan-line" style="width: 32px; height: 32px;"></i>
+                </div>
+                <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Subir Documento</h3>
+                <p style="font-size: 13px; color: var(--text-muted); padding: 0 10px;">Captura facturas o albaranes para extracción automática con IA</p>
+            </div>
             <!-- Banner de estado del backend -->
             <div id="backendStatusBanner" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:0 var(--gutter) 16px;padding:8px 16px;border-radius:50px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);">
                 <span id="backendStatusDot" style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;flex-shrink:0;"></span>
@@ -4290,41 +4305,46 @@
             <div class="section-title">Márgenes</div>
             <div class="section-subtitle" style="text-align: center;">Escudo de rentabilidad · Control de pérdidas</div>
 
-            <!-- Hero: Escudo de Rentabilidad -->
-            <div class="margin-hero glass-panel" style="margin: 0 var(--gutter) 20px; padding: 28px; text-align: center; width: calc(100% - 48px);">
-                <div class="margen-health-indicator warning" id="margenHealthBadge">
-                    <div class="margen-health-dot"></div>
-                    <span>Sin Datos</span>
+            <!-- Hero: Escudo de Rentabilidad -> Auditoría Gema -->
+            <div class="margin-hero glass-panel" style="margin: 0 var(--gutter) 24px; padding: 28px; text-align: center; width: calc(100% - 48px); position: relative; overflow: hidden; background: var(--bg-card); box-shadow: var(--shadow-md);">
+                <div class="margen-health-indicator" id="margenHealthBadge" style="background: rgba(212,175,55,0.1); border-color: rgba(212,175,55,0.3); color: var(--gold);">
+                    <div class="margen-health-dot" style="background: var(--gold);"></div>
+                    <span>Gema Inactiva</span>
                 </div>
-                <div style="font-size: 12px; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Beneficio Neto Estimado</div>
-                <div class="margin-value neutral" id="margenValor" style="font-family: 'Outfit', sans-serif; font-size: 48px; font-weight: 800; margin-bottom: 8px;">—</div>
-                <div class="margin-sub" id="margenSub" style="font-size: 13px; opacity: 0.5;">Analizando datos de Airtable...</div>
-                <div style="height: 8px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-top: 24px;">
-                    <div id="margenBar" style="width:0%; height: 100%; background: var(--gold); transition: width 1s ease; border-radius: 4px;"></div>
+                
+                <div style="font-size: 12px; font-weight: 800; color: var(--gold); margin-bottom: 12px; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase;">
+                    <i data-lucide="sparkles" style="width: 14px;"></i>
+                    GEMA AI: AUDITORÍA DE FUGAS
                 </div>
+                
+                <div class="margin-value neutral" id="margenValor" style="font-family: 'Outfit', sans-serif; font-size: 30px; font-weight: 800; margin-bottom: 12px; line-height: 1.1;">¿Fugas de capital?</div>
+                <div class="margin-sub" id="margenSub" style="font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; font-weight: 500;">
+                    Analizaré tus gastos en materias primas y mermas registradas del mes actual para detectar ineficiencias financieras.
+                </div>
+                
+                <button id="btn-gema-audit" onclick="ejecutarAuditoriaGema()" style="background: linear-gradient(135deg, #18191a, #0a0a0a); color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.1); padding: 14px 28px; border-radius: 50px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                    <i data-lucide="cpu" style="width: 18px;"></i>
+                    Ejecutar Auditoría
+                </button>
             </div>
 
-            <!-- Stats Grid: 4 cards -->
-            <div class="margen-stats-grid">
-                <div class="margen-stat-card">
-                    <div class="margen-stat-icon">💰</div>
-                    <div class="margen-stat-value" id="mIngresos">—</div>
-                    <div class="margen-stat-label">Ingresos Est.</div>
-                </div>
+            <!-- Contenedor Resultados Gema -->
+            <div id="gema-results-container" style="display: none; padding: 0 var(--gutter); margin-bottom: 28px;">
+                <div style="font-size: 12px; text-transform: uppercase; font-weight: 800; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.5px;">Insights & Recomendaciones</div>
+                <div id="gema-insights-grid" style="display: flex; flex-direction: column; gap: 12px;"></div>
+            </div>
+
+            <!-- Stats Grid: 2 cards (reducidas porque no hay ventas) -->
+            <div class="margen-stats-grid" style="grid-template-columns: 1fr 1fr;">
                 <div class="margen-stat-card">
                     <div class="margen-stat-icon">📉</div>
                     <div class="margen-stat-value" id="mGastos">—</div>
-                    <div class="margen-stat-label">Gastos Mes</div>
+                    <div class="margen-stat-label">Proveedores Mes</div>
                 </div>
                 <div class="margen-stat-card">
                     <div class="margen-stat-icon">🗑️</div>
                     <div class="margen-stat-value" id="mMermas" style="color: #ef4444;">0€</div>
                     <div class="margen-stat-label">Mermas Mes</div>
-                </div>
-                <div class="margen-stat-card">
-                    <div class="margen-stat-icon">📄</div>
-                    <div class="margen-stat-value" id="mFacturas">—</div>
-                    <div class="margen-stat-label">Docs Mes</div>
                 </div>
             </div>
 
@@ -4374,7 +4394,7 @@
             <div style="padding: 0 var(--gutter); margin-bottom: 24px;">
                 <div class="merma-section-title" style="margin-bottom: 12px;">
                     <i data-lucide="search" style="width: 16px; color: var(--gold);"></i>
-                    Análisis por Cliente / Proveedor
+                    Análisis por Proveedor / Gastos
                 </div>
                 <div style="position: relative;">
                     <div class="glass-panel" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid var(--border);border-radius:16px;">
@@ -4382,39 +4402,13 @@
                         <input
                             id="margenClientSearch"
                             type="text"
-                            placeholder="Buscar cliente o proveedor..."
+                            placeholder="Buscar proveedor o concepto..."
                             oninput="searchMargenClient()"
                             style="background:none;border:none;outline:none;width:100%;font-family:'Outfit',sans-serif;font-size:14px;color:var(--text-primary);"
                         />
                     </div>
-                    <div id="margenClientResults" style="display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:100;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 12px 32px rgba(0,0,0,0.2);max-height:220px;overflow-y:auto;"></div>
                 </div>
-                <div id="selectedClientDash" style="display:none;margin-top:16px;"></div>
             </div>
-
-            <!-- Config Venta Semanal -->
-            <div class="margen-config-section">
-                <div class="margen-config-title">
-                    <i data-lucide="settings" style="width: 16px; color: var(--gold);"></i>
-                    Configurar Venta Semanal
-                </div>
-                <div style="margin-bottom: 12px;">
-                    <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px;">Venta media semanal (€)</label>
-                    <input class="merma-input" id="ventaSemanalInput" type="number" placeholder="Ej: 4500" min="0" step="100">
-                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.4;">
-                        Usaremos este dato para estimar tu margen hasta integrar los tickets Z de caja.
-                    </div>
-                </div>
-                <button class="merma-submit-btn" id="saveVentaBtn" style="background: linear-gradient(135deg, #ebae1c, #D4AF37);">
-                    <i data-lucide="save" style="width: 16px;"></i>
-                    Guardar y Recalcular
-                </button>
-            </div>
-
-            <p style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; color: var(--text-muted); margin: 0 var(--gutter) 20px; text-align: center;">
-                <i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: var(--gold);"></i>
-                Estimación basada en gastos reales + venta media. Los márgenes reales incluyen mermas registradas.
-            </p>
         </div>
 
         <!-- ===== TAB: HOJA DE RUTA ===== -->
@@ -4534,51 +4528,151 @@
                 <div class="gn-title">Sanidad e Inspección</div>
                 <div style="width:36px;"></div>
             </div>
-            
-            <div class="gn-body" style="padding: 20px;">
+
+            <div class="gn-body" style="padding: 20px; display:flex; flex-direction:column; gap:16px;">
+                <!-- Banner Progreso Mes -->
                 <div id="sanidadMesAlert"></div>
-                <!-- Limpieza Rápida -->
-                <div class="glass-panel" style="padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(16,185,129,0.3);">
-                    <i data-lucide="sparkles" style="color: #10b981; width: 32px; height: 32px; margin-bottom: 12px; margin-left: auto; margin-right: auto;"></i>
-                    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Limpieza Diaria</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Obrador, chocolatera, mesa y suelos.</p>
-                    <button onclick="registrarLimpieza()" style="background: rgba(16,185,129,0.1); color: #10b981; border: 1px solid #10b981; border-radius: 12px; padding: 12px 24px; font-weight: 700; width: 100%; cursor: pointer;">
-                        ✅ Confirmar Limpieza Hoy
-                    </button>
-                    <div id="limpiezaStatus" style="font-size: 11px; margin-top: 8px; color: var(--text-muted);"></div>
+
+                <!-- ==================== TEMPERATURAS ==================== -->
+                <div class="glass-panel" style="border-radius:16px; border:1px solid rgba(59,130,246,0.3); overflow:hidden;">
+                    <div style="padding:16px 20px; border-bottom:1px solid rgba(59,130,246,0.15); display:flex; align-items:center; gap:10px;">
+                        <i data-lucide="thermometer-snowflake" style="color:#3b82f6;width:20px;height:20px;"></i>
+                        <span style="font-weight:700;font-size:15px;">Registro de Temperaturas</span>
+                        <span id="tempBadgeHoy" style="margin-left:auto; font-size:11px; font-weight:600; background:rgba(59,130,246,0.1); color:#3b82f6; padding:3px 10px; border-radius:20px; display:none;">✓ Registrado hoy</span>
+                    </div>
+                    <div style="padding:16px 20px; display:flex; flex-direction:column; gap:12px;">
+                        <!-- Fila temperaturas -->
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;" id="tempZonasGrid">
+                            <div class="sanidad-temp-zone">
+                                <label>🧊 Mesa Fría (°C)</label>
+                                <input type="number" id="temp-mesa-fria" placeholder="Ej: 3.5" step="0.1">
+                                <span class="temp-limite">Límite: ≤ 4°C</span>
+                            </div>
+                            <div class="sanidad-temp-zone">
+                                <label>❄️ Congelador (°C)</label>
+                                <input type="number" id="temp-congelador" placeholder="Ej: -18" step="0.1">
+                                <span class="temp-limite">Límite: ≤ -18°C</span>
+                            </div>
+                            <div class="sanidad-temp-zone">
+                                <label>🏔️ Arcón (°C)</label>
+                                <input type="number" id="temp-arcon" placeholder="Ej: -18" step="0.1">
+                                <span class="temp-limite">Límite: ≤ -18°C</span>
+                            </div>
+                            <div class="sanidad-temp-zone">
+                                <label>🌡️ Obrador (°C)</label>
+                                <input type="number" id="temp-obrador" placeholder="Ej: 16" step="0.1">
+                                <span class="temp-limite">Ref: 15–25°C</span>
+                            </div>
+                        </div>
+                        <!-- Incidencia -->
+                        <div style="display:flex; align-items:center; gap:10px; padding:10px; background:rgba(239,68,68,0.06); border-radius:10px; border:1px solid rgba(239,68,68,0.15);">
+                            <input type="checkbox" id="temp-incidencia" style="width:16px;height:16px;accent-color:#ef4444;">
+                            <label for="temp-incidencia" style="font-size:13px; color:#ef4444; font-weight:600; cursor:pointer;">⚠️ Reportar incidencia o avería</label>
+                        </div>
+                        <textarea id="temp-incidencia-nota" placeholder="Describe la incidencia: equipo afectado, temperatura detectada, acción tomada..." style="display:none; width:100%; padding:10px; border-radius:10px; border:1px solid rgba(239,68,68,0.3); font-size:13px; resize:vertical; min-height:70px; background:var(--bg-card); color:var(--text-primary);"></textarea>
+                        <!-- Firma -->
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <label style="font-size:12px; color:var(--text-muted); white-space:nowrap;">Firmado por:</label>
+                            <input type="text" id="temp-firma" placeholder="Iniciales (ej: G.A.)" style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid var(--border); font-size:13px; background:var(--bg-card); color:var(--text-primary);">
+                        </div>
+                        <button onclick="registrarTemperaturas()" style="background:rgba(59,130,246,0.12); color:#3b82f6; border:1px solid #3b82f6; border-radius:12px; padding:13px; font-weight:700; width:100%; cursor:pointer; font-size:14px; transition:all 0.2s;">
+                            ✅ Guardar Temperaturas del Día
+                        </button>
+                        <div id="temperaturasStatus" style="font-size:11px; text-align:center; color:var(--text-muted);"></div>
+                    </div>
                 </div>
 
-                <!-- Temperaturas -->
-                <div class="glass-panel" style="padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(59,130,246,0.3);">
-                    <i data-lucide="thermometer-snowflake" style="color: #3b82f6; width: 32px; height: 32px; margin-bottom: 12px; margin-left: auto; margin-right: auto;"></i>
-                    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Registro Temperaturas</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Mesa fría: 4ºC | Congelador: -18ºC | Arcón: -18ºC</p>
-                    <button onclick="registrarTemperaturas()" style="background: rgba(59,130,246,0.1); color: #3b82f6; border: 1px solid #3b82f6; border-radius: 12px; padding: 12px 24px; font-weight: 700; width: 100%; cursor: pointer;">
-                        ✅ Confirmar Correctas
-                    </button>
-                    <button onclick="mostrarIncidenciaTemp()" style="background: transparent; color: var(--text-muted); border: none; font-size: 12px; margin-top: 12px; text-decoration: underline; cursor: pointer;">Reportar Incidencia</button>
-                    <div id="temperaturasStatus" style="font-size: 11px; margin-top: 8px; color: var(--text-muted);"></div>
+                <!-- ==================== LIMPIEZA ==================== -->
+                <div class="glass-panel" style="border-radius:16px; border:1px solid rgba(16,185,129,0.3); overflow:hidden;">
+                    <div style="padding:16px 20px; border-bottom:1px solid rgba(16,185,129,0.15); display:flex; align-items:center; gap:10px;">
+                        <i data-lucide="sparkles" style="color:#10b981;width:20px;height:20px;"></i>
+                        <span style="font-weight:700;font-size:15px;">Limpieza y Desinfección</span>
+                        <span id="limpiezaBadgeHoy" style="margin-left:auto; font-size:11px; font-weight:600; background:rgba(16,185,129,0.1); color:#10b981; padding:3px 10px; border-radius:20px; display:none;">✓ Registrado hoy</span>
+                    </div>
+                    <div style="padding:16px 20px; display:flex; flex-direction:column; gap:10px;">
+                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Marca las zonas limpiadas y desinfectadas hoy:</p>
+
+                        <!-- Checklist DIARIO -->
+                        <div style="background:rgba(16,185,129,0.05); border-radius:10px; padding:12px; border:1px solid rgba(16,185,129,0.1);">
+                            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#10b981; margin-bottom:10px;">📋 Zonas Diarias</div>
+                            <div id="limpieza-checklist-diaria" style="display:flex; flex-direction:column; gap:8px;">
+                                <label class="lim-check"><input type="checkbox" name="lim-diaria" value="Chocolatera y cazos"> <span>Chocolatera y cazos</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-diaria" value="Obrador (superficies)"> <span>Obrador (superficies de trabajo)</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-diaria" value="Mesa de trabajo"> <span>Mesa de trabajo</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-diaria" value="Suelo del obrador"> <span>Suelo del obrador</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-diaria" value="Útiles y herramientas"> <span>Útiles y herramientas</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-diaria" value="Fregadero y grifería"> <span>Fregadero y grifería</span></label>
+                            </div>
+                        </div>
+                        <!-- Checklist SEMANAL -->
+                        <div style="background:rgba(251,191,36,0.05); border-radius:10px; padding:12px; border:1px solid rgba(251,191,36,0.1);">
+                            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#f59e0b; margin-bottom:10px;">📋 Zonas Semanales (si aplica hoy)</div>
+                            <div id="limpieza-checklist-semanal" style="display:flex; flex-direction:column; gap:8px;">
+                                <label class="lim-check"><input type="checkbox" name="lim-semanal" value="Mesa fría (interior)"> <span>Mesa fría (interior)</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-semanal" value="Armarios y estanterías"> <span>Armarios y estanterías</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-semanal" value="Depósitos de residuos"> <span>Depósitos de residuos</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-semanal" value="Patio y zona exterior"> <span>Patio y zona exterior</span></label>
+                            </div>
+                        </div>
+                        <!-- Observaciones y firma -->
+                        <textarea id="limpieza-obs" placeholder="Observaciones o incidencias en la limpieza..." style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); font-size:13px; resize:vertical; min-height:60px; background:var(--bg-card); color:var(--text-primary);"></textarea>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <label style="font-size:12px; color:var(--text-muted); white-space:nowrap;">Firmado por:</label>
+                            <input type="text" id="limpieza-firma" placeholder="Iniciales (ej: G.A.)" style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid var(--border); font-size:13px; background:var(--bg-card); color:var(--text-primary);">
+                        </div>
+                        <button onclick="registrarLimpieza()" style="background:rgba(16,185,129,0.12); color:#10b981; border:1px solid #10b981; border-radius:12px; padding:13px; font-weight:700; width:100%; cursor:pointer; font-size:14px; transition:all 0.2s;">
+                            ✅ Confirmar Limpieza del Día
+                        </button>
+                        <div id="limpiezaStatus" style="font-size:11px; text-align:center; color:var(--text-muted);"></div>
+                    </div>
                 </div>
 
-                <!-- Producción -->
-                <div class="glass-panel" style="padding: 20px; border-radius: 16px; margin-bottom: 20px; text-align: center; border: 1px solid rgba(212,175,55,0.3);">
-                    <i data-lucide="croissant" style="color: var(--gold); width: 32px; height: 32px; margin-bottom: 12px; margin-left: auto; margin-right: auto;"></i>
-                    <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 8px;">Producción</h3>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Aplicar plantilla base de producción diaria.</p>
-                    <button onclick="registrarProduccion()" style="background: rgba(212,175,55,0.1); color: var(--gold); border: 1px solid var(--gold); border-radius: 12px; padding: 12px 24px; font-weight: 700; width: 100%; cursor: pointer;">
-                        📝 Usar Plantilla Base
-                    </button>
-                    <div id="produccionStatus" style="font-size: 11px; margin-top: 8px; color: var(--text-muted);"></div>
+                <!-- ==================== PRODUCCIÓN ==================== -->
+                <div class="glass-panel" style="border-radius:16px; border:1px solid rgba(212,175,55,0.3); overflow:hidden;">
+                    <div style="padding:16px 20px; border-bottom:1px solid rgba(212,175,55,0.15); display:flex; align-items:center; gap:10px;">
+                        <i data-lucide="croissant" style="color:var(--gold);width:20px;height:20px;"></i>
+                        <span style="font-weight:700;font-size:15px;">Producción Diaria</span>
+                        <span id="prodBadgeHoy" style="margin-left:auto; font-size:11px; font-weight:600; background:rgba(212,175,55,0.1); color:var(--gold); padding:3px 10px; border-radius:20px; display:none;">✓ Registrado hoy</span>
+                    </div>
+                    <div style="padding:16px 20px; display:flex; flex-direction:column; gap:10px;">
+                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Añade los lotes de producción elaborados hoy:</p>
+
+                        <!-- Lista de líneas de producción -->
+                        <div id="produccion-lineas" style="display:flex; flex-direction:column; gap:10px;"></div>
+
+                        <!-- Botón Añadir producto -->
+                        <button onclick="agregarLineaProduccion()" style="background:transparent; color:var(--gold); border:1px dashed rgba(212,175,55,0.4); border-radius:10px; padding:10px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.2s;">
+                            <i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Añadir producto
+                        </button>
+
+                        <!-- Temperatura de producción -->
+                        <div style="display:flex; gap:10px; align-items:center; padding:10px; background:rgba(212,175,55,0.05); border-radius:10px; border:1px solid rgba(212,175,55,0.15);">
+                            <label style="font-size:12px; color:var(--text-muted); white-space:nowrap;">🌡️ Temp. Obrador:</label>
+                            <input type="number" id="prod-temp-obrador" placeholder="°C" step="0.1" style="width:80px; padding:8px; border-radius:8px; border:1px solid var(--border); font-size:13px; background:var(--bg-card); color:var(--text-primary); text-align:center;">
+                        </div>
+
+                        <!-- Observaciones y firma -->
+                        <textarea id="prod-obs" placeholder="Observaciones: proveedores de materias primas, incidencias de proceso..." style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); font-size:13px; resize:vertical; min-height:60px; background:var(--bg-card); color:var(--text-primary);"></textarea>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <label style="font-size:12px; color:var(--text-muted); white-space:nowrap;">Firmado por:</label>
+                            <input type="text" id="prod-firma" placeholder="Iniciales (ej: G.A.)" style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid var(--border); font-size:13px; background:var(--bg-card); color:var(--text-primary);">
+                        </div>
+                        <button onclick="registrarProduccion()" style="background:rgba(212,175,55,0.12); color:var(--gold); border:1px solid var(--gold); border-radius:12px; padding:13px; font-weight:700; width:100%; cursor:pointer; font-size:14px; transition:all 0.2s;">
+                            ✅ Guardar Producción del Día
+                        </button>
+                        <div id="produccionStatus" style="font-size:11px; text-align:center; color:var(--text-muted);"></div>
+                    </div>
                 </div>
 
                 <!-- Botón Exportar PDF -->
-                <button onclick="generarPDFSanidad()" class="glass-panel" style="width: 100%; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.05); color: #ef4444; margin-top: 20px; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px; border-radius: 12px; font-weight: 600; cursor: pointer;">
-                    <i data-lucide="file-down" style="width: 18px;"></i>
-                    Modo Inspector (PDF)
+                <button onclick="generarPDFSanidad()" class="glass-panel" style="width:100%; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.05); color:#ef4444; display:flex; align-items:center; justify-content:center; gap:8px; padding:14px; border-radius:12px; font-weight:600; cursor:pointer;">
+                    <i data-lucide="file-down" style="width:18px;"></i>
+                    Exportar Informe APPCC (PDF)
                 </button>
             </div>
         </div>
     </div>
+
 
     <!-- ===== PANEL DE AJUSTES Y COMPLIANCE ===== -->
     <div id="settingsOverlay" class="gn-overlay" onclick="if(event.target===this)closeSettings()">
@@ -4893,10 +4987,10 @@
                 <span class="nav-label">INICIO</span>
             </button>
 
-            <!-- Facturas -->
+            <!-- Búnker de Docs -->
             <button class="nav-btn" data-tab="facturas" onclick="activateTab('facturas')">
-                <span class="nav-icon"><i data-lucide="receipt"></i></span>
-                <span class="nav-label">FACTURAS</span>
+                <span class="nav-icon"><i data-lucide="shield-check"></i></span>
+                <span class="nav-label">BÚNKER</span>
             </button>
 
             <!-- Agenda -->
@@ -7093,70 +7187,22 @@
         }
 
         async function loadMargenes() {
-            const ventaGuardada = localStorage.getItem(VENTA_KEY);
-            if (ventaGuardada) document.getElementById('ventaSemanalInput').value = ventaGuardada;
-            document.getElementById('margenSub').textContent = 'Leyendo gastos...';
             try {
                 if (!globalStats.loaded) await fetchGlobalData();
                 const now = new Date();
-                const totalGastos = globalStats.totalGastosMes;
-                const totalDocs = globalStats.countTotalMes;
-                const ventaSemanal = parseFloat(localStorage.getItem(VENTA_KEY) || 0);
-                const ingresosMes = ventaSemanal * 4.33;
+                const totalGastos = globalStats.totalGastosMes || 0;
                 const mermasMes = getMermasMes();
                 const totalMermas = mermasMes.reduce((s, m) => s + (m.total || 0), 0);
-                const beneficioNeto = ingresosMes - totalGastos - totalMermas;
-                const margen = ingresosMes > 0 ? (beneficioNeto / ingresosMes * 100) : null;
 
-                document.getElementById('mGastos').textContent = totalGastos.toFixed(2) + '€';
-                document.getElementById('mIngresos').textContent = ingresosMes > 0 ? ingresosMes.toFixed(0) + '€' : '—';
-                document.getElementById('mFacturas').textContent = totalDocs;
-                document.getElementById('mMermas').textContent = totalMermas.toFixed(2) + '€';
+                if (document.getElementById('mGastos')) document.getElementById('mGastos').textContent = totalGastos.toFixed(2) + '€';
+                if (document.getElementById('mMermas')) document.getElementById('mMermas').textContent = totalMermas.toFixed(2) + '€';
 
-                const valEl = document.getElementById('margenValor');
-                const subEl = document.getElementById('margenSub');
-                const barEl = document.getElementById('margenBar');
-                const healthEl = document.getElementById('margenHealthBadge');
-
-                if (margen === null) {
-                    valEl.textContent = '—'; valEl.style.color = 'var(--text-muted)';
-                    subEl.textContent = 'Configura tu venta semanal para ver el margen estimado';
-                    barEl.style.width = '0%';
-                    healthEl.className = 'margen-health-indicator warning';
-                    healthEl.innerHTML = '<div class="margen-health-dot"></div><span>Sin Datos</span>';
-                } else {
-                    valEl.textContent = (margen >= 0 ? '+' : '') + margen.toFixed(1) + '%';
-                    if (margen >= 20) {
-                        valEl.style.color = '#10b981';
-                        healthEl.className = 'margen-health-indicator healthy';
-                        healthEl.innerHTML = '<div class="margen-health-dot"></div><span>Saludable</span>';
-                        barEl.style.background = 'linear-gradient(90deg,#059669,#10b981)';
-                    } else if (margen >= 0) {
-                        valEl.style.color = '#f59e0b';
-                        healthEl.className = 'margen-health-indicator warning';
-                        healthEl.innerHTML = '<div class="margen-health-dot"></div><span>En Riesgo</span>';
-                        barEl.style.background = 'linear-gradient(90deg,#d97706,#f59e0b)';
-                    } else {
-                        valEl.style.color = '#ef4444';
-                        healthEl.className = 'margen-health-indicator danger';
-                        healthEl.innerHTML = '<div class="margen-health-dot"></div><span>Pérdidas</span>';
-                        barEl.style.background = 'linear-gradient(90deg,#dc2626,#ef4444)';
-                    }
-                    const mermaStr = totalMermas > 0 ? ' | Mermas: ' + totalMermas.toFixed(2) + '€' : '';
-                    subEl.textContent = 'Gastos: ' + totalGastos.toFixed(2) + '€ | Ingresos: ' + ingresosMes.toFixed(0) + '€' + mermaStr + ' | ' + now.toLocaleString('es-ES', { month: 'long' });
-                    barEl.style.width = Math.min(Math.abs((totalGastos + totalMermas) / ingresosMes * 100), 100) + '%';
-                }
                 renderMermasList();
                 updateTGTG(totalMermas);
             } catch (err) {
-                document.getElementById('margenSub').textContent = '❌ Error: ' + err.message;
+                console.error("Error al cargar datos en Márgenes:", err);
             }
         }
-
-        document.getElementById('saveVentaBtn').addEventListener('click', () => {
-            const val = document.getElementById('ventaSemanalInput').value.trim();
-            if (val && !isNaN(val)) { localStorage.setItem(VENTA_KEY, val); loadMargenes(); }
-        });
 
         // Initialize Splash Screen
         window.addEventListener('load', () => {
@@ -9054,10 +9100,22 @@
         // ===== PUNTO ÚNICO DE INICIALIZACIÓN =====
         // Todo se ejecuta AQUÍ, cuando el DOM ya existe al 100%
         document.addEventListener('DOMContentLoaded', () => {
-            // ── Registro del Service Worker (Offline-First) ──
+            // ── Registro del Service Worker (Network-First, sin caché HTML) ──
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('/public/sw.js')
-                    .then(reg => console.log('[SW] Registrado:', reg.scope))
+                // Primero, eliminar registros de SW viejos para limpiar la caché
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    const oldPaths = registrations.filter(r => r.active && r.active.scriptURL.includes('/public/sw.js'));
+                    oldPaths.forEach(r => r.unregister());
+                    if (oldPaths.length > 0) {
+                        // También limpiar la caché corrupta
+                        caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+                        console.log('[SW] Eliminados', oldPaths.length, 'registros SW obsoletos. Recargando...');
+                        setTimeout(() => location.reload(), 500);
+                        return;
+                    }
+                });
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('[SW] Registrado (Network-First):', reg.scope))
                     .catch(err => console.warn('[SW] Fallo al registrar:', err));
             }
 

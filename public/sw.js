@@ -4,7 +4,7 @@
 //   - Network First con fallback → llamadas a /api/records (datos Airtable)
 //   - Background Sync → registros de limpieza creados offline
 
-const CACHE_NAME = 'dulceos-v1';
+const CACHE_NAME = 'dulceos-v2';
 const CACHE_STATIC = 'dulceos-static-v1';
 const CACHE_DATA   = 'dulceos-data-v1';
 

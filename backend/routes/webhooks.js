@@ -7,15 +7,17 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../lib/authMiddleware');
 
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
 const AIRTABLE_API = 'https://api.airtable.com/v0';
 const FALLBACK_BASE_ID = process.env.AIRTABLE_BASE_ID || process.env.AIRTABLE_BASE_LEGACY;
 const TOKEN = process.env.AIRTABLE_API_KEY;
 const GEMINI_KEY = process.env.GEMINI_API_KEY;
 
 const TABLES = {
-    FACTURAS: process.env.TABLE_FACTURAS || 'tblLC7oMOUQtRWkn7',
-    ALBARANES: process.env.TABLE_ALBARANES || 'tblX9EQUmwItNJCZI',
-    GASTOS_VARIOS: process.env.TABLE_GASTOS_VARIOS || 'tblHzVIPEde7zWnUv'
+    FACTURAS: 'FACTURAS',
+    ALBARANES: 'ALBARANES',
+    GASTOS_VARIOS: 'GASTOS VARIOS'
 };
 
 // ─────────────────────────────────────────────
@@ -39,97 +41,103 @@ router.post('/scan-invoice', async (req, res) => {
         // Usar airtable_base_id del JWT, con fallback al .env
         const baseId = user.airtable_base_id || FALLBACK_BASE_ID;
 
-        // 1. Enviar a Gemini — modelo primario 2.0-flash, fallback a 1.5-flash si hay 429/error
+        // 1. Llamar a Gemini via SDK oficial — gestiona modelos y rutas automáticamente
         const GEMINI_MODELS = [
-            'gemini-2.0-flash',
-            'gemini-1.5-flash'
+            'gemini-flash-latest',
+            'gemini-flash-lite-latest',
+            'gemini-2.0-flash-lite',
+            'gemini-2.0-flash-001',
+            'gemini-3-flash-preview'
         ];
 
-        const geminiPayload = {
-            contents: [{
-                parts: [
-                    {
-                        text: `Analiza exhaustivamente esta imagen de factura, ticket o albarán y extrae los datos clave. 
+        const OCR_PROMPT = `Analiza exhaustivamente esta imagen de factura, ticket o albarán y extrae los datos clave.
 INSTRUCCIONES CRÍTICAS:
-1. "PROVEDOR/TITULO": Busca el nombre comercial del emisor. Prioriza logotipos o textos destacados.
+1. "PROVEDOR/TITULO": Busca el nombre comercial del emisor. Prioriza logótipos o textos destacados.
 2. "FECHA": Formato YYYY-MM-DD. Si no hay año, asume el actual.
 3. "TOTAL": Importe final (numérico). Si es un albarán sin precio, pon 0.
-4. "tabla_destino": 
+4. "tabla_destino":
    - "FACTURAS" si tiene número de factura, CIF/NIF e IVA desglosado.
    - "ALBARANES" si es una nota de entrega o pedido sin valor fiscal de factura.
    - "GASTOS_VARIOS" para tickets de parking, gasolina o compras menores sin CIF.
 
-Responde estrictamente con un objeto JSON válido.
-Campos:
-- tabla_destino: string (FACTURAS, ALBARANES o GASTOS_VARIOS)
-- "PROVEDOR/TITULO": string
-- "TOTAL": number
-- "FECHA": string (YYYY-MM-DD)
-- "NUMERO DE DOC": string
-- "BASE IMPONIBLE": number
-- "IVA": number
-- "CIF": string
-- "DETALLES DOC": string (resumen breve)`
-                    },
-                    {
-                        inline_data: {
-                            mime_type: mimeType || 'image/jpeg',
-                            data: image
-                        }
-                    }
-                ]
-            }],
-            generationConfig: {
-                maxOutputTokens: 8192,
-                temperature: 0.1,
-                responseMimeType: 'application/json'
-            }
-        };
+Responde Únicamente con un objeto JSON válido, sin markdown, sin código adicional.
+Campos requeridos:
+{
+  "tabla_destino": "FACTURAS|ALBARANES|GASTOS_VARIOS",
+  "PROVEDOR/TITULO": "string",
+  "TOTAL": number,
+  "FECHA": "YYYY-MM-DD",
+  "NUMERO DE DOC": "string",
+  "BASE IMPONIBLE": number,
+  "IVA": number,
+  "CIF": "string",
+  "DETALLES DOC": "string"
+}`;
 
-        // Intento con cada modelo hasta que uno responda OK
-        let geminiRes, modelUsed;
-        for (const model of GEMINI_MODELS) {
-            const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_KEY}`;
-            geminiRes = await fetch(geminiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(geminiPayload)
-            });
-            modelUsed = model;
-            if (geminiRes.ok) break; // ✅ funciona, salimos
-            const errBody = await geminiRes.json().catch(() => ({}));
-            const code = errBody?.error?.code || geminiRes.status;
-            console.warn(`[SCANNER] ${model} falló (${code}), probando siguiente modelo...`);
-            if (code !== 429 && code !== 500 && code !== 503) {
-                // Error definitivo (ej. 400 clave inválida) — no reintentamos
-                throw new Error(`Gemini error (${code}): ${errBody?.error?.message || 'Error desconocido'}`);
+        const genAI = new GoogleGenerativeAI(GEMINI_KEY);
+        let rawText = '';
+        let modelUsed = '';
+        let lastError = null;
+
+        for (const modelName of GEMINI_MODELS) {
+            try {
+                console.log(`[SCANNER] Probando modelo: ${modelName}`);
+                const model = genAI.getGenerativeModel({
+                    model: modelName,
+                    generationConfig: { temperature: 0.1, maxOutputTokens: 4096 }
+                });
+                const result = await model.generateContent([
+                    { text: OCR_PROMPT },
+                    { inlineData: { mimeType: mimeType || 'image/jpeg', data: image } }
+                ]);
+                rawText = result.response.text();
+                modelUsed = modelName;
+                console.log(`[SCANNER] ✅ Éxito con: ${modelName}`);
+                break; // éxito, salimos del bucle
+            } catch (err) {
+                lastError = err;
+                const status = err?.status || err?.statusCode || '';
+                const msg = (err.message || '').toLowerCase();
+                console.warn(`[SCANNER] Fallo en ${modelName}: ${status} - ${msg.substring(0, 100)}`);
+                
+                // Si es un error de autenticación crítica (p.ej. API Key inválida), no seguimos probando
+                if (msg.includes('api_key_invalid') || msg.includes('401') || msg.includes('403')) {
+                    throw new Error(`Error de autenticación: Verifica tu API Key en el panel de Google.`);
+                }
+                
+                // Continuamos probando el siguiente modelo en la lista ante casi cualquier otro error
+                // (incluyendo 429 cuota, 404 modelo no habilitado, o 500 saturación)
+                continue;
             }
         }
 
-        if (!geminiRes.ok) {
-            const errText = await geminiRes.text().catch(() => 'Sin respuesta');
-            throw new Error(`Todos los modelos de IA fallaron. \u00daltimo error (${geminiRes.status}): ${errText.substring(0, 200)}`);
+        if (!rawText) {
+            let errorMsg = 'Todos los modelos de Gemini fallaron.';
+            if (lastError?.message?.includes('monthly spending cap')) {
+                errorMsg = 'Límite de gasto superado en Google AI Studio. Sube el cap o espera al próximo mes.';
+            } else if (lastError?.message?.includes('429')) {
+                errorMsg = 'Cuota de peticiones agotada temporalmente (Error 429).';
+            } else {
+                errorMsg += ` Último error: ${lastError?.message?.substring(0, 100)}`;
+            }
+            throw new Error(errorMsg);
         }
-        console.log(`[SCANNER] Modelo usado: ${modelUsed}`);
-
-        const geminiData = await geminiRes.json();
-        const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
         // Limpieza robusta: eliminar markdown code fences y extraer JSON
         let cleanText = rawText.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
         const fb = cleanText.indexOf('{');
         const lb = cleanText.lastIndexOf('}');
         if (fb < 0 || lb <= fb) {
-            throw new Error(`Gemini no devolvió JSON válido: ${rawText.substring(0, 200)}`);
+            throw new Error(`Gemini no devolvio JSON valido: ${rawText.substring(0, 200)}`);
         }
         const cleanJson = cleanText.substring(fb, lb + 1);
-        console.log('[SCANNER] Raw Gemini response:', rawText.substring(0, 300));
         console.log('[SCANNER] Clean JSON:', cleanJson.substring(0, 300));
         const extracted = JSON.parse(cleanJson);
 
-        // 2. Determinar tabla destino
-        const destino = (extracted.tabla_destino || 'GASTOS_VARIOS').toUpperCase();
-        const tableId = TABLES[destino] || TABLES.GASTOS_VARIOS;
+        // 2. Determinar tabla destino (normalizar claves con underscore a nombre limpio)
+        const destinoKey = (extracted.tabla_destino || 'GASTOS_VARIOS').toUpperCase().replace(/ /g, '_');
+        const tableId = TABLES[destinoKey] || TABLES.GASTOS_VARIOS;
+        const destino = destinoKey;
 
         // 3. Preparar campos
         const fields = {
@@ -163,7 +171,7 @@ Campos:
 
         // 5. Guardar en Airtable EN BACKGROUND (no bloquea la respuesta)
         // Usa el baseId del JWT del usuario
-        fetch(`${AIRTABLE_API}/${baseId}/${tableId}`, {
+        fetch(`${AIRTABLE_API}/${baseId}/${encodeURIComponent(tableId)}`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${TOKEN}`,

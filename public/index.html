@@ -3709,10 +3709,22 @@
             </div>
         </div>
 
-        <!-- ===== TAB: PRODUCTOS (Base: Facturas) ===== -->
-        <div id="tab-facturas" class="tab-content">
-            <div class="section-title">Documentos</div>
-            <div class="section-subtitle" style="text-align: center;">Gestión de facturas y albaranes</div>
+        <!-- ===== TAB: BÚNKER DE DOCUMENTACIÓN (Base: Facturas) ===== -->
+        <div id="tab-facturas" class="tab-content bunker-mode">
+            <div class="section-title" style="display:flex; align-items:center; justify-content:center; gap:8px;">
+                <i data-lucide="shield-check" style="color:var(--gold); width:28px; height:28px;"></i>
+                Búnker Doc.
+            </div>
+            <div class="section-subtitle" style="text-align: center; margin-bottom: 24px;">Archivo digital seguro y análisis por IA</div>
+
+            <!-- Gran Botón de Escáner Integrado -->
+            <div class="glass-panel bunker-upload-zone" onclick="showGlobalScanner()" style="margin: 0 var(--gutter) 28px; padding: 28px 20px; text-align: center; border-radius: 24px; border: 2px dashed rgba(212,175,55,0.3); cursor: pointer; transform: translateZ(0); transition: all 0.3s ease;">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.05) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--gold); border: 1px solid rgba(212,175,55,0.2); box-shadow: 0 8px 16px rgba(0,0,0,0.1);">
+                    <i data-lucide="scan-line" style="width: 32px; height: 32px;"></i>
+                </div>
+                <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Subir Documento</h3>
+                <p style="font-size: 13px; color: var(--text-muted); padding: 0 10px;">Captura facturas o albaranes para extracción automática de datos con Gema IA</p>
+            </div>
 
             <div class="stats-row stats-4" style="margin-bottom: 32px; gap: 12px;">
                 <div class="stat-card glass-panel" style="padding: 16px; border: 1px solid var(--border);">
@@ -4334,10 +4346,10 @@
                 <span class="nav-label">INICIO</span>
             </button>
 
-            <!-- Facturas -->
+            <!-- Búnker de Docs -->
             <button class="nav-btn" data-tab="facturas" onclick="activateTab('facturas')">
-                <span class="nav-icon"><i data-lucide="receipt"></i></span>
-                <span class="nav-label">FACTURAS</span>
+                <span class="nav-icon"><i data-lucide="shield-check"></i></span>
+                <span class="nav-label">BÚNKER</span>
             </button>
 
             <!-- Agenda -->
