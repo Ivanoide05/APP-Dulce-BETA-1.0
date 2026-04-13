@@ -7,14 +7,14 @@ const API_BASE = (window.location.protocol === 'file:' || window.location.hostna
     ? 'http://localhost:3001'
     : '';
 
-// Configuración de Tablas (Por defecto, pero se cargan dinámicamente)
+// Configuración de Tablas Universales
 const DEFAULT_TABLES = {
-    FACTURAS: 'tblLC7oMOUQtRWkn7',
-    ALBARANES: 'tblX9EQUmwItNJCZI',
-    GASTOS_VARIOS: 'tblHzVIPEde7zWnUv',
-    PEDIDOS: '', // Se detectará automáticamente
-    AGENDA: '',  // Se detectará automáticamente
-    PRODUCTOS: '' // Catálogo específico del cliente
+    FACTURAS: 'FACTURAS',
+    ALBARANES: 'ALBARANES',
+    GASTOS_VARIOS: 'GASTOS VARIOS',
+    PEDIDOS: 'PEDIDOS',
+    AGENDA: 'AGENDA',
+    PRODUCTOS: 'PRODUCTOS'
 };
 
 // Obtener mapeo actual con prioridad a lo guardado en localStorage
@@ -54,7 +54,7 @@ async function airtableDirectFetch(tableId) {
     const keys = getAirtableKeys();
     if (!keys.token || !keys.baseId) throw new Error('Claves no configuradas');
 
-    const url = `https://api.airtable.com/v0/${keys.baseId}/${tableId}`;
+    const url = `https://api.airtable.com/v0/${keys.baseId}/${encodeURIComponent(tableId)}`;
     const res = await fetch(url, {
         headers: {
             'Authorization': `Bearer ${keys.token}`,
@@ -266,8 +266,16 @@ const DulceAPI = {
         
         if (res && res.status === 401) handle401(res);
         if (!res || !res.ok) {
-            const errInfo = res ? await res.text() : 'Sin conexión al servidor proxy ni webhook.';
-            throw new Error(`Fallo en escáner (${res ? res.status : 'offline'}): ${errInfo.substring(0, 100)}`);
+            let errorText = 'Sin conexión al servidor proxy ni webhook.';
+            if (res) {
+                try {
+                    const data = await res.json();
+                    errorText = data.error || `Error ${res.status}`;
+                } catch (e) {
+                    errorText = await res.text();
+                }
+            }
+            throw new Error(errorText.substring(0, 150));
         }
         return res.json();
     },
