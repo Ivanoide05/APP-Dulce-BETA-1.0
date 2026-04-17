@@ -27,13 +27,8 @@
      * Redirige a /login.html si no lo es.
      */
     function checkAuth() {
-        // En local (file:// o localhost) se salta el login para facilitar desarrollo
-        if (window.location.protocol === 'file:' || 
-            window.location.hostname === 'localhost' || 
-            window.location.hostname === '127.0.0.1' ||
-            window.location.hostname === '::1') return {};
-
         const token = localStorage.getItem('auth_token');
+
         if (!token) {
             window.location.href = '/login.html';
             return;

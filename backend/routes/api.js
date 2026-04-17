@@ -8,6 +8,8 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../lib/authMiddleware');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const supabase = require('../lib/supabaseClient');
+
 
 const AIRTABLE_API = 'https://api.airtable.com/v0';
 const FALLBACK_BASE_ID = (process.env.AIRTABLE_BASE_ID || process.env.AIRTABLE_BASE_LEGACY || '').trim();
@@ -18,13 +20,13 @@ const TABLES = {
     ALBARANES: 'ALBARANES',
     GASTOS_VARIOS: 'GASTOS VARIOS',
     AGENDA: 'AGENDA',
-    PEDIDOS: 'PEDIDOS'
+    PEDIDOS: 'PEDIDOS',
+    PRODUCTO: 'PRODUCTO'
 };
 
 // Helper: fetch nativo de Node 18+
 // Acepta baseId como parámetro para soporte multi-tenant
 async function airtableFetch(req, tableId, options = {}, baseId = null) {
-    // Prefer baseId from headers, then from param, then fallback
     const headerBaseId = req.headers['x-airtable-base-id'];
     const headerToken = req.headers['x-airtable-token'];
     
@@ -35,7 +37,13 @@ async function airtableFetch(req, tableId, options = {}, baseId = null) {
         throw new Error('Configuración de Airtable incompleta (Token o Base ID faltante)');
     }
 
-    const url = `${AIRTABLE_API}/${effectiveBaseId}/${encodeURIComponent(tableId)}`;
+    // Construcción de URL con parámetros de consulta
+    let url = `${AIRTABLE_API}/${effectiveBaseId}/${encodeURIComponent(tableId)}`;
+    if (options.queryParams) {
+        const params = new URLSearchParams(options.queryParams);
+        url += `?${params.toString()}`;
+    }
+
     const res = await fetch(url, {
         ...options,
         headers: {
@@ -44,6 +52,7 @@ async function airtableFetch(req, tableId, options = {}, baseId = null) {
             ...(options.headers || {})
         }
     });
+
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
         const errorMsg = data.error?.message || 'Airtable error';
@@ -66,15 +75,22 @@ router.get('/records', async (req, res) => {
     if (!user) return;
 
     try {
-        // Usar airtable_base_id del JWT, con fallback al .env
         const baseId = user.airtable_base_id || FALLBACK_BASE_ID;
+        
+        // Multi-tenant: Si es cliente, solo ve sus pedidos.
+        // Los admins ven TODO para gestión global.
+        const pedidosParams = {};
+        if (user.role === 'client' && user.email) {
+            pedidosParams.filterByFormula = `{Client} = '${user.email}'`;
+            console.log(`[API] Filtrando pedidos para cliente: ${user.email}`);
+        }
 
         const [facturas, albaranes, gastos, agenda, pedidos] = await Promise.all([
-            airtableFetch(req, TABLES.FACTURAS, {}, baseId),
-            airtableFetch(req, TABLES.ALBARANES, {}, baseId),
-            airtableFetch(req, TABLES.GASTOS_VARIOS, {}, baseId),
+            airtableFetch(req, TABLES.FACTURAS, {}, baseId).catch(err => { console.warn(`Skipping FACTURAS: ${err.message}`); return { records: [] }; }),
+            airtableFetch(req, TABLES.ALBARANES, {}, baseId).catch(err => { console.warn(`Skipping ALBARANES: ${err.message}`); return { records: [] }; }),
+            airtableFetch(req, TABLES.GASTOS_VARIOS, {}, baseId).catch(err => { console.warn(`Skipping GASTOS VARIOS: ${err.message}`); return { records: [] }; }),
             airtableFetch(req, TABLES.AGENDA, {}, baseId).catch(() => ({ records: [] })),
-            airtableFetch(req, TABLES.PEDIDOS, {}, baseId).catch(() => ({ records: [] }))
+            airtableFetch(req, TABLES.PEDIDOS, { queryParams: pedidosParams }, baseId).catch(() => ({ records: [] }))
         ]);
 
         res.set('Cache-Control', 'max-age=300, stale-while-revalidate=60');
@@ -173,18 +189,41 @@ router.patch('/records/:table/:id', async (req, res) => {
 
     try {
         const baseId = user.airtable_base_id || FALLBACK_BASE_ID;
-        const url = `${AIRTABLE_API}/${baseId}/${tableId}/${recordId}`;
-        const data = await fetch(url, {
+        // Usamos airtableFetch para pasar por el mismo embudo de seguridad que el resto de rutas
+        const data = await airtableFetch(req, `${tableId}/${recordId}`, {
             method: 'PATCH',
-            headers: {
-                'Authorization': `Bearer ${(process.env.AIRTABLE_API_KEY || '').trim()}`,
-                'Content-Type': 'application/json'
-            },
             body: JSON.stringify({ fields: req.body.fields || req.body })
-        }).then(r => r.json());
+        }, baseId);
         res.json(data);
     } catch (err) {
         console.error(`[API] Error updating record in ${tableKey}:`, err.message);
+        res.status(err.status || 500).json({ error: err.message });
+    }
+});
+
+// ─────────────────────────────────────────────
+// DELETE /api/records/:table/:id — Eliminar un registro
+// ─────────────────────────────────────────────
+router.delete('/records/:table/:id', async (req, res) => {
+    const user = authMiddleware(req, res);
+    if (!user) return;
+
+    const tableKey = req.params.table.toUpperCase();
+    const tableId = TABLES[tableKey];
+    const recordId = req.params.id;
+
+    if (!tableId) {
+        return res.status(400).json({ error: `Tabla desconocida: ${req.params.table}` });
+    }
+
+    try {
+        const baseId = user.airtable_base_id || FALLBACK_BASE_ID;
+        const data = await airtableFetch(req, `${tableId}/${recordId}`, {
+            method: 'DELETE'
+        }, baseId);
+        res.json(data);
+    } catch (err) {
+        console.error(`[API] Error deleting record in ${tableKey}:`, err.message);
         res.status(err.status || 500).json({ error: err.message });
     }
 });
@@ -272,6 +311,36 @@ Debes responder ÚNICAMENTE con JSON en el siguiente formato, sin texto Markdown
     } catch (err) {
         console.error('[GEMA] Error analyze-expenses:', err.message);
         res.status(500).json({ error: err.message });
+    }
+});
+
+// ─────────────────────────────────────────────
+// GET /api/active-notices — Recuperar avisos activos para el cliente
+// ─────────────────────────────────────────────
+router.get('/active-notices', async (req, res) => {
+    // Es una ruta protegida básica para que el cliente vea sus avisos
+    const user = authMiddleware(req, res);
+    if (!user) return;
+
+    try {
+        // Buscamos avisos que sean "Generales" (target_client_id is null) 
+        // O avisos específicos para ESTE cliente.
+        const { data, error } = await supabase
+            .from('global_notices')
+            .select('*')
+            .eq('active', true)
+            .or(`target_client_id.is.null,target_client_id.eq.${user.id}`)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+             if (error.code === '42P01') return res.json({ success: true, notices: [] });
+             throw error;
+        }
+
+        res.json({ success: true, notices: data });
+    } catch (err) {
+        console.error('[API] Error obteniendo avisos:', err.message);
+        res.status(500).json({ error: 'Error al obtener avisos.' });
     }
 });
 
