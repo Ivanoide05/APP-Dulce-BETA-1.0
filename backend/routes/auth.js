@@ -144,4 +144,17 @@ router.post('/login', async (req, res) => {
     }
 });
 
+// ─────────────────────────────────────────────
+// GET /api/auth — Info del endpoint
+// ─────────────────────────────────────────────
+router.get('/', (req, res) => {
+    res.json({
+        message: 'Endpoint de autenticación de DulceOS activo.',
+        endpoints: {
+            login: 'POST /api/auth/login'
+        }
+    });
+});
+
 module.exports = router;
+

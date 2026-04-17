@@ -32,6 +32,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Lucide Icons (Carga Temprana) -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="public/js/auth.js"></script>
     <script>
         // Protección de ruta inmediata
@@ -3908,6 +3913,76 @@
         .gestor-status-pagado { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
         .gestor-status-pill:hover { filter: brightness(1.2); }
 
+        /* Bulk Actions Toolbar */
+        .bulk-toolbar {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(var(--bg-card-rgb), 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 12px 24px;
+            border-radius: 50px;
+            border: 1px solid var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100000;
+        }
+        .bulk-toolbar.visible { transform: translateX(-50%) translateY(0); }
+        .bulk-info { font-size: 13px; font-weight: 700; color: var(--gold); border-right: 1px solid rgba(212,175,55,0.2); padding-right: 16px; margin-right: 4px; }
+        .bulk-btn { background: none; border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; padding: 8px 12px; border-radius: 12px; transition: all 0.2s; }
+        .bulk-btn:hover { background: rgba(255,255,255,0.05); color: var(--gold); }
+        .bulk-btn.delete:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+        /* Custom Checkbox */
+        .gestor-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 6px;
+            border: 2px solid var(--border);
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            background: transparent;
+        }
+        .gestor-checkbox:checked { background: var(--gold); border-color: var(--gold); }
+        .gestor-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: #000;
+            font-size: 12px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 900;
+        }
+
+        /* Print Styles */
+        @media print {
+            body * { visibility: hidden; }
+            #gestorMaestroModal, #gestorMaestroModal * { visibility: visible; }
+            #gestorMaestroModal { position: static; width: 100%; height: auto; background: white !important; backdrop-filter: none !important; opacity: 1 !important; display: block !important; }
+            .gestor-modal-content { position: static; width: 100% !important; height: auto !important; box-shadow: none !important; border: none !important; background: white !important; }
+            .gestor-modal-content > div:not([style*="overflow-y: auto"]) { display: none !important; } /* Hide header and toolbar */
+            .gestor-modal-content div[style*="overflow-y: auto"] { overflow: visible !important; height: auto !important; }
+            table { width: 100% !important; border-collapse: collapse !important; color: black !important; }
+            th { border-bottom: 2px solid #333 !important; color: black !important; text-align: left !important; padding: 10px !important; }
+            td { border-bottom: 1px solid #eee !important; color: black !important; padding: 10px !important; }
+            .gestor-status-pill { border: 1px solid #333 !important; background: transparent !important; color: black !important; padding: 2px 6px !important; }
+            .gestor-checkbox-col, #bulkActionsToolbar, .gestor-btn-print { display: none !important; }
+            .print-header { display: block !important; margin-bottom: 20px; text-align: center; }
+            .print-header h1 { font-size: 24px; margin: 0; color: black; }
+            .print-header p { font-size: 14px; color: #666; }
+        }
+        .print-header { display: none; }
+
+
     </style>
 </head>
 
@@ -4415,10 +4490,17 @@
         <div id="tab-ruta" class="tab-content">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
                 <div class="section-title" style="margin-bottom: 0;">Hoja de Ruta</div>
-                <button onclick="abrirGestorMaestro()" style="background: linear-gradient(135deg, rgba(212,175,55,0.1), rgba(212,175,55,0.02)); border: 1px solid var(--gold); color: var(--gold); border-radius: 12px; padding: 6px 12px; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;">
-                    <i data-lucide="database" style="width: 14px; height: 14px;"></i>
-                    Gestor Maestro
-                </button>
+                <div id="ruta-filters" style="display: flex; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 20px; border: 1px solid var(--border);">
+                    <button class="fin-pill active" onclick="setRutaFilter('all')">Todos</button>
+                    <button class="fin-pill" onclick="setRutaFilter('recurrent')">Recurrentes</button>
+                    <button class="fin-pill" onclick="setRutaFilter('dynamic')">Dinámicos</button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-gestor-maestro" onclick="abrirGestorMaestro()" style="background: linear-gradient(135deg, rgba(212,175,55,0.1), rgba(212,175,55,0.02)); border: 1px solid var(--gold); color: var(--gold); border-radius: 12px; padding: 6px 12px; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;">
+                        <i data-lucide="database" style="width: 14px; height: 14px;"></i>
+                        Gestor Maestro
+                    </button>
+                </div>
             </div>
             
             <!-- WhatsApp Status -->
@@ -5160,6 +5242,13 @@
         const RUTA_KEY = 'dulce_jaleo_ruta';
         const EQUIPO_KEY = 'dulce_jaleo_equipo';
 
+        // Helper: clave localStorage con scope por usuario (aislamiento multi-tenant)
+        function getUserScopedKey(baseKey) {
+            var userInfo = window.DulceAuth ? window.DulceAuth.getUserInfo() : null;
+            var userId = userInfo ? (userInfo.id || userInfo.email || 'default') : 'default';
+            return baseKey + '_' + userId;
+        }
+
         // Catch-all para evitar cierres abruptos y diagnosticar errores
         window.onerror = function (msg, url, lineNo, columnNo, error) {
             console.error('[Global Error]', msg, 'at', url, ':', lineNo);
@@ -5427,8 +5516,26 @@
                 globalStats.pedidos = globalStats.pedidosRaw.map(r => ({
                     id: r.id,
                     ...r.fields,
-                    completed: r.fields.status === 'Done' || r.fields.status === 'Completado'
+                    product: r.fields.Product || r.fields.producto || 'Desconocido',
+                    quantity: r.fields.Quantity || r.fields.cantidad || 0,
+                    unit: r.fields.Unit || r.fields.unidad || 'Uds',
+                    type: r.fields.Type || r.fields.tipo || 'Manual',
+                    completed: r.fields.Completed === true || r.fields.status === 'Done' || r.fields.status === 'Completado',
+                    completedAt: r.fields.Completedat || r.fields.fecha_entrega || null,
+                    total: parseFloat(r.fields.Total || r.fields.total || 0),
+                    fecha_entrega: r.fields["Fecha entrega"] || r.fields.fecha_entrega || ''
                 }));
+
+                // Actualizar cache localStorage scoped con datos frescos de Airtable (offline-ready)
+                if (globalStats.pedidos && globalStats.pedidos.length > 0 && typeof getUserScopedKey === 'function') {
+                    try {
+                        localStorage.setItem(getUserScopedKey(RUTA_KEY), JSON.stringify({
+                            version: 2,
+                            date: new Date().toISOString().slice(0, 10),
+                            orders: globalStats.pedidos
+                        }));
+                    } catch(e) { /* localStorage lleno, no crítico */ }
+                }
 
                 globalStats.allRecords.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
                 calculateGlobalStats();
@@ -5725,10 +5832,25 @@
             const data = getEquipoData();
             const emp = data.empleados.find(e => e.id === id);
             if (!emp) return;
-            if (!confirm('¿Eliminar a ' + emp.nombre + ' ' + (emp.apellido || '') + '?')) return;
-            data.empleados = data.empleados.filter(e => e.id !== id);
-            saveEquipoData(data);
-            gnRenderEmpleados();
+            
+            Swal.fire({
+                title: '¿Eliminar empleado?',
+                text: '¿Seguro que quieres eliminar a ' + emp.nombre + ' ' + (emp.apellido || '') + '?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#D4AF37',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    data.empleados = data.empleados.filter(e => e.id !== id);
+                    saveEquipoData(data);
+                    gnRenderEmpleados();
+                    if (typeof mostrarToast === 'function') mostrarToast('Empleado eliminado', 2000, 'trash-2');
+                }
+            });
         }
 
         // ===== WIDGET DINÁMICO (Control de Horario) =====
@@ -6095,15 +6217,37 @@
             const data = getEquipoData();
             const count = data.empleados.filter(e => e.rol === id).length;
             if (count > 0) {
-                alert('No se puede eliminar un rol con ' + count + ' empleado' + (count > 1 ? 's' : '') + ' asignado' + (count > 1 ? 's' : '') + '.\nReasigna los empleados primero.');
+                Swal.fire({
+                    title: 'Acción bloqueada',
+                    text: 'No se puede eliminar un rol con ' + count + ' empleado' + (count > 1 ? 's' : '') + ' asignado' + (count > 1 ? 's' : '') + '. Reasigna los empleados primero.',
+                    icon: 'error',
+                    confirmButtonColor: '#D4AF37',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)'
+                });
                 return;
             }
             const rol = data.roles.find(r => r.id === id);
             if (!rol) return;
-            if (!confirm('¿Eliminar el rol "' + rol.nombre + '"?')) return;
-            data.roles = data.roles.filter(r => r.id !== id);
-            saveEquipoData(data);
-            gnRenderRoles();
+            
+            Swal.fire({
+                title: '¿Eliminar rol?',
+                text: '¿Seguro que quieres eliminar el rol "' + rol.nombre + '"?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#D4AF37',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    data.roles = data.roles.filter(r => r.id !== id);
+                    saveEquipoData(data);
+                    gnRenderRoles();
+                    if (typeof mostrarToast === 'function') mostrarToast('Rol eliminado', 2000, 'trash-2');
+                }
+            });
         }
 
         // ===== OBJETIVOS DEL EQUIPO =====
@@ -7349,16 +7493,49 @@
             ]
         };
 
+        // Migración one-time: clave antigua sin scope → clave scoped por usuario
+        function migrateRutaToScopedStorage() {
+            var scopedKey = getUserScopedKey(RUTA_KEY);
+            if (localStorage.getItem(scopedKey)) return; // ya migrado
+
+            // Evitar que clientes (role 'client') hereden datos antiguos (posibles restos de demo o admin)
+            const userInfo = window.DulceAuth ? window.DulceAuth.getUserInfo() : null;
+            if (userInfo && userInfo.role === 'client') {
+                localStorage.setItem(scopedKey, JSON.stringify({ orders: [] }));
+                return;
+            }
+
+            var oldData = localStorage.getItem('dulce_jaleo_ruta');
+            if (oldData) {
+                localStorage.setItem(scopedKey, oldData);
+                var oldStatus = localStorage.getItem('dulce_jaleo_orders_status');
+                if (oldStatus) localStorage.setItem(getUserScopedKey('dulce_jaleo_orders_status'), oldStatus);
+                var oldHistory = localStorage.getItem(RUTA_HISTORY_KEY);
+                if (oldHistory) localStorage.setItem(getUserScopedKey(RUTA_HISTORY_KEY), oldHistory);
+            }
+        }
+
         function getRutaData() {
-            // Prioridad: Datos en vivo de Airtable vía globalStats
+            // Migración de datos existentes (una sola vez por usuario)
+            migrateRutaToScopedStorage();
+
+            // Prioridad 1: Datos en vivo de Airtable vía globalStats
             if (globalStats.loaded && globalStats.pedidos && globalStats.pedidos.length > 0) {
                 return { orders: globalStats.pedidos };
             }
 
-            const raw = localStorage.getItem(RUTA_KEY);
+            // Prioridad 2: Cache localStorage scoped por usuario
+            const raw = localStorage.getItem(getUserScopedKey(RUTA_KEY));
             if (!raw) {
-                saveRutaData(RUTA_SEED);
-                return JSON.parse(JSON.stringify(RUTA_SEED));
+                // Solo admin ve datos demo; clientes nuevos empiezan vacíos
+                var userInfo = window.DulceAuth ? window.DulceAuth.getUserInfo() : null;
+                if (userInfo && userInfo.role === 'admin') {
+                    saveRutaData(RUTA_SEED);
+                    return JSON.parse(JSON.stringify(RUTA_SEED));
+                }
+                var emptyData = { version: 2, date: new Date().toISOString().slice(0, 10), orders: [] };
+                saveRutaData(emptyData);
+                return emptyData;
             }
             const data = JSON.parse(raw);
             // Migración a v2
@@ -7394,14 +7571,14 @@
         // ===== [FASE 13] ESTADO DE PEDIDOS =====
         function getOrderStatus(orderId) {
             if (!orderId) return 'Pendiente';
-            var s = JSON.parse(localStorage.getItem('dulce_jaleo_orders_status') || '{}');
+            var s = JSON.parse(localStorage.getItem(getUserScopedKey('dulce_jaleo_orders_status')) || '{}');
             return s[orderId] || 'Pendiente';
         }
         function setOrderStatus(orderId, status) {
             if (!orderId) return;
-            var s = JSON.parse(localStorage.getItem('dulce_jaleo_orders_status') || '{}');
+            var s = JSON.parse(localStorage.getItem(getUserScopedKey('dulce_jaleo_orders_status')) || '{}');
             s[orderId] = status;
-            localStorage.setItem('dulce_jaleo_orders_status', JSON.stringify(s));
+            localStorage.setItem(getUserScopedKey('dulce_jaleo_orders_status'), JSON.stringify(s));
         }
         window.toggleOrderStatus = function(orderId) {
             setOrderStatus(orderId, getOrderStatus(orderId) === 'Completado' ? 'Pendiente' : 'Completado');
@@ -7582,7 +7759,55 @@
 
 
         function saveRutaData(data) {
-            localStorage.setItem(RUTA_KEY, JSON.stringify(data));
+            localStorage.setItem(getUserScopedKey(RUTA_KEY), JSON.stringify(data));
+        }
+
+        // Helper centralizado: sync order con Airtable PEDIDOS (fire-and-forget)
+        async function syncOrderToAirtable(order, action) {
+            if (!window.DulceAPI) return;
+            
+            const userInfo = window.DulceAuth ? window.DulceAuth.getUserInfo() : null;
+            const userEmail = userInfo ? userInfo.email : '';
+
+            var fields = {
+                "Product": order.product || '',
+                "Quantity": order.quantity || 0,
+                "Unit": order.unit || 'Uds',
+                "Type": order.type || 'manual',
+                "Completed": !!order.completed,
+                "Note": order.note || '',
+                "Client": userEmail // Campo para multi-tenancy
+            };
+            if (order.schedule) fields["Schedule"] = order.schedule;
+            if (order.client) fields["Client"] = order.client; // Sobrescribe si el pedido tiene un cliente específico (ej. B2B)
+            if (order.clientPhone) fields["Phone"] = order.clientPhone;
+            if (order.completedAt) fields["Completedat"] = order.completedAt;
+
+            try {
+                if (action === 'delete') {
+                    if (order.airtableId) {
+                        await DulceAPI.deleteRecord('PEDIDOS', order.airtableId);
+                    } else if (order.id && !order.id.startsWith('man-') && !order.id.startsWith('dyn-') && !order.id.startsWith('rec-')) {
+                        await DulceAPI.deleteRecord('PEDIDOS', order.id);
+                    }
+                    return; // Importante: terminar aquí si es borrar
+                }
+
+                const recordId = order.airtableId || (order.id && !order.id.startsWith('man-') && !order.id.startsWith('dyn-') && !order.id.startsWith('rec-') ? order.id : null);
+                if (recordId) {
+                    // Actualizar registro existente
+                    await DulceAPI.updateRecord('PEDIDOS', recordId, fields);
+                } else if (action === 'create') {
+                    // Crear solo si se solicitó explícitamente
+                    var result = await DulceAPI.createRecord('PEDIDOS', fields);
+                    if (result && result.id) order.airtableId = result.id;
+                } else {
+                    // Pedido local sin ID de Airtable: no sincronizar
+                    console.log('[RUTA_SYNC] Pedido local sin ID de Airtable, omitiendo sync:', order.id);
+                }
+            } catch (err) {
+                console.error('[RUTA_SYNC] Error syncing to Airtable:', err);
+            }
         }
 
         // --- Calendario Operativo & Stats (PASO 3) ---
@@ -7596,35 +7821,35 @@
         var rutaSelectedDate = toLocalDateStr(new Date());
 
         function getRutaHistory() {
-            try { return JSON.parse(localStorage.getItem(RUTA_HISTORY_KEY) || '{}'); } catch(e) { return {}; }
+            try { return JSON.parse(localStorage.getItem(getUserScopedKey(RUTA_HISTORY_KEY)) || '{}'); } catch(e) { return {}; }
         }
         function saveRutaHistory(h) {
-            try { localStorage.setItem(RUTA_HISTORY_KEY, JSON.stringify(h)); } catch(e) {}
+            try { localStorage.setItem(getUserScopedKey(RUTA_HISTORY_KEY), JSON.stringify(h)); } catch(e) {}
         }
         async function recordCompletedOrder(order) {
             // Sincronizar finalización con Airtable
             try {
-                if (order.id && order.id.startsWith('rec')) {
-                    // Si ya existe en Airtable, lo marcamos como completado
-                    await DulceAPI.updateRecord('PEDIDOS', order.id, {
-                        status: 'Completado',
-                        fecha_entrega: toLocalDateStr(new Date())
-                    });
+                const nowStr = toLocalDateStr(new Date());
+                const fields = {
+                    "Product": order.product || order.producto || 'Desconocido',
+                    "Quantity": order.quantity || order.cantidad || 1,
+                    "Unit": order.unit || order.unidad || 'Uds',
+                    "Type": order.type || order.tipo || 'Manual',
+                    "Completed": true,
+                    "CompletedAt": new Date().toISOString(),
+                    "Fecha entrega": nowStr
+                };
+
+                if (order.id && !order.id.startsWith('rec-') && !order.id.startsWith('dyn-')) {
+                    // Si ya es un ID de Airtable (no es semilla local), lo actualizamos
+                    await DulceAPI.updateRecord('PEDIDOS', order.id, fields);
                 } else {
-                    // Si es nuevo (recurrrente o manual), creamos un registro histórico
-                    await DulceAPI.createRecord('PEDIDOS', {
-                        producto: order.product,
-                        status: 'Completado',
-                        cantidad: order.quantity || 1,
-                        unidad: order.unit || 'Uds',
-                        total: order.value || 0,
-                        fecha_entrega: toLocalDateStr(new Date()),
-                        tipo: order.type || 'Manual'
-                    });
+                    // Si es nuevo o semilla, creamos un registro histórico
+                    await DulceAPI.createRecord('PEDIDOS', fields);
                 }
                 console.log('[Dulce] Pedido completado registrado en Airtable');
                 // Forzamos refresco total para que las gráficas se actualicen al instante
-                fetchGlobalData(); 
+                if (typeof fetchGlobalData === 'function') fetchGlobalData(); 
             } catch (e) {
                 console.error('[Dulce] Error registrando fin de pedido:', e);
             }
@@ -7636,9 +7861,12 @@
             const allPedidos = (globalStats.pedidosRaw || []).map(r => ({
                 id: r.id,
                 ...r.fields,
-                total: parseFloat(r.fields.total || r.fields.Total || 0),
-                status: r.fields.status || r.fields.Status || 'Pendiente',
-                fecha: r.fields.fecha_entrega || r.fields.Fecha || ''
+                product: r.fields.Product || r.fields.producto || 'Sin nombre',
+                quantity: r.fields.Quantity || r.fields.cantidad || 0,
+                unit: r.fields.Unit || r.fields.unidad || 'Uds',
+                total: parseFloat(r.fields.Total || r.fields.total || 0),
+                status: (r.fields.Completed === true || r.fields.status === 'Completado' || r.fields.Status === 'Done') ? 'Completado' : 'Pendiente',
+                fecha: r.fields["Fecha entrega"] || r.fields.fecha_entrega || r.fields.Fecha || ''
             }));
 
             const now = new Date();
@@ -7842,7 +8070,23 @@
             renderRuta();
         };
 
-        // --- Renderizado principal ---
+        // --- Rutas Logic ---
+        var rutaFilter = 'all';
+
+        function setRutaFilter(type) {
+            rutaFilter = type;
+            // Update UI buttons
+            const pills = document.querySelectorAll('#ruta-filters .fin-pill');
+            pills.forEach(p => {
+                if (p.textContent.toLowerCase().includes(type === 'all' ? 'todos' : (type === 'recurrent' ? 'recurrentes' : 'dinámicos'))) {
+                    p.classList.add('active');
+                } else {
+                    p.classList.remove('active');
+                }
+            });
+            renderRuta();
+        }
+
         function renderRuta() {
             const data = getRutaData();
             const orders = data.orders;
@@ -7864,10 +8108,16 @@
             const done = isToday ? dayOrders.filter(function(o) { return o.completed; }) : [];
 
             renderRutaProgress(dayOrders);
-            renderRutaHornada(pending);
-            renderRutaRecurrentes(pending.filter(function(o) { return o.type === 'recurrent'; }));
-            renderRutaDinamicos(pending.filter(function(o) { return o.type === 'dynamic'; }));
-            renderRutaManuales(pending.filter(function(o) { return o.type === 'manual'; }));
+            
+            // Apply Dynamic Filter
+            let finalPending = pending;
+            if (rutaFilter === 'recurrent') finalPending = pending.filter(o => o.type === 'recurrent');
+            if (rutaFilter === 'dynamic') finalPending = pending.filter(o => o.type === 'dynamic');
+
+            renderRutaHornada(finalPending);
+            renderRutaRecurrentes(finalPending.filter(function(o) { return o.type === 'recurrent'; }));
+            renderRutaDinamicos(finalPending.filter(function(o) { return o.type === 'dynamic'; }));
+            renderRutaManuales(finalPending.filter(function(o) { return o.type === 'manual'; }));
             renderRutaFinalizadas(done);
             renderRutaStats();
 
@@ -8372,11 +8622,18 @@
                 
                 var nowIso = new Date().toISOString();
                 
-                // Excluimos datos locales de prueba
-                if (!orderId.startsWith('man-') && !orderId.startsWith('dyn-') && !orderId.startsWith('rec-')) {
+                // Sincronizar con Airtable (incluye pedidos locales)
+                if (typeof globalStats !== 'undefined' && globalStats.pedidos) {
+                    var orderToSync = globalStats.pedidos.find(function(o) { return o.id === orderId; });
+                    if (orderToSync) {
+                        orderToSync.completed = true;
+                        orderToSync.completedAt = nowIso;
+                        await syncOrderToAirtable(orderToSync, 'update');
+                    }
+                } else if (!orderId.startsWith('man-') && !orderId.startsWith('dyn-') && !orderId.startsWith('rec-')) {
                     await DulceAPI.updateRecord('PEDIDOS', orderId, {
-                        "completed": true,
-                        "completedat": nowIso
+                        "Completed": true,
+                        "Completedat": nowIso
                     });
                 }
                 
@@ -8397,33 +8654,116 @@
             }
         };
 
-        window.deleteRutaTask = function(taskId) {
-            // Nota: Podríamos agregar deleteRecord a DulceAPI en el futuro
-            if (typeof globalStats !== 'undefined' && globalStats.pedidos) {
-                globalStats.pedidos = globalStats.pedidos.filter(function(o) { return o.id !== taskId; });
+        window.deleteRutaTask = async function(taskId) {
+            console.log("[RUTA_DELETE] Solicitado borrado de ID:", taskId);
+            
+            if (!taskId || String(taskId) === 'undefined') {
+                console.warn("[RUTA_DELETE] Intento de borrar pedido con ID no válido.");
+                if (typeof window.mostrarToast === 'function') window.mostrarToast('ID de pedido no válido', 3000, 'alert-triangle');
+                return;
             }
-            renderRuta();
+
+            Swal.fire({
+                title: '¿Eliminar pedido?',
+                text: '¿Seguro que quieres eliminar este pedido?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#D4AF37',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)',
+                customClass: {
+                    popup: 'glass-panel',
+                    confirmButton: 'premium-btn',
+                    cancelButton: 'premium-btn-outline'
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const api = (typeof DulceAPI !== 'undefined') ? DulceAPI : window.DulceAPI;
+                        const tables = typeof getTablesMap === 'function' ? getTablesMap() : {};
+                        const hasAirtable = api && tables.PEDIDOS;
+
+                        // 1. Intentar borrar en Airtable si el ID parece de Airtable o si está en globalStats
+                        if (hasAirtable) {
+                            var orderToDelete = (typeof globalStats !== 'undefined' && globalStats.pedidos)
+                                ? globalStats.pedidos.find(function(o) { return String(o.id) === String(taskId); })
+                                : null;
+
+                            if (orderToDelete) {
+                                await syncOrderToAirtable(orderToDelete, 'delete');
+                            } else if (typeof taskId === 'string' && !taskId.startsWith('man-') && !taskId.startsWith('dyn-') && !taskId.startsWith('rec-')) {
+                                await api.deleteRecord('PEDIDOS', taskId);
+                            }
+                        }
+                        
+                        // 2. Borrado local SIEMPRE (para que el usuario vea el cambio)
+                        if (typeof globalStats !== 'undefined' && globalStats.pedidos) {
+                            globalStats.pedidos = globalStats.pedidos.filter(function(o) { return String(o.id) !== String(taskId); });
+                        }
+                        
+                        // Reforzar borrado en localStorage si es persistente
+                        const localData = getRutaData();
+                        if (localData && localData.orders) {
+                            localData.orders = localData.orders.filter(function(o) { return String(o.id) !== String(taskId); });
+                            saveRutaData(localData);
+                        }
+
+                        renderRuta();
+                        if (typeof window.mostrarToast === 'function') window.mostrarToast('Pedido eliminado', 2000, 'check');
+                    } catch (err) {
+                        console.error("[RUTA_DELETE] Error:", err);
+                        if (typeof window.mostrarToast === 'function') window.mostrarToast('Error al eliminar', 3000, 'alert-triangle');
+                        // Forzar renderizado por si acaso
+                        renderRuta();
+                    }
+                }
+            });
         };
 
         window.restoreRutaOrder = async function(orderId) {
             try {
-                if (typeof DulceAPI !== 'undefined' && getTablesMap().PEDIDOS) {
-                    if (!orderId.startsWith('man-') && !orderId.startsWith('dyn-') && !orderId.startsWith('rec-')) {
-                        await DulceAPI.updateRecord('PEDIDOS', orderId, {
-                            "completed": false,
-                            "completedat": null
-                        });
-                    }
-                }
                 if (typeof globalStats !== 'undefined' && globalStats.pedidos) {
                     var order = globalStats.pedidos.find(function(o) { return o.id === orderId; });
-                    if (order) { order.completed = false; order.completedAt = null; }
+                    if (order) {
+                        order.completed = false;
+                        order.completedAt = null;
+                        await syncOrderToAirtable(order, 'update');
+                    }
+                } else if (typeof DulceAPI !== 'undefined' && getTablesMap().PEDIDOS) {
+                    if (!orderId.startsWith('man-') && !orderId.startsWith('dyn-') && !orderId.startsWith('rec-')) {
+                        await DulceAPI.updateRecord('PEDIDOS', orderId, {
+                            "Completed": false,
+                            "Completedat": null
+                        });
+                    }
                 }
             } catch (e) {
                 console.error("Error restaurando pedido en Airtable", e);
             } finally {
                 renderRuta();
             }
+        };
+
+        window.openNewOrderModal = function() {
+            document.getElementById('editTaskId').value = 'man-' + Date.now();
+            document.getElementById('editTaskName').value = '';
+            document.getElementById('editTaskQty').value = '';
+            document.getElementById('editTaskUnit').value = 'Uds';
+            document.getElementById('editTaskSchedule').value = '';
+            document.getElementById('editTaskClient').value = '';
+            document.getElementById('editTaskPhone').value = '';
+            document.getElementById('editTaskNotes').value = '';
+
+            // Por defecto es manual
+            document.getElementById('editTaskSchedule').style.display = 'none';
+            document.getElementById('editTaskClient').style.display = 'none';
+            document.getElementById('editTaskPhone').style.display = 'none';
+
+            var modal = document.getElementById('editTaskModal');
+            if (modal) modal.classList.add('open');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         };
 
         // --- Modal Editar Tarea ---
@@ -8461,32 +8801,63 @@
             if (modal) modal.classList.remove('open');
         };
 
-        window.saveEditTask = function() {
+        window.saveEditTask = async function() {
             var orderId = document.getElementById('editTaskId').value;
             var data = getRutaData();
-            var order = data.orders.find(function(o) { return o.id === orderId; });
+            var order = (typeof globalStats !== 'undefined' && globalStats.pedidos) 
+                ? globalStats.pedidos.find(function(o) { return o.id === orderId; })
+                : data.orders.find(function(o) { return o.id === orderId; });
+                
             if (!order) return;
-
+ 
             var newName = document.getElementById('editTaskName').value.trim();
             if (!newName) { alert('El nombre no puede estar vacío.'); return; }
-
-            order.product = newName;
-            order.quantity = parseInt(document.getElementById('editTaskQty').value) || order.quantity || 0;
-            order.unit = document.getElementById('editTaskUnit').value.trim() || order.unit || '';
-            order.note = document.getElementById('editTaskNotes').value.trim();
-
+ 
+            var fieldsToSync = {
+                "Product": newName,
+                "Quantity": parseInt(document.getElementById('editTaskQty').value) || 0,
+                "Unit": document.getElementById('editTaskUnit').value.trim(),
+                "Note": document.getElementById('editTaskNotes').value.trim()
+            };
+ 
+            // Actualización local
+            order.product = fieldsToSync.Product;
+            order.quantity = fieldsToSync.Quantity;
+            order.unit = fieldsToSync.Unit;
+            order.note = fieldsToSync.Note;
+ 
             if (order.type === 'recurrent') {
                 var newSchedule = document.getElementById('editTaskSchedule').value.trim();
-                if (newSchedule && newSchedule !== order.schedule) {
-                    order.schedule = newSchedule;
-                    order.days = parseScheduleDays(newSchedule);
-                }
+                order.schedule = newSchedule;
+                order.days = parseScheduleDays(newSchedule);
+                fieldsToSync["Schedule"] = newSchedule;
             }
             if (order.type === 'dynamic') {
                 order.client = document.getElementById('editTaskClient').value.trim();
                 order.clientPhone = document.getElementById('editTaskPhone').value.trim();
+                fieldsToSync["Client"] = order.client;
+                fieldsToSync["Phone"] = order.clientPhone;
             }
-
+ 
+            // Sincronizar con Airtable (todos los pedidos, incluyendo locales)
+            if (window.DulceAPI) {
+                try {
+                    if (typeof window.mostrarToast === 'function') window.mostrarToast('Guardando cambios...', 2000, 'loader');
+                    if (order.airtableId) {
+                        await window.DulceAPI.updateRecord('PEDIDOS', order.airtableId, fieldsToSync);
+                    } else if (!orderId.startsWith('man-') && !orderId.startsWith('dyn-') && !orderId.startsWith('rec-')) {
+                        await window.DulceAPI.updateRecord('PEDIDOS', orderId, fieldsToSync);
+                    } else {
+                        var result = await window.DulceAPI.createRecord('PEDIDOS', fieldsToSync);
+                        if (result && result.id) order.airtableId = result.id;
+                    }
+                    if (typeof window.mostrarToast === 'function') window.mostrarToast('¡Nube Actualizada!', 2000, 'check');
+                } catch (err) {
+                    console.error("Error sincronizando edición:", err);
+                    if (typeof window.mostrarToast === 'function') window.mostrarToast('Error de sincronización', 3000, 'alert-triangle');
+                }
+            }
+ 
             saveRutaData(data);
             closeEditModal();
             renderRuta();
@@ -8637,8 +9008,135 @@
                 m.style.opacity = '0';
                 setTimeout(function() {
                     m.style.display = 'none';
+                    // Reset selection
+                    const master = document.getElementById('gestorSelectAll');
+                    if(master) master.checked = false;
+                    window.updateBulkToolbar();
                 }, 300);
             }
+        };
+
+        window.toggleSelectAllGestor = function(master) {
+            const checks = document.querySelectorAll('.gestor-row-checkbox');
+            checks.forEach(c => c.checked = master.checked);
+            window.updateBulkToolbar();
+        };
+
+        window.updateBulkToolbar = function() {
+            const checks = document.querySelectorAll('.gestor-row-checkbox:checked');
+            const toolbar = document.getElementById('bulkActionsToolbar');
+            const countEl = document.getElementById('bulkSelectedCount');
+            
+            if (checks.length > 0) {
+                if(countEl) countEl.textContent = checks.length;
+                if(toolbar) toolbar.classList.add('visible');
+            } else {
+                if(toolbar) toolbar.classList.remove('visible');
+                const master = document.getElementById('gestorSelectAll');
+                if(master) master.checked = false;
+            }
+        };
+
+        window.bulkUpdateStatus = function(field, value) {
+            const checks = document.querySelectorAll('.gestor-row-checkbox:checked');
+            if (checks.length === 0) return;
+
+            const ids = Array.from(checks).map(c => c.getAttribute('data-id'));
+            
+            Swal.fire({
+                title: '¿Actualizar ' + ids.length + ' pedidos?',
+                text: 'Se marcarán como ' + (field === 'pagado' ? 'Pagados' : 'Listos'),
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#D4AF37',
+                confirmButtonText: 'Sí, actualizar'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const pedidos = (typeof globalStats !== 'undefined' && globalStats.pedidos) ? globalStats.pedidos : [];
+                        ids.forEach(id => {
+                            const p = pedidos.find(o => (o.id === id || o._id === id));
+                            if (p) {
+                                if (field === 'pagado') {
+                                    p.estado_pago = 'pagado';
+                                    p.completed = true;
+                                    p.completedAt = new Date().toISOString();
+                                } else {
+                                    p.estado_produccion = 'listo';
+                                }
+                            }
+                        });
+                        
+                        // Sync with Airtable
+                        if (window.DulceAPI) {
+                            for (const id of ids) {
+                                const p = pedidos.find(o => (o.id === id || o._id === id));
+                                await DulceAPI.updatePedido(id, {
+                                    estado_pago: p.estado_pago,
+                                    estado_produccion: p.estado_produccion,
+                                    completed: p.completed,
+                                    completedAt: p.completedAt
+                                });
+                            }
+                        }
+
+                        renderContextGestorMaestro();
+                        if (typeof renderRuta === 'function') renderRuta();
+                        window.updateBulkToolbar();
+                        
+                        Swal.fire('¡Actualizado!', 'Los pedidos han sido actualizados.', 'success');
+                    } catch (e) {
+                        console.error('Error bulk update:', e);
+                        Swal.fire('Error', 'No se pudieron actualizar los pedidos.', 'error');
+                    }
+                }
+            });
+        };
+
+        window.bulkDeleteOrders = function() {
+            const checks = document.querySelectorAll('.gestor-row-checkbox:checked');
+            if (checks.length === 0) return;
+
+            const ids = Array.from(checks).map(c => c.getAttribute('data-id'));
+
+            Swal.fire({
+                title: '¿Eliminar ' + ids.length + ' pedidos?',
+                text: "Esta acción no se puede deshacer.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Sí, eliminar'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        let pedidos = (typeof globalStats !== 'undefined' && globalStats.pedidos) ? globalStats.pedidos : [];
+                        
+                        if (window.DulceAPI) {
+                            for (const id of ids) {
+                                await DulceAPI.deletePedido(id);
+                            }
+                        }
+
+                        // Local update
+                        globalStats.pedidos = globalStats.pedidos.filter(p => !ids.includes(p.id || p._id));
+
+                        renderContextGestorMaestro();
+                        if (typeof renderRuta === 'function') renderRuta();
+                        window.updateBulkToolbar();
+
+                        Swal.fire('¡Eliminado!', 'Los pedidos han sido eliminados.', 'success');
+                    } catch (e) {
+                        console.error('Error bulk delete:', e);
+                        Swal.fire('Error', 'No se pudieron eliminar los pedidos.', 'error');
+                    }
+                }
+            });
+        };
+
+        window.imprimirListaProduccion = function() {
+            const info = document.getElementById('print-date-info');
+            if(info) info.textContent = 'Fecha de reporte: ' + new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
+            window.print();
         };
 
         window.renderContextGestorMaestro = function() {
@@ -8706,6 +9204,9 @@
                 }
 
                 html += '<tr class="gestor-row">';
+                html += '<td class="gestor-checkbox-col" style="padding: 16px 24px;">' +
+                        '<input type="checkbox" class="gestor-checkbox gestor-row-checkbox" data-id="' + (p.id || p._id) + '" onclick="event.stopPropagation(); window.updateBulkToolbar()">' +
+                        '</td>';
                 html += '<td style="padding: 16px 24px; color: var(--text-secondary);">' + dateStr + '</td>';
                 html += '<td style="padding: 16px 24px; font-weight: 600; color: var(--text-primary);">' + (p.client || 'Sin Cliente') + '</td>';
                 html += '<td style="padding: 16px 24px; color: var(--text-secondary);">' + (p.product || '-') + '</td>';
@@ -8985,15 +9486,15 @@
 
                 var currentISOTime = new Date().toISOString();
                 var fields = {
-                    "product": name,
-                    "quantity": qty,
-                    "unit": unit,
-                    "type": "manual",
-                    "note": note,
-                    "completed": false,
-                    "fecha_entrega": window.rutaSelectedDate || currentISOTime.split('T')[0],
-                    "days": JSON.stringify(selectedDays),
-                    "createdAt": currentISOTime
+                    "Product": name,
+                    "Quantity": qty,
+                    "Unit": unit,
+                    "Type": "manual",
+                    "Note": note,
+                    "Completed": false,
+                    "Fecha entrega": window.rutaSelectedDate || currentISOTime.split('T')[0],
+                    "Days": JSON.stringify(selectedDays),
+                    "CreatedAt": currentISOTime
                 };
 
                 // Pushing to Cloud if possible
@@ -9018,8 +9519,10 @@
                         note: note,
                         completed: false,
                         completedAt: null,
-                        fecha_entrega: fields.fecha_entrega
+                        fecha_entrega: fields["Fecha entrega"]
                     });
+                    // Persistir en localStorage scoped
+                    saveRutaData({ version: 2, date: new Date().toISOString().slice(0, 10), orders: globalStats.pedidos });
                 }
             } catch (err) {
                 console.error("Error inyectando pedido:", err);
@@ -9279,6 +9782,11 @@
                         <option value="entregado">Entregado</option>
                         <option value="pagado">Pagado</option>
                     </select>
+                    <!-- Botón de Impresión -->
+                    <button class="gestor-btn-print" onclick="imprimirListaProduccion()" style="background: rgba(var(--bg-card-rgb), 0.1); border: 1px solid var(--border); color: var(--text-primary); padding: 10px 16px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; transition: all 0.2s;">
+                        <i data-lucide="printer" style="width: 16px;"></i>
+                        Imprimir
+                    </button>
                 </div>
             </div>
 
@@ -9286,6 +9794,10 @@
             <div style="flex: 1; overflow-y: auto; padding: 0;">
                 <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
                     <thead style="position: sticky; top: 0; background: var(--bg-card); z-index: 10; box-shadow: 0 1px 0 var(--border);">
+                        <tr>
+                            <th class="gestor-checkbox-col" style="padding: 16px 24px; width: 40px;">
+                                <input type="checkbox" class="gestor-checkbox" id="gestorSelectAll" onclick="toggleSelectAllGestor(this)">
+                            </th>
                             <th style="padding: 16px 24px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Fecha</th>
                             <th style="padding: 16px 24px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Cliente</th>
                             <th style="padding: 16px 24px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Producto</th>
@@ -9304,10 +9816,65 @@
                     <p style="font-size: 13px; margin-top: 4px;">Ajusta los filtros o la búsqueda.</p>
                 </div>
             </div>
+
+            <!-- Print Header (solo visible al imprimir) -->
+            <div class="print-header">
+                <h1>Lista de Producción DulceOS</h1>
+                <p id="print-date-info"></p>
+            </div>
+
+            <!-- Barra de Acciones en Bloque -->
+            <div id="bulkActionsToolbar" class="bulk-toolbar">
+                <div class="bulk-info">
+                    <span id="bulkSelectedCount">0</span> seleccionados
+                </div>
+                <button class="bulk-btn" onclick="bulkUpdateStatus('entregado', true)">
+                    <i data-lucide="package-check" style="width: 14px;"></i> Listo
+                </button>
+                <button class="bulk-btn" onclick="bulkUpdateStatus('pagado', true)">
+                    <i data-lucide="credit-card" style="width: 14px;"></i> Pagado
+                </button>
+                <button class="bulk-btn delete" onclick="bulkDeleteOrders()">
+                    <i data-lucide="trash-2" style="width: 14px;"></i> Eliminar
+                </button>
+            </div>
             
         </div>
     </div>
     
     <script src="public/js/settings.js"></script>
+    <script>
+        async function checkGlobalNotices() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) return;
+                const response = await fetch('/api/active-notices', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!response.ok) return;
+                const data = await response.json();
+                if (data.success && data.notices && data.notices.length > 0) {
+                    const latestNotice = data.notices[0];
+                    const storageKey = 'closed_notice_' + latestNotice.id;
+                    const lastSeen = localStorage.getItem(storageKey);
+                    
+                    // Solo mostramos si no se ha visto o si ha sido actualizado después de cerrarlo
+                    if (!lastSeen || lastSeen !== String(latestNotice.created_at)) {
+                        Swal.fire({
+                            title: 'Mensaje de DulceOS',
+                            text: latestNotice.content,
+                            icon: latestNotice.type || 'info',
+                            confirmButtonText: 'Entendido',
+                            confirmButtonColor: '#e40000',
+                            backdrop: `rgba(0,0,0,0.4)`
+                        }).then(() => {
+                            localStorage.setItem(storageKey, latestNotice.created_at);
+                        });
+                    }
+                }
+            } catch (err) { console.error(err); }
+        }
+        document.addEventListener('DOMContentLoaded', () => { setTimeout(checkGlobalNotices, 1500); });
+    </script>
 </body>
 </html>

@@ -14,16 +14,6 @@ const jwt = require('jsonwebtoken');
  * @returns {Object|null} - Payload decodificado o null
  */
 function authMiddleware(req, res) {
-    // [BYPASS LOCAL] Permitir acceso sin login si estamos en localhost (prioridad máxima)
-    const host = req.hostname;
-    const ip = req.ip || req.connection.remoteAddress;
-    const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1' || ip === '::1' || ip === '127.0.0.1';
-    
-    if (isLocal) {
-        // En local no necesitamos validar JWT
-        return { id: 'local-user', role: 'admin' };
-    }
-
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {

@@ -554,6 +554,7 @@
         <div class="tabs-container">
             <button class="tab-btn active" onclick="switchTab('clients', this)">Clientes</button>
             <button class="tab-btn" onclick="switchTab('admins', this)">Administradores</button>
+            <button class="tab-btn" onclick="switchTab('notices', this)">Avisos Globales</button>
         </div>
 
         <!-- ===== CLIENTES SECTION ===== -->
@@ -591,6 +592,10 @@
         <section id="view-admins" class="view-section">
             <div class="section-header">
                 <h2 class="section-title">Administradores</h2>
+                <button class="btn-primary" onclick="openAdminModal()">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                    Nuevo Administrador
+                </button>
             </div>
 
             <div class="table-card">
@@ -601,6 +606,7 @@
                                 <th>Nombre</th>
                                 <th>Email</th>
                                 <th>Fecha de creacion</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="admins-tbody">
@@ -610,6 +616,84 @@
                 </div>
             </div>
         </section>
+
+        <!-- ===== AVISOS SECTION ===== -->
+        <section id="view-notices" class="view-section">
+            <div class="section-header">
+                <h2 class="section-title">Avisos Globales</h2>
+            </div>
+            
+            <div class="table-card" style="margin-bottom: 24px;">
+                <div style="padding: 24px;">
+                    <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 16px;">Crear nuevo aviso</h3>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label>Mensaje del aviso (Popup)</label>
+                            <textarea id="notice-content" class="modal-input" style="width: 100%; min-height: 80px; padding: 12px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--input-bg); color: var(--text-primary); font-family: inherit;" placeholder="Ej: Actualización de mantenimiento hoy a las 22:00..."></textarea>
+                        </div>
+                        <div style="display: flex; gap: 12px; align-items: flex-end;">
+                            <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                                <label>Tipo de aviso</label>
+                                <select id="notice-type" style="width: 100%; padding: 12px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--input-bg); color: var(--text-primary); font-family: inherit;">
+                                    <option value="info">Información (Azul)</option>
+                                    <option value="warning">Alerta (Naranja)</option>
+                                    <option value="success">Novedad (Verde)</option>
+                                    <option value="error">Crítico (Rojo)</option>
+                                </select>
+                            </div>
+                            <button class="btn-primary" onclick="createNotice()" style="height: 46px;">Enviar Aviso</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Contenido</th>
+                                <th>Tipo</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="notices-tbody">
+                            <!-- Contenido dinamico -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- ========== MODAL CREAR/EDITAR ADMIN ========== -->
+    <div class="modal-overlay" id="admin-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title" id="admin-modal-title">Editar Administrador</h3>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modal-admin-id">
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="modal-admin-name" placeholder="Nombre del administrador">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="modal-admin-email" placeholder="admin@ejemplo.com">
+                </div>
+                <div class="form-group">
+                    <label id="label-admin-password">Nueva Contraseña (opcional)</label>
+                    <input type="password" id="modal-admin-password" placeholder="Dejar vacío para no cambiar">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeAdminModal()">Cancelar</button>
+                <button class="btn-save" id="btn-admin-save" onclick="saveAdmin()">Guardar Cambios</button>
+            </div>
+        </div>
     </div>
 
     <!-- ========== MODAL CREAR/EDITAR CLIENTE ========== -->
@@ -619,6 +703,15 @@
                 <h3 class="modal-title" id="modal-title">Nuevo Cliente</h3>
             </div>
             <div class="modal-body">
+                <div style="background: var(--primary-light); padding: 14px; border-radius: 12px; margin-bottom: 22px; border: 1px solid rgba(200,134,10,0.2);">
+                    <h4 style="font-size: 14px; margin-bottom: 8px; color: var(--primary); font-weight: 600;">Paso 1: Duplicar Plantilla Airtable</h4>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">Copia la base de datos estructural para este nuevo cliente. Al duplicarla en tu Airtable, obtendrás un nuevo <strong style="color: var(--text-primary)">Base ID</strong>.</p>
+                    <a href="https://airtable.com/appSf2sNpbpScfgIk" target="_blank" class="btn-primary" style="display: inline-flex; text-decoration: none; padding: 8px 14px; font-size: 13px; border-radius: 8px;">
+                        Copiar Plantilla ↗
+                    </a>
+                </div>
+
+                <h4 style="font-size: 14px; margin-bottom: 16px; color: var(--text-primary); font-weight: 600; padding-top: 8px; border-top: 1px solid var(--border);">Paso 2: Datos del Cliente</h4>
                 <input type="hidden" id="modal-client-id">
 
                 <div class="form-group">
@@ -657,9 +750,7 @@
         // ============================================================
         // CONFIG
         // ============================================================
-        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:3001'
-            : 'https://dulce-y-jaleo-backend.xm1sa3.easypanel.host';
+        const API_BASE = '';
 
         function getAuthHeaders() {
             return {
@@ -783,6 +874,8 @@
                 loadClients();
             } else if (tab === 'admins') {
                 loadAdmins();
+            } else if (tab === 'notices') {
+                loadNotices();
             }
         }
 
@@ -955,6 +1048,7 @@
         // ============================================================
         // LOAD ADMINS
         // ============================================================
+        let adminsData = [];
         async function loadAdmins() {
             renderAdminsSkeleton();
 
@@ -967,12 +1061,12 @@
                 }
 
                 const data = await response.json();
-                const admins = data.admins || [];
-                renderAdmins(admins);
+                adminsData = data.admins || [];
+                renderAdmins(adminsData);
             } catch (e) {
                 console.error('Error cargando admins:', e);
                 document.getElementById('admins-tbody').innerHTML = `
-                    <tr><td colspan="3">
+                    <tr><td colspan="4">
                         <div class="empty-state">
                             <div class="empty-icon">&#9888;</div>
                             <div class="empty-title">Error al cargar administradores</div>
@@ -988,7 +1082,7 @@
 
             if (!admins || admins.length === 0) {
                 tbody.innerHTML = `
-                    <tr><td colspan="3">
+                    <tr><td colspan="4">
                         <div class="empty-state">
                             <div class="empty-icon">&#128119;</div>
                             <div class="empty-title">No hay administradores</div>
@@ -1005,11 +1099,113 @@
                         <td><strong>${escapeHtml(admin.name || '-')}</strong></td>
                         <td class="td-email">${escapeHtml(admin.email || '-')}</td>
                         <td>${formatDateShort(admin.created_at)}</td>
+                        <td>
+                            <div class="actions-cell">
+                                <button class="btn-action" title="Editar" onclick="editAdmin('${admin.id}')">
+                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                                        <path d="M11 2a1.414 1.414 0 012 2L5 12 2 13l1-3L11 2z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                                <button class="btn-action btn-danger" title="Eliminar" onclick="deleteAdmin('${admin.id}', '${escapeHtml(admin.name || '')}')">
+                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                                        <path d="M3 4.5h9M5.5 4.5V3a1 1 0 011-1h2a1 1 0 011 1v1.5M6 7v3.5M9 7v3.5M4 4.5l.5 7.5a1 1 0 001 1h4a1 1 0 001-1l.5-7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
                     </tr>
                 `;
             });
 
             tbody.innerHTML = html;
+        }
+
+        // ============================================================
+        // LOAD/MANAGE NOTICES
+        // ============================================================
+        async function loadNotices() {
+            const tbody = document.getElementById('notices-tbody');
+            tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">Cargando avisos...</div></td></tr>';
+
+            try {
+                const response = await authFetch(API_BASE + '/api/admin/notices');
+                if (!response) return;
+                const data = await response.json();
+                renderNotices(data.notices || []);
+            } catch (e) {
+                console.error('Error cargando avisos:', e);
+                tbody.innerHTML = '<tr><td colspan="5">Error al cargar avisos</td></tr>';
+            }
+        }
+
+        function renderNotices(notices) {
+            const tbody = document.getElementById('notices-tbody');
+            if (notices.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">No hay avisos creados</div></td></tr>';
+                return;
+            }
+
+            let html = '';
+            notices.forEach(n => {
+                const badgeType = n.type === 'error' ? 'badge-inactive' : 'badge-active';
+                html += `
+                    <tr>
+                        <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(n.content)}</td>
+                        <td><span class="badge ${badgeType}">${n.type.toUpperCase()}</span></td>
+                        <td>${formatDateShort(n.created_at)}</td>
+                        <td>
+                            <span class="badge ${n.active ? 'badge-active' : 'badge-inactive'}">
+                                ${n.active ? 'Activo' : 'Inactivo'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="actions-cell">
+                                <button class="btn-action btn-danger" title="Eliminar" onclick="deleteNotice('${n.id}')">
+                                    <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
+                                        <path d="M1.5 1.5l12 12m0-12l-12 12" stroke="currentColor" stroke-width="2"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        }
+
+        async function createNotice() {
+            const content = document.getElementById('notice-content').value;
+            const type = document.getElementById('notice-type').value;
+
+            if (!content) {
+                alert('Escribe un mensaje para el aviso.');
+                return;
+            }
+
+            try {
+                const response = await authFetch(API_BASE + '/api/admin/notices', {
+                    method: 'POST',
+                    body: JSON.stringify({ content, type, active: true })
+                });
+
+                if (response.ok) {
+                    document.getElementById('notice-content').value = '';
+                    loadNotices();
+                    Swal.fire({ icon: 'success', title: 'Aviso enviado', toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+                }
+            } catch (e) {
+                alert('Error al crear el aviso');
+            }
+        }
+
+        async function deleteNotice(id) {
+            if (!confirm('¿Eliminar este aviso?')) return;
+            try {
+                const response = await authFetch(API_BASE + `/api/admin/notices/${id}`, { method: 'DELETE' });
+                if (response.ok) loadNotices();
+            } catch (e) {
+                alert('Error al eliminar');
+            }
         }
 
         // ============================================================
@@ -1292,6 +1488,153 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // ============================================================
+        // MANAGE ADMINS (EDIT / DELETE / SAVE)
+        // ============================================================
+        function openAdminModal(adminId = null) {
+            const modal = document.getElementById('admin-modal');
+            const title = document.getElementById('admin-modal-title');
+            const passLabel = document.getElementById('label-admin-password');
+            const passInput = document.getElementById('modal-admin-password');
+            
+            if (adminId) {
+                // MODO EDICIÓN
+                const admin = adminsData.find(a => a.id === adminId);
+                if (!admin) return;
+
+                title.textContent = 'Editar Administrador';
+                passLabel.textContent = 'Nueva Contraseña (opcional)';
+                passInput.placeholder = 'Dejar vacío para no cambiar';
+                passInput.required = false;
+
+                document.getElementById('modal-admin-id').value = admin.id;
+                document.getElementById('modal-admin-name').value = admin.name || '';
+                document.getElementById('modal-admin-email').value = admin.email || '';
+            } else {
+                // MODO CREACIÓN
+                title.textContent = 'Nuevo Administrador';
+                passLabel.textContent = 'Contraseña';
+                passInput.placeholder = 'Contraseña inicial';
+                passInput.required = true;
+
+                document.getElementById('modal-admin-id').value = '';
+                document.getElementById('modal-admin-name').value = '';
+                document.getElementById('modal-admin-email').value = '';
+            }
+            
+            document.getElementById('modal-admin-password').value = '';
+            modal.classList.add('visible');
+        }
+
+        function editAdmin(adminId) {
+            openAdminModal(adminId);
+        }
+
+        function closeAdminModal() {
+            document.getElementById('admin-modal').classList.remove('visible');
+        }
+
+        async function saveAdmin() {
+            const id = document.getElementById('modal-admin-id').value;
+            const name = document.getElementById('modal-admin-name').value.trim();
+            const email = document.getElementById('modal-admin-email').value.trim();
+            const password = document.getElementById('modal-admin-password').value;
+
+            if (!name || !email || (!id && !password)) {
+                alert('Nombre, Email y Contraseña son obligatorios para nuevos administradores.');
+                return;
+            }
+
+            const btn = document.getElementById('btn-admin-save');
+            btn.disabled = true;
+            btn.textContent = 'Guardando...';
+
+            try {
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? API_BASE + `/api/admin/admins/${id}` : API_BASE + '/api/admin/admins';
+
+                const response = await authFetch(url, {
+                    method: method,
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                if (response.ok) {
+                    showToast(id ? 'Administrador actualizado' : 'Administrador creado');
+                    closeAdminModal();
+                    loadAdmins();
+                } else {
+                    const err = await response.json();
+                    alert(err.error || 'Error al guardar');
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Error de conexión');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Guardar Cambios';
+            }
+        }
+
+        async function deleteAdmin(adminId, name) {
+            const result = await Swal.fire({
+                title: '¿Eliminar Administrador?',
+                text: `Vas a eliminar a ${name}. Esta acción no se puede deshacer.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#E05252'
+            });
+
+            if (!result.isConfirmed) return;
+
+            try {
+                const response = await authFetch(API_BASE + `/api/admin/admins/${adminId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showToast('Administrador eliminado');
+                    loadAdmins();
+                } else {
+                    const err = await response.json();
+                    Swal.fire('Error', err.error || 'No se pudo eliminar', 'error');
+                }
+            } catch (e) {
+                alert('Error al eliminar');
+            }
+        }
+
+        async function deleteNotice(noticeId) {
+            const result = await Swal.fire({
+                title: '¿Eliminar aviso?',
+                text: 'Este aviso desaparecerá para todos los clientes.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Eliminar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#E05252'
+            });
+
+            if (!result.isConfirmed) return;
+
+            try {
+                const response = await authFetch(API_BASE + `/api/admin/notices/${noticeId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    showToast('Aviso eliminado');
+                    loadNotices();
+                } else {
+                    const err = await response.json();
+                    alert(err.error || 'Error al eliminar aviso');
+                }
+            } catch (e) {
+                alert('Error de conexión');
+            }
         }
 
         // ============================================================

@@ -170,11 +170,12 @@ Campos requeridos:
         });
 
         // 5. Guardar en Airtable EN BACKGROUND (no bloquea la respuesta)
-        // Usa el baseId del JWT del usuario
+        // Usa el baseId del JWT del usuario y el token global del .env
+        const effectiveToken = (process.env.AIRTABLE_API_KEY || '').trim();
         fetch(`${AIRTABLE_API}/${baseId}/${encodeURIComponent(tableId)}`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${TOKEN}`,
+                'Authorization': `Bearer ${effectiveToken}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ records: [{ fields }] })
@@ -268,7 +269,9 @@ router.post('/lovable-webhook', express.raw({ type: '*/*', limit: '10mb' }), asy
         }
 
         // Re-usar la lógica de scan-invoice haciendo un fetch interno
-        const internalRes = await fetch(`http://localhost:${process.env.PORT || 3001}/webhook/scan-invoice`, {
+        // IMPORTANTE: Usar el puerto dinámico del .env, no uno fijo
+        const port = process.env.PORT || 3002;
+        const internalRes = await fetch(`http://localhost:${port}/webhook/scan-invoice`, {
             method: 'POST',
             headers: internalHeaders,
             body: JSON.stringify({ image, mimeType })
