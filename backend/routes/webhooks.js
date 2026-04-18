@@ -268,10 +268,15 @@ router.post('/lovable-webhook', express.raw({ type: '*/*', limit: '10mb' }), asy
             internalHeaders['Authorization'] = req.headers.authorization;
         }
 
-        // Re-usar la lógica de scan-invoice haciendo un fetch interno
-        // IMPORTANTE: Usar el puerto dinámico del .env, no uno fijo
-        const port = process.env.PORT || 3002;
-        const internalRes = await fetch(`http://localhost:${port}/webhook/scan-invoice`, {
+        // Re-usar la lógica de scan-invoice haciendo un fetch a la URL pública
+        // En Vercel: usar VERCEL_URL (https://xxx.vercel.app)
+        // En localhost: usar http://localhost:PORT
+        const isVercel = process.env.VERCEL === 'true';
+        const baseUrl = isVercel
+            ? `https://${process.env.VERCEL_URL}`
+            : `http://localhost:${process.env.PORT || 3002}`;
+
+        const internalRes = await fetch(`${baseUrl}/api/webhook/scan-invoice`, {
             method: 'POST',
             headers: internalHeaders,
             body: JSON.stringify({ image, mimeType })

@@ -1,7 +1,7 @@
 {
   "name": "DulceOS",
   "short_name": "DulceOS",
-  "description": "Gestión inteligente de operaciones B2B por JaleOS",
+  "description": "Gestión inteligente de operaciones B2B — DulceOS",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#F5F0E1",
