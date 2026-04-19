@@ -3257,11 +3257,13 @@
             font-weight: 700;
             margin-bottom: 2px;
             color: var(--text-primary);
+            text-align: center;
         }
 
         .scanner-text p {
             font-size: 11px;
             color: var(--text-muted);
+            text-align: center;
         }
 
         .scanner-btn-circle {
@@ -4251,8 +4253,8 @@
                 <div style="width: 64px; height: 64px; background: linear-gradient(135deg, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.05) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--gold); border: 1px solid rgba(212,175,55,0.2); box-shadow: 0 8px 16px rgba(0,0,0,0.1);">
                     <i data-lucide="scan-line" style="width: 32px; height: 32px;"></i>
                 </div>
-                <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">Subir Documento</h3>
-                <p style="font-size: 13px; color: var(--text-muted); padding: 0 10px;">Captura facturas o albaranes para extracción automática con IA</p>
+                <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; text-align: center;">Subir Documento</h3>
+                <p style="font-size: 13px; color: var(--text-muted); padding: 0 10px; text-align: center;">Captura facturas o albaranes para extracción automática con IA</p>
             </div>
             <!-- Banner de estado del backend -->
             <div id="backendStatusBanner" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:0 var(--gutter) 16px;padding:8px 16px;border-radius:50px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);">
@@ -5087,11 +5089,12 @@
                 <span class="nav-label">MÁRGENES</span>
             </button>
 
-            <!-- Ruta -->
+            <!-- Hoja de Ruta — desactivada para lanzamiento v1. Descomentar cuando esté lista.
             <button class="nav-btn" data-tab="ruta" onclick="activateTab('ruta')">
                 <span class="nav-icon"><i data-lucide="map"></i></span>
                 <span class="nav-label">HOJA RUTA</span>
             </button>
+            -->
         </div>
     </nav>
 
