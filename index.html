@@ -6629,9 +6629,10 @@
             resetScanner();
 
             // ✅ Auto-refrescar la lista de Facturas después del escaneo
-            setTimeout(() => {
-                if (typeof renderFacturas === 'function') renderFacturas();
-            }, 1500);
+            setTimeout(async () => {
+                globalStats.loaded = false; // fuerza refresco del dashboard
+                if (typeof loadFacturas === 'function') await loadFacturas();
+            }, 2000);
         }
 
         // ───── BACKEND STATUS BANNER ─────
@@ -6642,7 +6643,8 @@
             try {
                 const ctrl = new AbortController();
                 setTimeout(() => ctrl.abort(), 2000);
-                const res = await fetch((window.DulceAPI?.API_BASE || 'http://localhost:3001') + '/health', { signal: ctrl.signal });
+                const base = (window.DulceAPI?.API_BASE !== undefined) ? window.DulceAPI.API_BASE : 'http://localhost:3001';
+                const res = await fetch(base + '/health', { signal: ctrl.signal });
                 if (res.ok) {
                     dot.style.background  = '#10b981';
                     dot.style.boxShadow   = '0 0 6px rgba(16,185,129,0.6)';
