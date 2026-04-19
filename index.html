@@ -54,18 +54,36 @@
             --text-primary: #1a1c1d;
             --text-secondary: #5f6368;
             --text-muted: #8e8e93;
-            
+
+            /* Warm palette */
+            --white: #ffffff;
+            --warm-50: #faf9f7;
+            --warm-100: #f0ece5;
+            --warm-200: #e4ddd2;
+            --warm-300: #d4cab8;
+
+            /* Accent */
+            --rose: #c0392b;
+            --rose-light: #e05a4b;
+            --rose-dark: #962d22;
+            --rose-glow: rgba(192, 57, 43, 0.35);
+
+            /* Misc */
+            --success: #10b981;
+            --radius-native: 20px;
+            --cyan-glow: 0 0 12px rgba(0, 200, 255, 0.2);
+
             /* Glass & Depth */
             --glass-bg: rgba(255, 255, 255, 0.85);
             --glass-blur: blur(20px);
             --border: rgba(0, 0, 0, 0.05);
             --border-soft: rgba(0, 0, 0, 0.02);
-            
+
             /* Shadows Apple Style */
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
             --shadow-md: 0 12px 32px rgba(26, 28, 29, 0.08); /* Sombra ambiental Stitch */
             --shadow-lg: 0 24px 64px rgba(26, 28, 29, 0.12);
-            
+
             --gutter: 24px;
             --radius-pill: 50px;
             --radius-card: 32px;
@@ -83,6 +101,11 @@
             --border: rgba(255, 255, 255, 0.08);
             --border-soft: rgba(255, 255, 255, 0.03);
             --shadow-md: 0 12px 48px rgba(0, 0, 0, 0.5);
+            --white: #1e1e1e;
+            --warm-50: #1a1a18;
+            --warm-100: #222220;
+            --warm-200: #2a2a26;
+            --warm-300: #363630;
         }
 
         * {
@@ -6910,7 +6933,7 @@
                             <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);"><i data-lucide="file-text" style="width:11px;height:11px;"></i>${f.numero_doc || 'S/N'}</span>
                             ${f.cif ? `<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);"><i data-lucide="building" style="width:11px;height:11px;"></i>${f.cif}</span>` : ''}
                         </div>
-                        <button onclick='openFacturaModal(${JSON.stringify(f).replace(/'/g, "&#39;")})' style="width:100%;padding:11px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:var(--text-primary);font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                        <button onclick='openFacturaModal(${JSON.stringify(f).replace(/'/g, "&#39;")})' style="width:100%;padding:11px;border-radius:12px;border:1px solid var(--border);background:var(--warm-100);color:var(--text-primary);font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
                             <i data-lucide="eye" style="width:14px;height:14px;"></i>Ver Detalles
                         </button>
                     </div>`;
