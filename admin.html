@@ -879,6 +879,10 @@
                     <h2>Administradores</h2>
                     <span class="count-badge" id="admins-count">0</span>
                 </div>
+                <button class="btn-primary" onclick="openAdminModal()">
+                    <i data-lucide="plus"></i>
+                    Nuevo Admin
+                </button>
             </div>
 
             <div class="table-card">
@@ -889,6 +893,7 @@
                                 <th>Nombre</th>
                                 <th>Email</th>
                                 <th>Fecha de creación</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody id="admins-tbody">
@@ -939,6 +944,43 @@
             <div class="modal-footer">
                 <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
                 <button class="btn-save" id="btn-modal-save" onclick="saveClient()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MODAL CREAR/EDITAR ADMIN ========== -->
+    <div class="modal-overlay" id="admin-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 class="modal-title" id="admin-modal-title">Nuevo Administrador</h3>
+                <button class="modal-close-btn" onclick="closeAdminModal()">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="admin-modal-id">
+
+                <div class="form-group">
+                    <label for="admin-modal-name">Nombre</label>
+                    <input type="text" id="admin-modal-name" placeholder="Nombre del administrador">
+                    <div class="form-error" id="error-admin-name">El nombre es obligatorio</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="admin-modal-email">Email</label>
+                    <input type="email" id="admin-modal-email" placeholder="admin@ejemplo.com">
+                    <div class="form-error" id="error-admin-email">Introduce un email válido</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="admin-modal-password" id="label-admin-password">Contraseña</label>
+                    <input type="password" id="admin-modal-password" placeholder="Contraseña">
+                    <div class="form-error" id="error-admin-password">La contraseña es obligatoria</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeAdminModal()">Cancelar</button>
+                <button class="btn-save" id="btn-admin-modal-save" onclick="saveAdmin()">Guardar</button>
             </div>
         </div>
     </div>
@@ -1052,6 +1094,7 @@
                         <td><div class="skeleton-bar w-60"></div></td>
                         <td><div class="skeleton-bar w-60"></div></td>
                         <td><div class="skeleton-bar w-40"></div></td>
+                        <td><div class="skeleton-bar w-20"></div></td>
                     </tr>
                 `;
             }
@@ -1150,13 +1193,16 @@
                         <td>${formatDate(client.last_login || client.updated_at)}</td>
                         <td>
                             <div class="actions-cell">
-                                <button class="btn-action" title="${toggleLabel}" onclick="toggleClient(${client.id}, '${escapeHtml(client.name || '')}', ${isActive})">
+                                <button class="btn-action" title="${toggleLabel}"
+                                    data-action="toggle" data-id="${client.id}" data-name="${escapeHtml(client.name || '')}" data-active="${isActive}">
                                     <i data-lucide="${isActive ? 'toggle-right' : 'toggle-left'}"></i>
                                 </button>
-                                <button class="btn-action" title="Editar" onclick="editClient(${client.id})">
+                                <button class="btn-action" title="Editar"
+                                    data-action="edit" data-id="${client.id}">
                                     <i data-lucide="pencil"></i>
                                 </button>
-                                <button class="btn-action btn-danger" title="Eliminar" onclick="deleteClient(${client.id}, '${escapeHtml(client.name || '')}')">
+                                <button class="btn-action btn-danger" title="Eliminar"
+                                    data-action="delete" data-id="${client.id}" data-name="${escapeHtml(client.name || '')}">
                                     <i data-lucide="trash-2"></i>
                                 </button>
                             </div>
@@ -1170,6 +1216,16 @@
                 lucide.createIcons({ attrs: { 'stroke-width': 1.8, 'stroke': 'currentColor' } });
             }
         }
+
+        // ── Event delegation para botones de cliente ──
+        document.getElementById('clients-tbody').addEventListener('click', function(e) {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            const { action, id, name, active } = btn.dataset;
+            if (action === 'toggle') toggleClient(id, name, active === 'true');
+            if (action === 'edit')   editClient(id);
+            if (action === 'delete') deleteClient(id, name);
+        });
 
         // ============================================================
         // UPDATE STATS
@@ -1198,7 +1254,7 @@
             } catch (e) {
                 console.error('Error cargando admins:', e);
                 document.getElementById('admins-tbody').innerHTML = `
-                    <tr><td colspan="3">
+                    <tr><td colspan="4">
                         <div class="empty-state">
                             <div class="empty-icon">⚠️</div>
                             <div class="empty-title">Error al cargar administradores</div>
@@ -1209,13 +1265,16 @@
             }
         }
 
+        let adminsData = [];
+
         function renderAdmins(admins) {
+            adminsData = admins || [];
             const tbody = document.getElementById('admins-tbody');
             document.getElementById('admins-count').textContent = admins.length;
 
             if (!admins || admins.length === 0) {
                 tbody.innerHTML = `
-                    <tr><td colspan="3">
+                    <tr><td colspan="4">
                         <div class="empty-state">
                             <div class="empty-icon">🛡️</div>
                             <div class="empty-title">No hay administradores</div>
@@ -1225,18 +1284,38 @@
                 return;
             }
 
+            const currentUser = DulceAuth.getUserInfo();
+            const currentUserId = currentUser ? String(currentUser.id) : null;
+
             let html = '';
             admins.forEach(admin => {
+                const isSelf = currentUserId && String(admin.id) === currentUserId;
                 html += `
                     <tr>
                         <td class="td-name">${escapeHtml(admin.name || '—')}</td>
                         <td class="td-email">${escapeHtml(admin.email || '—')}</td>
                         <td>${formatDateShort(admin.created_at)}</td>
+                        <td>
+                            <div class="actions-cell">
+                                <button class="btn-action" title="Editar"
+                                    data-admin-action="edit" data-id="${admin.id}">
+                                    <i data-lucide="pencil"></i>
+                                </button>
+                                ${!isSelf ? `
+                                <button class="btn-action btn-danger" title="Eliminar"
+                                    data-admin-action="delete" data-id="${admin.id}" data-name="${escapeHtml(admin.name || '')}">
+                                    <i data-lucide="trash-2"></i>
+                                </button>` : ''}
+                            </div>
+                        </td>
                     </tr>
                 `;
             });
 
             tbody.innerHTML = html;
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons({ attrs: { 'stroke-width': 1.8, 'stroke': 'currentColor' } });
+            }
         }
 
         // ============================================================
@@ -1265,7 +1344,7 @@
                 passwordInput.placeholder = 'Dejar vacío para no cambiar';
                 passwordInput.required = false;
 
-                const client = clientsData.find(c => c.id === clientId);
+                const client = clientsData.find(c => String(c.id) === String(clientId));
                 if (client) {
                     document.getElementById('modal-client-id').value = client.id;
                     document.getElementById('modal-name').value = client.name || '';
@@ -1480,6 +1559,174 @@
                     color: '#000'
                 }
             }).showToast();
+        }
+
+        // ── Event delegation para botones de admin ──
+        document.getElementById('admins-tbody').addEventListener('click', function(e) {
+            const btn = e.target.closest('[data-admin-action]');
+            if (!btn) return;
+            const { adminAction, id, name } = btn.dataset;
+            if (adminAction === 'edit')   editAdmin(id);
+            if (adminAction === 'delete') deleteAdmin(id, name);
+        });
+
+        // ============================================================
+        // ADMIN MODAL
+        // ============================================================
+        let isAdminEditMode = false;
+        let editingAdminId = null;
+
+        function openAdminModal(adminId) {
+            const modal = document.getElementById('admin-modal');
+            const title = document.getElementById('admin-modal-title');
+            const passwordLabel = document.getElementById('label-admin-password');
+            const passwordInput = document.getElementById('admin-modal-password');
+
+            document.getElementById('admin-modal-id').value = '';
+            document.getElementById('admin-modal-name').value = '';
+            document.getElementById('admin-modal-email').value = '';
+            document.getElementById('admin-modal-password').value = '';
+            document.querySelectorAll('#admin-modal .form-error').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('#admin-modal .form-group input').forEach(el => el.style.borderColor = '');
+
+            if (adminId) {
+                isAdminEditMode = true;
+                editingAdminId = adminId;
+                title.textContent = 'Editar Administrador';
+                passwordLabel.textContent = 'Contraseña (opcional)';
+                passwordInput.placeholder = 'Dejar vacío para no cambiar';
+                passwordInput.required = false;
+
+                const admin = adminsData.find(a => String(a.id) === String(adminId));
+                if (admin) {
+                    document.getElementById('admin-modal-id').value = admin.id;
+                    document.getElementById('admin-modal-name').value = admin.name || '';
+                    document.getElementById('admin-modal-email').value = admin.email || '';
+                }
+            } else {
+                isAdminEditMode = false;
+                editingAdminId = null;
+                title.textContent = 'Nuevo Administrador';
+                passwordLabel.textContent = 'Contraseña';
+                passwordInput.placeholder = 'Contraseña';
+                passwordInput.required = true;
+            }
+
+            modal.classList.add('visible');
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons({ attrs: { 'stroke-width': 1.8, 'stroke': 'currentColor' } });
+            }
+        }
+
+        function closeAdminModal() {
+            document.getElementById('admin-modal').classList.remove('visible');
+        }
+
+        document.getElementById('admin-modal').addEventListener('click', function(e) {
+            if (e.target === this) closeAdminModal();
+        });
+
+        function editAdmin(adminId) {
+            openAdminModal(adminId);
+        }
+
+        async function saveAdmin() {
+            const name = document.getElementById('admin-modal-name').value.trim();
+            const email = document.getElementById('admin-modal-email').value.trim();
+            const password = document.getElementById('admin-modal-password').value;
+
+            // Validation
+            let valid = true;
+            document.querySelectorAll('#admin-modal .form-error').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('#admin-modal .form-group input').forEach(el => el.style.borderColor = '');
+
+            if (!name) {
+                document.getElementById('admin-modal-name').style.borderColor = 'var(--red)';
+                document.getElementById('error-admin-name').style.display = 'block';
+                valid = false;
+            }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailRegex.test(email)) {
+                document.getElementById('admin-modal-email').style.borderColor = 'var(--red)';
+                document.getElementById('error-admin-email').style.display = 'block';
+                valid = false;
+            }
+            if (!isAdminEditMode && !password) {
+                document.getElementById('admin-modal-password').style.borderColor = 'var(--red)';
+                document.getElementById('error-admin-password').style.display = 'block';
+                valid = false;
+            }
+            if (!valid) return;
+
+            const btnSave = document.getElementById('btn-admin-modal-save');
+            btnSave.disabled = true;
+            btnSave.textContent = 'Guardando...';
+
+            try {
+                let response;
+                if (isAdminEditMode && editingAdminId) {
+                    const body = { name, email };
+                    if (password) body.password = password;
+                    response = await authFetch(API_BASE + '/api/admin/admins/' + editingAdminId, {
+                        method: 'PUT',
+                        body: JSON.stringify(body)
+                    });
+                } else {
+                    response = await authFetch(API_BASE + '/api/admin/admins', {
+                        method: 'POST',
+                        body: JSON.stringify({ name, email, password })
+                    });
+                }
+
+                if (!response) return;
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error || errData.message || 'Error al guardar');
+                }
+
+                closeAdminModal();
+                showToast(isAdminEditMode ? '✅ Admin actualizado' : '✅ Admin creado');
+                loadAdmins();
+            } catch (e) {
+                console.error('Error guardando admin:', e);
+                Swal.fire({ icon: 'error', title: 'Error', text: e.message, confirmButtonColor: '#D4AF37' });
+            } finally {
+                btnSave.disabled = false;
+                btnSave.textContent = 'Guardar';
+            }
+        }
+
+        async function deleteAdmin(adminId, adminName) {
+            const result = await Swal.fire({
+                title: `¿Eliminar a ${adminName}?`,
+                text: 'Esta acción no se puede deshacer.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Eliminar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#FF3B30',
+                cancelButtonColor: '#6B7280'
+            });
+
+            if (!result.isConfirmed) return;
+
+            try {
+                const response = await authFetch(API_BASE + '/api/admin/admins/' + adminId, {
+                    method: 'DELETE'
+                });
+
+                if (!response) return;
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.error || 'Error al eliminar administrador');
+                }
+
+                showToast('🗑️ Admin eliminado');
+                loadAdmins();
+            } catch (e) {
+                console.error('Error delete admin:', e);
+                Swal.fire({ icon: 'error', title: 'Error', text: e.message, confirmButtonColor: '#D4AF37' });
+            }
         }
 
         // ============================================================
