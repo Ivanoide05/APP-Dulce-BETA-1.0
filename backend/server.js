@@ -96,6 +96,10 @@ app.use('/api/admin', adminRoutes);
 const apiRoutes = require('./routes/api');
 app.use('/api', apiRoutes);
 
+// --- Rutas de Export trimestral ---
+const exportRoutes = require('./routes/export');
+app.use('/export', exportRoutes);
+
 // --- Rutas Webhooks con rate limiting específico en el escáner ---
 const webhookRoutes = require('./routes/webhooks');
 app.use('/webhook/scan-invoice', scannerLimiter);

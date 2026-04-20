@@ -6,6 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../lib/authMiddleware');
+const supabase = require('../lib/supabaseClient');
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
@@ -169,25 +170,48 @@ Campos requeridos:
             ocr_ms: ocrTime
         });
 
-        // 5. Guardar en Airtable EN BACKGROUND (no bloquea la respuesta)
-        // Usa el baseId del JWT del usuario y el token global del .env
+        // 5. Background: subir imagen a Supabase Storage, luego guardar en Airtable
         const effectiveToken = (process.env.AIRTABLE_API_KEY || '').trim();
-        fetch(`${AIRTABLE_API}/${baseId}/${encodeURIComponent(tableId)}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${effectiveToken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ records: [{ fields }] })
-        }).then(airtableRes => {
-            if (!airtableRes.ok) {
-                airtableRes.text().then(t => console.error(`[SCANNER] Airtable save failed: ${t.substring(0, 200)}`));
-            } else {
-                console.log(`[SCANNER] Guardado en Airtable (${destino}) — total: ${Date.now() - startTime}ms`);
+        (async () => {
+            let imagenStoragePath = null;
+            try {
+                const now = new Date();
+                const quarter = Math.ceil((now.getMonth() + 1) / 3);
+                const ext = (mimeType || 'image/jpeg').split('/')[1] || 'jpg';
+                const clientId = user.client_id || user.id;
+                const storagePath = `${clientId}/${now.getFullYear()}/Q${quarter}/${Date.now()}.${ext}`;
+                const imageBuffer = Buffer.from(image, 'base64');
+                const { error: uploadErr } = await supabase.storage
+                    .from('facturas-clientes')
+                    .upload(storagePath, imageBuffer, { contentType: mimeType || 'image/jpeg', upsert: false });
+                if (uploadErr) {
+                    console.error('[SCANNER] Storage upload failed:', uploadErr.message);
+                } else {
+                    imagenStoragePath = storagePath;
+                    console.log('[SCANNER] Imagen en Storage:', storagePath);
+                }
+            } catch (storageErr) {
+                console.error('[SCANNER] Storage error:', storageErr.message);
             }
-        }).catch(err => {
-            console.error(`[SCANNER] Airtable save error: ${err.message}`);
-        });
+
+            if (imagenStoragePath) fields['IMAGEN_URL'] = imagenStoragePath;
+
+            try {
+                const airtableRes = await fetch(`${AIRTABLE_API}/${baseId}/${encodeURIComponent(tableId)}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${effectiveToken}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ records: [{ fields }] })
+                });
+                if (!airtableRes.ok) {
+                    const t = await airtableRes.text();
+                    console.error(`[SCANNER] Airtable save failed: ${t.substring(0, 200)}`);
+                } else {
+                    console.log(`[SCANNER] Guardado en Airtable (${destino}) — total: ${Date.now() - startTime}ms`);
+                }
+            } catch (err) {
+                console.error(`[SCANNER] Airtable save error: ${err.message}`);
+            }
+        })();
 
     } catch (err) {
         console.error('[WEBHOOK] scan-invoice error:', err.message);

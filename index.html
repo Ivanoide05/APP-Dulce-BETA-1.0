@@ -4351,6 +4351,32 @@
                 <span id="totalPeriodoBanner" style="font-size:24px;font-weight:900;color:var(--gold);font-family:'Syne',sans-serif;">0.00 €</span>
             </div>
 
+            <!-- EXPORT TRIMESTRAL -->
+            <div class="glass-panel" style="margin:16px var(--gutter) 8px;padding:16px 20px;border-radius:20px;border:1px solid rgba(212,175,55,0.15);text-align:center;">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;opacity:0.4;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:5px;">
+                    <i data-lucide="archive" style="width:12px;height:12px;color:var(--gold);"></i>
+                    Exportar para asesoría
+                </div>
+                <div style="display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap;">
+                    <select id="exportYear" style="padding:8px 12px;border-radius:50px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:var(--text-primary);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">
+                        <option value="2026">2026</option>
+                        <option value="2025" selected>2025</option>
+                        <option value="2024">2024</option>
+                    </select>
+                    <select id="exportQ" style="padding:8px 12px;border-radius:50px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:var(--text-primary);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">
+                        <option value="1">Q1 · Ene–Mar</option>
+                        <option value="2">Q2 · Abr–Jun</option>
+                        <option value="3">Q3 · Jul–Sep</option>
+                        <option value="4">Q4 · Oct–Dic</option>
+                    </select>
+                    <button id="exportBtn" onclick="exportarTrimestre()" style="padding:8px 18px;border-radius:50px;border:none;background:var(--gold);color:#000;font-family:'Outfit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                        <i data-lucide="download" style="width:13px;height:13px;"></i>
+                        ZIP
+                    </button>
+                </div>
+                <div id="exportStatus" style="margin-top:8px;font-size:11px;color:var(--text-muted);display:none;"></div>
+            </div>
+
             <div id="facturasList"></div>
         </div>
 
@@ -9903,6 +9929,46 @@
             } catch (err) { console.error(err); }
         }
         document.addEventListener('DOMContentLoaded', () => { setTimeout(checkGlobalNotices, 1500); });
+    </script>
+    <script>
+        async function exportarTrimestre() {
+            const year = document.getElementById('exportYear').value;
+            const q = document.getElementById('exportQ').value;
+            const token = localStorage.getItem('auth_token');
+            if (!token) { alert('Debes iniciar sesión para exportar.'); return; }
+
+            const btn = document.getElementById('exportBtn');
+            const status = document.getElementById('exportStatus');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;"></i> Generando...';
+            status.style.display = 'block';
+            status.textContent = 'Preparando archivos... Esto puede tardar unos segundos.';
+
+            try {
+                const res = await fetch(`/export/trimestre?year=${year}&q=${q}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({ error: 'Error desconocido' }));
+                    throw new Error(err.error || 'Error al generar el ZIP');
+                }
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `DulceOS_Q${q}_${year}.zip`;
+                a.click();
+                URL.revokeObjectURL(url);
+                status.textContent = `ZIP descargado: DulceOS_Q${q}_${year}.zip`;
+            } catch (e) {
+                status.textContent = 'Error: ' + e.message;
+                console.error('[EXPORT]', e);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="download" style="width:14px;height:14px;"></i> Descargar ZIP';
+                if (window.lucide) lucide.createIcons();
+            }
+        }
     </script>
 </body>
 </html>
