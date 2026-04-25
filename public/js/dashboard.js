@@ -16,8 +16,16 @@ function getDetailedAnalytics() {
     }
 
     const now    = new Date();
-    // Mes actual en formato YYYY-MM
     const mesStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+    const mes1Date = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const mes2Date = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    const mes1Str  = mes1Date.getFullYear() + '-' + String(mes1Date.getMonth() + 1).padStart(2, '0');
+    const mes2Str  = mes2Date.getFullYear() + '-' + String(mes2Date.getMonth() + 1).padStart(2, '0');
+
+    const diasEnMes    = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const dailyCurrent = new Array(diasEnMes).fill(0);
+    let prevMonthTotal = 0, prev2MonthTotal = 0;
 
     const trendCube    = [0, 0, 0, 0, 0, 0, 0];
     const activityCube = [0, 0, 0, 0, 0, 0, 0];
@@ -56,7 +64,11 @@ function getDetailedAnalytics() {
             if (prov !== 'Desconocido') {
                 provMap[prov] = (provMap[prov] || 0) + (rec.total || 0);
             }
+            const dayIdx = recDate.getDate() - 1;
+            if (dayIdx >= 0 && dayIdx < diasEnMes) dailyCurrent[dayIdx] += (rec.total || 0);
         }
+        if (scanDate.startsWith(mes1Str)) prevMonthTotal  += (rec.total || 0);
+        if (scanDate.startsWith(mes2Str)) prev2MonthTotal += (rec.total || 0);
     }
 
     const distTotal = distMap.FACTURA + distMap.ALBARAN + distMap.GASTOS_VARIOS || 1;
@@ -75,7 +87,8 @@ function getDetailedAnalytics() {
             valor: Math.round(valor)
         }));
 
-    const result = { trend: trendCube, activity: activityCube, distribution, distRaw, topProveedores, dayLabels };
+    const mesActualTotal = distMap.FACTURA + distMap.ALBARAN + distMap.GASTOS_VARIOS;
+    const result = { trend: trendCube, activity: activityCube, distribution, distRaw, topProveedores, dayLabels, dailyCurrent, prevMonthTotal, prev2MonthTotal, mesActualTotal, diasEnMes };
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(result)); } catch(e) {}
     return result;
 }
@@ -148,15 +161,33 @@ function updateDashboardPremium() {
     if (!globalStats.loaded) return;
 
     const analytics = getDetailedAnalytics();
-    const topVals = analytics.topProveedores.length > 0
-        ? analytics.topProveedores.map(p => p.valor)
-        : [0, 0, 0, 0, 0];
 
-    // Actualizar Gráficas Bento
-    renderMiniChart('miniChartTrend',        analytics.trend,        '#D4AF37', '€', 'line', { labels: analytics.dayLabels });
-    renderMiniChart('miniChartActivity',     analytics.activity,     '#10b981', 'u', 'bar',  { labels: analytics.dayLabels });
-    renderMiniChart('miniChartDistribution', analytics.distribution, '#3b82f6', '%', 'bar',  { labels: ['F','A','G'] });
-    renderMiniChart('miniChartBalance',      topVals,                '#D4AF37', '€', 'bar',  { labels: analytics.topProveedores.map(p=>p.nombre) });
+    // Badge dinámico vs mes anterior
+    const badgeEl = document.querySelector('.bento-trend');
+    if (badgeEl) {
+        if (analytics.mesActualTotal > 0 && analytics.prevMonthTotal > 0) {
+            const deltaPct = ((analytics.mesActualTotal - analytics.prevMonthTotal) / analytics.prevMonthTotal * 100).toFixed(1);
+            const isUp = deltaPct >= 0;
+            badgeEl.className = 'bento-trend ' + (isUp ? 'trend-up' : 'trend-down');
+            badgeEl.style.display = '';
+            badgeEl.innerHTML = `<i data-lucide="${isUp ? 'arrow-up-right' : 'arrow-down-right'}" style="width:12px;"></i><span>${isUp ? '+' : ''}${deltaPct}% vs mes anterior</span>`;
+        } else if (analytics.mesActualTotal > 0) {
+            badgeEl.className = 'bento-trend';
+            badgeEl.style.display = '';
+            badgeEl.innerHTML = `<span>Mes nuevo</span>`;
+        } else {
+            badgeEl.style.display = 'none';
+        }
+        if (window.lucide) lucide.createIcons();
+    }
+
+    // Render 4 tarjetas KPI del carrusel (definidas en index.html inline)
+    if (typeof renderCarousel1Proyeccion === 'function') renderCarousel1Proyeccion(analytics);
+    if (typeof renderCarousel2TopProveedores === 'function') renderCarousel2TopProveedores(analytics);
+    if (typeof renderCarousel3ProveedorTop === 'function') renderCarousel3ProveedorTop(analytics);
+    if (typeof renderCarousel4Comparativa === 'function') renderCarousel4Comparativa(analytics);
+
+    if (typeof initCarouselDots === 'function') initCarouselDots();
 }
 
 /**

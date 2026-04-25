@@ -2040,6 +2040,38 @@
             background: var(--gold);
             border-radius: 10px;
         }
+        body:not(.dark-theme) .dot { background: rgba(0,0,0,0.18); }
+
+        /* Botones nav carrusel — solo desktop */
+        .carousel-nav-btn {
+            display: none;
+            position: absolute;
+            top: calc(50% - 18px);
+            transform: translateY(-50%);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border);
+            color: var(--gold);
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            padding: 0;
+        }
+        .carousel-nav-btn:disabled { opacity: 0 !important; pointer-events: none; }
+        .carousel-nav-btn.prev { left: -14px; }
+        .carousel-nav-btn.next { right: -14px; }
+        @media (min-width: 768px) {
+            .carousel-nav-btn { display: flex; }
+            .carousel-charts-container:hover .carousel-nav-btn:not(:disabled) { opacity: 1; }
+        }
+        body:not(.dark-theme) .carousel-nav-btn { background: rgba(0,0,0,0.05); }
 
 
         /* ===== [FASE 13] HEALTH BADGES & SPARKLINES ===== */
@@ -2493,66 +2525,7 @@
             --glass-border: rgba(255, 255, 255, 0.1);
         }
 
-        /* --- [NUEVO] Carousel Charts Style v3.0 --- */
-    .carousel-charts-wrapper {
-        display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        gap: 12px;
-        padding: 4px 0 12px;
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE 10+ */
-    }
-    .carousel-charts-wrapper::-webkit-scrollbar {
-        display: none; /* Chrome/Safari */
-    }
-    .carousel-chart-item {
-        flex: 0 0 100%;
-        scroll-snap-align: center;
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 18px;
-        padding: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        min-height: 110px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-    .carousel-chart-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 10px;
-    }
-    .carousel-chart-header i {
-        width: 14px;
-        color: var(--gold);
-    }
-    .carousel-chart-header span {
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--text-muted);
-    }
-    .carousel-dots {
-        display: flex;
-        justify-content: center;
-        gap: 6px;
-        margin-top: 4px;
-    }
-    .dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 3px;
-        background: rgba(255, 255, 255, 0.15);
-        transition: all 0.3s ease;
-    }
-    .dot.active {
-        width: 18px;
-        background: var(--gold);
-    }
-    /* --- [FIN] Carousel Style --- */
+        /* --- [NUEVO] Carousel Charts Style v3.0 — bloque consolidado arriba --- */
 
         .bento-grid {
             display: grid;
@@ -3552,43 +3525,57 @@
                             </div>
                         </div>
 
-                        <!-- [NUEVO] Carrusel de Diagramas Responsivo v3.0 -->
+                        <!-- Carrusel de KPIs v4.0 -->
                         <div class="carousel-charts-container" style="margin-top: 20px; margin-bottom: 10px; position: relative;">
+                            <button class="carousel-nav-btn prev" id="carouselPrev" onclick="carouselNav(-1)">&#8249;</button>
                             <div class="carousel-charts-wrapper" id="carouselWrapper">
-                                <!-- Tarjeta 1: Tendencia (Línea) -->
+
+                                <!-- Tarjeta 1: Proyección fin de mes -->
                                 <div class="carousel-chart-item">
                                     <div class="carousel-chart-header">
                                         <i data-lucide="trending-up"></i>
-                                        <span>Tendencia Mensual</span>
+                                        <span>Proyección Mes</span>
                                     </div>
-                                    <div id="miniChartTrend" class="bento-chart-mini" style="height: 88px;"></div>
+                                    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+                                        <div id="c1-actual" style="font-size:18px;font-weight:800;color:var(--text-primary);">—</div>
+                                        <div style="text-align:right;">
+                                            <div style="font-size:9px;color:var(--text-muted);margin-bottom:1px;">fin de mes</div>
+                                            <div id="c1-proyeccion" style="font-size:12px;font-weight:700;color:var(--gold);">~—</div>
+                                        </div>
+                                    </div>
+                                    <div id="miniChartTrend" class="bento-chart-mini" style="height:52px;"></div>
                                 </div>
-                                <!-- Tarjeta 2: Actividad Diaria (Línea) -->
+
+                                <!-- Tarjeta 2: Top Proveedores del mes -->
                                 <div class="carousel-chart-item">
                                     <div class="carousel-chart-header">
-                                        <i data-lucide="activity"></i>
-                                        <span>Actividad Diaria</span>
+                                        <i data-lucide="users"></i>
+                                        <span>Top Proveedores</span>
                                     </div>
-                                    <div id="miniChartActivity" class="bento-chart-mini" style="height: 88px;"></div>
+                                    <div id="miniChartActivity" style="flex:1;overflow:hidden;"></div>
                                 </div>
-                                <!-- Tarjeta 3: Distribución (Pie) -->
+
+                                <!-- Tarjeta 3: Mayor gasto (proveedor #1) -->
                                 <div class="carousel-chart-item">
                                     <div class="carousel-chart-header">
-                                        <i data-lucide="pie-chart"></i>
-                                        <span>Distribución Gastos</span>
+                                        <i data-lucide="award"></i>
+                                        <span>Mayor Gasto</span>
                                     </div>
-                                    <div id="miniChartDistribution" class="bento-chart-mini" style="height: 88px;"></div>
+                                    <div id="miniChartDistribution" style="flex:1;display:flex;flex-direction:column;justify-content:center;"></div>
                                 </div>
-                                <!-- Tarjeta 4: Balance (Barras Comparativo) -->
+
+                                <!-- Tarjeta 4: Comparativa 3 meses -->
                                 <div class="carousel-chart-item">
                                     <div class="carousel-chart-header">
                                         <i data-lucide="bar-chart-2"></i>
-                                        <span>Balance vs Anterior</span>
+                                        <span>Comparativa Meses</span>
                                     </div>
-                                    <div id="miniChartBalance" class="bento-chart-mini" style="height: 88px;"></div>
+                                    <div id="miniChartBalance" class="bento-chart-mini" style="height:88px;"></div>
                                 </div>
+
                             </div>
-                            <!-- Indicadores de Navegación (Dots) -->
+                            <button class="carousel-nav-btn next" id="carouselNext" onclick="carouselNav(1)">&#8250;</button>
+                            <!-- Dots -->
                             <div class="carousel-dots" id="carouselDots">
                                 <div class="dot active"></div>
                                 <div class="dot"></div>
@@ -6741,8 +6728,17 @@
             }
 
             const now    = new Date();
-            // Mes actual en formato YYYY-MM, derivado de la fecha de hoy (no de globalStats)
             const mesStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+            // Meses anteriores para comparativa
+            const mes1Date = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const mes2Date = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+            const mes1Str  = mes1Date.getFullYear() + '-' + String(mes1Date.getMonth() + 1).padStart(2, '0');
+            const mes2Str  = mes2Date.getFullYear() + '-' + String(mes2Date.getMonth() + 1).padStart(2, '0');
+
+            const diasEnMes   = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            const dailyCurrent = new Array(diasEnMes).fill(0);
+            let prevMonthTotal = 0, prev2MonthTotal = 0;
 
             const trendCube    = [0, 0, 0, 0, 0, 0, 0];
             const activityCube = [0, 0, 0, 0, 0, 0, 0];
@@ -6775,9 +6771,8 @@
                     activityCube[idx] += 1;
                 }
 
-                // ── Mes actual: distribución + top proveedores ─────────
+                // ── Mes actual: distribución + top proveedores + daily ─
                 if (scanDate.startsWith(mesStr)) {
-                    // Usar origen (tabla de procedencia) para el pie chart — no la cat reclasificada
                     const origenNorm = (rec.origen || '').toUpperCase();
                     if (origenNorm === 'FACTURA' || origenNorm === 'FACTURAS')         distMap.FACTURA       += (rec.total || 0);
                     else if (origenNorm === 'ALBARAN' || origenNorm === 'ALBARANES')   distMap.ALBARAN       += (rec.total || 0);
@@ -6786,7 +6781,12 @@
                     if (prov !== 'Desconocido') {
                         provMap[prov] = (provMap[prov] || 0) + (rec.total || 0);
                     }
+                    const dayIdx = recDate.getDate() - 1;
+                    if (dayIdx >= 0 && dayIdx < diasEnMes) dailyCurrent[dayIdx] += (rec.total || 0);
                 }
+                // ── Meses anteriores ──────────────────────────────────
+                if (scanDate.startsWith(mes1Str)) prevMonthTotal  += (rec.total || 0);
+                if (scanDate.startsWith(mes2Str)) prev2MonthTotal += (rec.total || 0);
             }
 
             // Porcentajes distribución (pie)
@@ -6808,7 +6808,8 @@
                     valor: Math.round(valor)
                 }));
 
-            const result = { trend: trendCube, activity: activityCube, distribution, distRaw, topProveedores, dayLabels };
+            const mesActualTotal = distMap.FACTURA + distMap.ALBARAN + distMap.GASTOS_VARIOS;
+            const result = { trend: trendCube, activity: activityCube, distribution, distRaw, topProveedores, dayLabels, dailyCurrent, prevMonthTotal, prev2MonthTotal, mesActualTotal, diasEnMes };
             try { localStorage.setItem(CACHE_KEY, JSON.stringify(result)); } catch(e) {}
             return result;
         }
@@ -6879,6 +6880,83 @@
             container.innerHTML = '<svg width="100%" height="'+height+'" preserveAspectRatio="none" style="overflow:visible;"><defs><linearGradient id="grad-'+elementId+'" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style="stop-color:'+color+';stop-opacity:0.3"/><stop offset="100%" style="stop-color:'+color+';stop-opacity:0"/></linearGradient></defs><line x1="0" y1="'+avgY.toFixed(1)+'" x2="'+width+'" y2="'+avgY.toFixed(1)+'" stroke="'+color+'" stroke-opacity="0.2" stroke-dasharray="2,2"/><path d="'+pathD+' L '+width+' '+chartHeight+' L 0 '+chartHeight+' Z" fill="url(#grad-'+elementId+')"/><path d="'+pathD+'" fill="none" stroke="'+color+'" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'+labSVGl+'</svg>';
         }
 
+        /* ── Carrusel: navegación con botones ‹ › ── */
+        function carouselNav(dir) {
+            const wrapper = document.getElementById('carouselWrapper');
+            if (!wrapper) return;
+            wrapper.scrollBy({ left: dir * wrapper.offsetWidth, behavior: 'smooth' });
+        }
+
+        /* ── Tarjeta 1: Proyección fin de mes ── */
+        function renderCarousel1Proyeccion(a) {
+            const el = document.getElementById('c1-actual');
+            const elP = document.getElementById('c1-proyeccion');
+            if (!el) return;
+            const total = a.mesActualTotal || 0;
+            const today = new Date().getDate();
+            const daysData = (a.dailyCurrent || []).slice(0, today);
+            const avg = daysData.length > 0 ? daysData.reduce((s,v)=>s+v,0)/daysData.length : 0;
+            const remaining = (a.diasEnMes || 30) - today;
+            const proyeccion = Math.round(total + avg * remaining);
+            el.textContent = total.toLocaleString('es-ES', { maximumFractionDigits: 0 }) + '€';
+            if (elP) elP.textContent = '~' + proyeccion.toLocaleString('es-ES', { maximumFractionDigits: 0 }) + '€';
+            renderMiniChart('miniChartTrend', daysData.length >= 2 ? daysData : a.trend, '#D4AF37', '€', 'line', { labels: [] });
+        }
+
+        /* ── Tarjeta 2: Top Proveedores (barras horizontales) ── */
+        function renderCarousel2TopProveedores(a) {
+            const container = document.getElementById('miniChartActivity');
+            if (!container) return;
+            const top = (a.topProveedores || []).slice(0, 4);
+            if (top.length === 0) {
+                container.innerHTML = '<div style="font-size:11px;color:var(--text-muted);text-align:center;padding-top:20px;">Sin datos este mes</div>';
+                return;
+            }
+            const maxVal = top[0].valor || 1;
+            container.innerHTML = top.map(p => `
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
+                    <div style="font-size:9px;color:var(--text-muted);width:54px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex-shrink:0;">${p.nombre}</div>
+                    <div style="flex:1;background:rgba(255,255,255,0.07);border-radius:4px;height:7px;overflow:hidden;">
+                        <div style="width:${Math.round(p.valor/maxVal*100)}%;height:100%;background:var(--gold);border-radius:4px;"></div>
+                    </div>
+                    <div style="font-size:9px;color:var(--text-muted);width:38px;text-align:right;flex-shrink:0;">${p.valor}€</div>
+                </div>`).join('');
+        }
+
+        /* ── Tarjeta 3: Mayor gasto — proveedor #1 ── */
+        function renderCarousel3ProveedorTop(a) {
+            const container = document.getElementById('miniChartDistribution');
+            if (!container) return;
+            const top = (a.topProveedores || [])[0];
+            if (!top) {
+                container.innerHTML = '<div style="font-size:11px;color:var(--text-muted);text-align:center;">Sin datos</div>';
+                return;
+            }
+            const totalProv = (a.topProveedores || []).reduce((s,p) => s + p.valor, 0) || 1;
+            const pct = Math.round(top.valor / totalProv * 100);
+            container.innerHTML = `
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${top.nombre}</div>
+                <div style="font-size:22px;font-weight:800;color:var(--gold);line-height:1;">${top.valor.toLocaleString('es-ES')}€</div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:6px;">${pct}% del total de proveedores</div>
+                <div style="margin-top:8px;background:rgba(255,255,255,0.07);border-radius:4px;height:5px;overflow:hidden;">
+                    <div style="width:${pct}%;height:100%;background:var(--gold);border-radius:4px;"></div>
+                </div>`;
+        }
+
+        /* ── Tarjeta 4: Comparativa 3 meses ── */
+        function renderCarousel4Comparativa(a) {
+            const mesActual = a.mesActualTotal || 0;
+            const mes1 = a.prevMonthTotal || 0;
+            const mes2 = a.prev2MonthTotal || 0;
+            const now = new Date();
+            const labels = [
+                new Date(now.getFullYear(), now.getMonth()-2, 1).toLocaleString('es-ES',{month:'short'}),
+                new Date(now.getFullYear(), now.getMonth()-1, 1).toLocaleString('es-ES',{month:'short'}),
+                now.toLocaleString('es-ES',{month:'short'})
+            ];
+            renderMiniChart('miniChartBalance', [mes2, mes1, mesActual], '#D4AF37', '€', 'bar', { labels });
+        }
+
         function updateDashboardPremium() {
             // Sincronizar indicadores básicos
             if (globalStats) {
@@ -6898,14 +6976,21 @@
             }
 
             const analytics = getDetailedAnalytics();
-            const topVals = analytics.topProveedores.length > 0
-                ? analytics.topProveedores.map(p => p.valor)
-                : [0, 0, 0, 0, 0];
 
-            renderMiniChart('miniChartTrend',        analytics.trend,        '#D4AF37', '€', 'line',    { labels: analytics.dayLabels });
-            renderMiniChart('miniChartActivity',     analytics.activity,     '#10b981', 'u', 'line',    { labels: analytics.dayLabels });
-            renderMiniChart('miniChartDistribution', analytics.distribution, '#3b82f6', '%', 'pie',     { legend: ['Facturas','Albaranes','Gastos'] });
-            renderMiniChart('miniChartBalance',      topVals,                '#D4AF37', '€', 'bar',     { labels: analytics.topProveedores.map(p=>p.nombre), subtype: 'providers' });
+            // Badge dinámico vs mes anterior
+            const badgeEl = document.querySelector('.bento-trend');
+            if (badgeEl && analytics.prevMonthTotal > 0 && analytics.mesActualTotal > 0) {
+                const deltaPct = ((analytics.mesActualTotal - analytics.prevMonthTotal) / analytics.prevMonthTotal * 100).toFixed(1);
+                const isUp = deltaPct >= 0;
+                badgeEl.className = 'bento-trend ' + (isUp ? 'trend-up' : 'trend-down');
+                badgeEl.innerHTML = `<i data-lucide="${isUp ? 'arrow-up-right' : 'arrow-down-right'}" style="width:12px;"></i><span>${isUp ? '+' : ''}${deltaPct}% vs mes anterior</span>`;
+            }
+
+            // Render 4 tarjetas KPI del carrusel
+            renderCarousel1Proyeccion(analytics);
+            renderCarousel2TopProveedores(analytics);
+            renderCarousel3ProveedorTop(analytics);
+            renderCarousel4Comparativa(analytics);
 
             initCarouselDots();
 
@@ -6918,16 +7003,21 @@
          * Sincroniza el scroll del carrusel con los puntos indicadores (dots)
          */
         function initCarouselDots() {
-            const wrapper = document.getElementById('carouselWrapper');
-            const dots = document.querySelectorAll('#carouselDots .dot');
+            const wrapper  = document.getElementById('carouselWrapper');
+            const dots     = document.querySelectorAll('#carouselDots .dot');
+            const prevBtn  = document.getElementById('carouselPrev');
+            const nextBtn  = document.getElementById('carouselNext');
             if (!wrapper || dots.length === 0) return;
 
-            wrapper.addEventListener('scroll', () => {
-                const index = Math.round(wrapper.scrollLeft / wrapper.offsetWidth);
-                dots.forEach((dot, i) => {
-                    dot.classList.toggle('active', i === index);
-                });
-            });
+            function updateState() {
+                const index = Math.round(wrapper.scrollLeft / (wrapper.offsetWidth || 1));
+                dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+                if (prevBtn) prevBtn.disabled = index === 0;
+                if (nextBtn) nextBtn.disabled = index >= dots.length - 1;
+            }
+
+            wrapper.addEventListener('scroll', updateState, { passive: true });
+            updateState();
         }
 
         // --- Pedidos Dinámicos ---
