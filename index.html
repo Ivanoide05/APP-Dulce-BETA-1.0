@@ -2242,9 +2242,9 @@
         }
         body:not(.dark-theme) .dot { background: rgba(0,0,0,0.18); }
 
-        /* Botones nav carrusel — solo desktop */
+        /* Botones nav carrusel — visibles en todos los tamaños */
         .carousel-nav-btn {
-            display: none;
+            display: flex;
             position: absolute;
             top: calc(50% - 18px);
             transform: translateY(-50%);
@@ -2260,17 +2260,13 @@
             align-items: center;
             justify-content: center;
             z-index: 5;
-            opacity: 0;
+            opacity: 1;
             transition: opacity 0.2s ease;
             padding: 0;
         }
         .carousel-nav-btn:disabled { opacity: 0 !important; pointer-events: none; }
         .carousel-nav-btn.prev { left: -14px; }
         .carousel-nav-btn.next { right: -14px; }
-        @media (min-width: 768px) {
-            .carousel-nav-btn { display: flex; }
-            .carousel-charts-container:hover .carousel-nav-btn:not(:disabled) { opacity: 1; }
-        }
         body:not(.dark-theme) .carousel-nav-btn { background: rgba(0,0,0,0.05); }
 
 
@@ -2925,6 +2921,12 @@
         body.dark-theme {
             --glass-bg: rgba(255, 255, 255, 0.02);
             --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body:not(.dark-theme) .bento-item {
+            background: #ffffff;
+            border-color: rgba(0, 0, 0, 0.07);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
         }
 
         /* --- [NUEVO] Carousel Charts Style v3.0 — bloque consolidado arriba --- */
@@ -4151,7 +4153,7 @@
                 </div>
 
                 <!-- Widget Albaranes (Full width) -->
-                <div class="bento-item" onclick="activateTab('facturas')" style="grid-column: 1 / -1;">
+                <div class="bento-item" onclick="activateTab('facturas')" style="grid-column: 1 / -1; align-items:center; text-align:center;">
                     <div class="bento-label">
                         <i data-lucide="package" style="width: 14px; color: var(--gold);"></i>
                         Albaranes
@@ -4285,50 +4287,8 @@
                 </div>
             </div>
 
-            <!-- FILTROS DE CATEGORÍA -->
-            <div style="padding:0 var(--gutter);margin-bottom:12px;overflow-x:auto;">
-                <div class="sub-tabs glass-panel" id="filterContainer"
-                    style="padding:6px;display:inline-flex;gap:4px;border-radius:50px;white-space:nowrap;">
-                    <button class="sub-tab-btn active" data-filter="all" style="padding:10px 18px;border-radius:50px;display:flex;align-items:center;gap:6px;font-size:13px;">
-                        <i data-lucide="layers" style="width:14px;"></i>Todos
-                    </button>
-                    <button class="sub-tab-btn" data-filter="FACTURA" style="padding:10px 18px;border-radius:50px;display:flex;align-items:center;gap:6px;font-size:13px;">
-                        <i data-lucide="file-check" style="width:14px;"></i>Facturas
-                    </button>
-                    <button class="sub-tab-btn" data-filter="ALBARAN" style="padding:10px 18px;border-radius:50px;display:flex;align-items:center;gap:6px;font-size:13px;">
-                        <i data-lucide="package" style="width:14px;"></i>Albaranes
-                    </button>
-                    <button class="sub-tab-btn" data-filter="GASTOS_VARIOS" style="padding:10px 18px;border-radius:50px;display:flex;align-items:center;gap:6px;font-size:13px;">
-                        <i data-lucide="credit-card" style="width:14px;"></i>Gastos
-                    </button>
-                </div>
-            </div>
-
-            <!-- ORDENACIÓN: Recientes / Mayor precio / Menor precio -->
-            <div style="padding:0 var(--gutter);margin-bottom:16px;display:flex;gap:8px;overflow-x:auto;">
-                <button id="sortBtn-recientes" onclick="setSortFacturas('recientes')"
-                    style="display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:50px;border:none;background:var(--gold);color:#000;font-family:'Outfit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0;">
-                    <i data-lucide="clock" style="width:14px;"></i>Recientes
-                </button>
-                <button id="sortBtn-mayor" onclick="setSortFacturas('mayor')"
-                    style="display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:50px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--text-muted);font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0;">
-                    <i data-lucide="trending-up" style="width:14px;"></i>Mayor precio
-                </button>
-                <button id="sortBtn-menor" onclick="setSortFacturas('menor')"
-                    style="display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:50px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--text-muted);font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0;">
-                    <i data-lucide="trending-down" style="width:14px;"></i>Menor precio
-                </button>
-                <button class="refresh-btn" id="refreshBtn" style="margin-left:auto;padding:10px 16px;border-radius:50px;flex-shrink:0;">🔄</button>
-            </div>
-
-            <!-- TOTAL PERIODO -->
-            <div class="glass-panel" style="margin:0 var(--gutter) 16px;padding:16px 20px;border-radius:20px;border:1px solid rgba(212,175,55,0.15);background:rgba(212,175,55,0.03);display:flex;align-items:center;justify-content:space-between;">
-                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.5;">Total Periodo</span>
-                <span id="totalPeriodoBanner" style="font-size:24px;font-weight:900;color:var(--gold);font-family:'Syne',sans-serif;">0.00 €</span>
-            </div>
-
             <!-- EXPORT TRIMESTRAL -->
-            <div class="glass-panel" style="margin:16px var(--gutter) 8px;padding:16px 20px;border-radius:20px;border:1px solid rgba(212,175,55,0.15);text-align:center;">
+            <div class="glass-panel" style="margin:0 var(--gutter) 16px;padding:16px 20px;border-radius:20px;border:1px solid rgba(212,175,55,0.15);text-align:center;">
                 <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;opacity:0.4;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:5px;">
                     <i data-lucide="archive" style="width:12px;height:12px;color:var(--gold);"></i>
                     Exportar para asesoría
@@ -4353,7 +4313,49 @@
                 <div id="exportStatus" style="margin-top:8px;font-size:11px;color:var(--text-muted);display:none;"></div>
             </div>
 
-            <div id="facturasList"></div>
+            <!-- FILTROS DE CATEGORÍA -->
+            <div style="padding:0 var(--gutter);margin-bottom:12px;">
+                <div class="sub-tabs glass-panel" id="filterContainer"
+                    style="padding:6px;display:flex;gap:4px;border-radius:50px;width:100%;box-sizing:border-box;">
+                    <button class="sub-tab-btn active" data-filter="all" style="padding:8px 0;flex:1;border-radius:50px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;">
+                        <i data-lucide="layers" style="width:14px;"></i>Todos
+                    </button>
+                    <button class="sub-tab-btn" data-filter="FACTURA" style="padding:8px 0;flex:1;border-radius:50px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;">
+                        <i data-lucide="file-check" style="width:14px;"></i>Facturas
+                    </button>
+                    <button class="sub-tab-btn" data-filter="ALBARAN" style="padding:8px 0;flex:1;border-radius:50px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;">
+                        <i data-lucide="package" style="width:14px;"></i>Albaranes
+                    </button>
+                    <button class="sub-tab-btn" data-filter="GASTOS_VARIOS" style="padding:8px 0;flex:1;border-radius:50px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;">
+                        <i data-lucide="credit-card" style="width:14px;"></i>Gastos
+                    </button>
+                </div>
+            </div>
+
+            <!-- TOTAL PERIODO -->
+            <div class="glass-panel" style="margin:0 var(--gutter) 12px;padding:16px 20px;border-radius:20px;border:1px solid rgba(212,175,55,0.15);background:rgba(212,175,55,0.03);display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.5;">Total Periodo</span>
+                <span id="totalPeriodoBanner" style="font-size:24px;font-weight:900;color:var(--gold);font-family:'Syne',sans-serif;">0.00 €</span>
+            </div>
+
+            <!-- ORDENACIÓN: Recientes / Mayor precio / Menor precio -->
+            <div style="padding:0 var(--gutter);margin-bottom:16px;display:flex;gap:6px;flex-wrap:wrap;">
+                <button id="sortBtn-recientes" onclick="setSortFacturas('recientes')"
+                    style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 0;flex:1;min-width:0;border-radius:50px;border:none;background:var(--gold);color:#000;font-family:'Outfit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">
+                    <i data-lucide="clock" style="width:14px;"></i>Recientes
+                </button>
+                <button id="sortBtn-mayor" onclick="setSortFacturas('mayor')"
+                    style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 0;flex:1;min-width:0;border-radius:50px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--text-muted);font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;">
+                    <i data-lucide="trending-up" style="width:14px;"></i>Mayor
+                </button>
+                <button id="sortBtn-menor" onclick="setSortFacturas('menor')"
+                    style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 0;flex:1;min-width:0;border-radius:50px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--text-muted);font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;">
+                    <i data-lucide="trending-down" style="width:14px;"></i>Menor
+                </button>
+                <button class="refresh-btn" id="refreshBtn" style="margin-left:auto;padding:10px 16px;border-radius:50px;flex-shrink:0;">🔄</button>
+            </div>
+
+            <div id="facturasList" style="width:100%;padding:0 var(--gutter);box-sizing:border-box;"></div>
         </div>
 
         <!-- ===== TAB: AGENDA / CONTACTOS ===== -->
