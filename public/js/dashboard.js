@@ -16,8 +16,16 @@ function getDetailedAnalytics() {
     }
 
     const now    = new Date();
-    // Mes actual en formato YYYY-MM
     const mesStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+    const mes1Date = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const mes2Date = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    const mes1Str  = mes1Date.getFullYear() + '-' + String(mes1Date.getMonth() + 1).padStart(2, '0');
+    const mes2Str  = mes2Date.getFullYear() + '-' + String(mes2Date.getMonth() + 1).padStart(2, '0');
+
+    const diasEnMes    = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const dailyCurrent = new Array(diasEnMes).fill(0);
+    let prevMonthTotal = 0, prev2MonthTotal = 0;
 
     const trendCube    = [0, 0, 0, 0, 0, 0, 0];
     const activityCube = [0, 0, 0, 0, 0, 0, 0];
@@ -56,7 +64,11 @@ function getDetailedAnalytics() {
             if (prov !== 'Desconocido') {
                 provMap[prov] = (provMap[prov] || 0) + (rec.total || 0);
             }
+            const dayIdx = recDate.getDate() - 1;
+            if (dayIdx >= 0 && dayIdx < diasEnMes) dailyCurrent[dayIdx] += (rec.total || 0);
         }
+        if (scanDate.startsWith(mes1Str)) prevMonthTotal  += (rec.total || 0);
+        if (scanDate.startsWith(mes2Str)) prev2MonthTotal += (rec.total || 0);
     }
 
     const distTotal = distMap.FACTURA + distMap.ALBARAN + distMap.GASTOS_VARIOS || 1;
@@ -75,7 +87,8 @@ function getDetailedAnalytics() {
             valor: Math.round(valor)
         }));
 
-    const result = { trend: trendCube, activity: activityCube, distribution, distRaw, topProveedores, dayLabels };
+    const mesActualTotal = distMap.FACTURA + distMap.ALBARAN + distMap.GASTOS_VARIOS;
+    const result = { trend: trendCube, activity: activityCube, distribution, distRaw, topProveedores, dayLabels, dailyCurrent, prevMonthTotal, prev2MonthTotal, mesActualTotal, diasEnMes };
     try { localStorage.setItem(CACHE_KEY, JSON.stringify(result)); } catch(e) {}
     return result;
 }
@@ -148,13 +161,143 @@ function updateDashboardPremium() {
     if (!globalStats.loaded) return;
 
     const analytics = getDetailedAnalytics();
-    const topVals = analytics.topProveedores.length > 0
-        ? analytics.topProveedores.map(p => p.valor)
-        : [0, 0, 0, 0, 0];
 
-    // Actualizar Gráficas Bento
-    renderMiniChart('miniChartTrend',        analytics.trend,        '#D4AF37', '€', 'line', { labels: analytics.dayLabels });
-    renderMiniChart('miniChartActivity',     analytics.activity,     '#10b981', 'u', 'bar',  { labels: analytics.dayLabels });
-    renderMiniChart('miniChartDistribution', analytics.distribution, '#3b82f6', '%', 'bar',  { labels: ['F','A','G'] });
-    renderMiniChart('miniChartBalance',      topVals,                '#D4AF37', '€', 'bar',  { labels: analytics.topProveedores.map(p=>p.nombre) });
+    // Badge dinámico vs mes anterior
+    const badgeEl = document.querySelector('.bento-trend');
+    if (badgeEl) {
+        if (analytics.mesActualTotal > 0 && analytics.prevMonthTotal > 0) {
+            const deltaPct = ((analytics.mesActualTotal - analytics.prevMonthTotal) / analytics.prevMonthTotal * 100).toFixed(1);
+            const isUp = deltaPct >= 0;
+            badgeEl.className = 'bento-trend ' + (isUp ? 'trend-up' : 'trend-down');
+            badgeEl.style.display = '';
+            badgeEl.innerHTML = `<i data-lucide="${isUp ? 'arrow-up-right' : 'arrow-down-right'}" style="width:12px;"></i><span>${isUp ? '+' : ''}${deltaPct}% vs mes anterior</span>`;
+        } else if (analytics.mesActualTotal > 0) {
+            badgeEl.className = 'bento-trend';
+            badgeEl.style.display = '';
+            badgeEl.innerHTML = `<span>Mes nuevo</span>`;
+        } else {
+            badgeEl.style.display = 'none';
+        }
+        if (window.lucide) lucide.createIcons();
+    }
+
+    // Render 4 tarjetas KPI del carrusel (definidas en index.html inline)
+    if (typeof renderCarousel1Proyeccion === 'function') renderCarousel1Proyeccion(analytics);
+    if (typeof renderCarousel2TopProveedores === 'function') renderCarousel2TopProveedores(analytics);
+    if (typeof renderCarousel3ProveedorTop === 'function') renderCarousel3ProveedorTop(analytics);
+    if (typeof renderCarousel4Comparativa === 'function') renderCarousel4Comparativa(analytics);
+
+    if (typeof initCarouselDots === 'function') initCarouselDots();
+}
+
+/**
+ * GEMA AI: Auditoría de Gastos y Mermas
+ */
+async function ejecutarAuditoriaGema() {
+    const btn = document.getElementById('btn-gema-audit');
+    const badge = document.getElementById('margenHealthBadge');
+    const resultsContainer = document.getElementById('gema-results-container');
+    const insightsGrid = document.getElementById('gema-insights-grid');
+
+    if (!btn || !globalStats.loaded) {
+        alert("Faltan datos de Airtable. Espera a que carguen.");
+        return;
+    }
+
+    // UI Loading State
+    btn.disabled = true;
+    btn.innerHTML = `<i data-lucide="loader" class="spin" style="width: 18px;"></i> Analizando proveedores...`;
+    if (window.lucide) lucide.createIcons();
+
+    // 1. Recopilar Gastos del mes actual
+    const analytics = getDetailedAnalytics(); // uses allRecords up to 6 days for trends, but we need expenses of current month
+    // So let's manually filter the current month's expenses and mermas
+    const now = new Date();
+    const mesStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    const all = (globalStats && globalStats.allRecords) ? globalStats.allRecords : [];
+    
+    // Obtenemos solo facturas y gastos
+    const expenses = all.filter(r => {
+        if (!r.createdAt || !r.createdAt.startsWith(mesStr)) return false;
+        const cat = (r.categoria || '').toUpperCase();
+        return cat.includes('FACTURA') || cat.includes('GASTO');
+    }).map(r => ({
+        proveedor: r.proveedor,
+        fecha: r.createdAt,
+        total: r.total,
+        detalles: r.detalles || ''
+    }));
+
+    // Recopilar Mermas del month actual
+    let mermas = [];
+    try {
+        const storedMermas = JSON.parse(localStorage.getItem('dulce_mermas') || '[]');
+        mermas = storedMermas.filter(m => m.fecha && m.fecha.startsWith(mesStr));
+    } catch(e) {}
+
+    try {
+        // Enviar a la API de Gema
+        const response = await fetch(`${window.DulceAPI.API_BASE}/api/ai/analyze-expenses`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ expenses, mermas })
+        });
+
+        if (!response.ok) throw new Error("Fallo en Gema API");
+        const data = await response.json();
+
+        if (!data.success || !data.insights) throw new Error("Respuesta inválida de Gema");
+
+        const insights = data.insights;
+
+        // Limpiar contenedor
+        insightsGrid.innerHTML = '';
+        
+        // Fuga principal Card
+        insightsGrid.innerHTML += `
+            <div style="background: rgba(228,0,0,0.05); border: 1px solid rgba(228,0,0,0.2); border-radius: 12px; padding: 16px;">
+                <div style="font-size: 11px; color: #ef4444; font-weight: 800; text-transform: uppercase; margin-bottom: 4px;">Punto Crítico Detectado</div>
+                <div style="font-size: 16px; font-weight: 700; color: var(--text-primary);"><i data-lucide="alert-triangle" style="width: 14px; display: inline-block; margin-right: 4px; color: #ef4444;"></i>${insights.fugaPrincipal || 'Sin definir'}</div>
+            </div>
+        `;
+
+        // Recomendaciones Cards
+        if (insights.recomendaciones && insights.recomendaciones.length > 0) {
+            insights.recomendaciones.forEach((rec, idx) => {
+                insightsGrid.innerHTML += `
+                    <div style="background: var(--bg-card); border: 1px solid var(--border); border-left: 3px solid var(--gold); border-radius: 12px; padding: 16px; box-shadow: var(--shadow-sm); transition: transform 0.2s;">
+                        <div style="font-size: 11px; color: var(--gold); font-weight: 800; margin-bottom: 6px;">CONSEJO #${idx+1}</div>
+                        <div style="font-size: 14px; font-weight: 500; color: var(--text-primary); line-height: 1.4;">${rec}</div>
+                    </div>
+                `;
+            });
+        }
+
+        // Mostrar UI
+        resultsContainer.style.display = 'block';
+        
+        // Update Badge
+        if (badge) {
+            badge.className = "margen-health-indicator";
+            badge.style.background = "rgba(16, 185, 129, 0.1)";
+            badge.style.borderColor = "rgba(16, 185, 129, 0.3)";
+            badge.style.color = "#10b981";
+            badge.innerHTML = `<div class="margen-health-dot" style="background:#10b981"></div><span>Auditoría Completada</span>`;
+        }
+
+        // Replace Button text
+        btn.innerHTML = `<i data-lucide="check" style="width: 18px;"></i> Auditoría Exitosa`;
+        btn.style.background = "linear-gradient(135deg, #10b981, #059669)";
+        
+        if (window.lucide) lucide.createIcons();
+
+    } catch (err) {
+        console.error("Gema Audit Error", err);
+        btn.innerHTML = `<i data-lucide="alert-circle" style="width: 18px;"></i> Reintentar Auditoría`;
+        btn.disabled = false;
+        alert("Gema no pudo completarlo ahora: " + err.message);
+    }
 }

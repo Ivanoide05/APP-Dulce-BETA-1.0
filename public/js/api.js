@@ -7,14 +7,14 @@ const API_BASE = (window.location.protocol === 'file:' || window.location.hostna
     ? 'http://localhost:3001'
     : '';
 
-// Configuración de Tablas (Por defecto, pero se cargan dinámicamente)
+// Configuración de Tablas Universales
 const DEFAULT_TABLES = {
-    FACTURAS: 'tblLC7oMOUQtRWkn7',
-    ALBARANES: 'tblX9EQUmwItNJCZI',
-    GASTOS_VARIOS: 'tblHzVIPEde7zWnUv',
-    PEDIDOS: '', // Se detectará automáticamente
-    AGENDA: '',  // Se detectará automáticamente
-    PRODUCTOS: '' // Catálogo específico del cliente
+    FACTURAS: 'FACTURAS',
+    ALBARANES: 'ALBARANES',
+    GASTOS_VARIOS: 'GASTOS VARIOS',
+    PEDIDOS: 'PEDIDOS',
+    AGENDA: 'AGENDA',
+    PRODUCTO: 'PRODUCTO'
 };
 
 // Obtener mapeo actual con prioridad a lo guardado en localStorage
@@ -25,7 +25,7 @@ function getTablesMap() {
         GASTOS_VARIOS: localStorage.getItem('AIRTABLE_TABLE_GASTOS') || DEFAULT_TABLES.GASTOS_VARIOS,
         PEDIDOS: localStorage.getItem('AIRTABLE_TABLE_PEDIDOS') || DEFAULT_TABLES.PEDIDOS,
         AGENDA: localStorage.getItem('AIRTABLE_TABLE_AGENDA') || DEFAULT_TABLES.AGENDA,
-        PRODUCTOS: localStorage.getItem('AIRTABLE_TABLE_PRODUCTOS') || DEFAULT_TABLES.PRODUCTOS
+        PRODUCTO: localStorage.getItem('AIRTABLE_TABLE_PRODUCTO') || DEFAULT_TABLES.PRODUCTO
     };
 }
 
@@ -54,7 +54,7 @@ async function airtableDirectFetch(tableId) {
     const keys = getAirtableKeys();
     if (!keys.token || !keys.baseId) throw new Error('Claves no configuradas');
 
-    const url = `https://api.airtable.com/v0/${keys.baseId}/${tableId}`;
+    const url = `https://api.airtable.com/v0/${keys.baseId}/${encodeURIComponent(tableId)}`;
     const res = await fetch(url, {
         headers: {
             'Authorization': `Bearer ${keys.token}`,
@@ -108,14 +108,14 @@ const DulceAPI = {
             if (name.includes('GASTO') || name.includes('VARIOS')) found.GASTOS_VARIOS = t.id;
             if (name.includes('PEDIDO') || name.includes('ORDER') || name.includes('RUTA')) found.PEDIDOS = t.id;
             if (name.includes('AGENDA') || name.includes('CLIENTE')) found.AGENDA = t.id;
-            if (name.includes('PRODUCT') || name.includes('CATALOG') || name.includes('ARTICULO')) found.PRODUCTOS = t.id;
+            if (name.includes('PRODUCT') || name.includes('CATALOG') || name.includes('ARTICULO')) found.PRODUCTO = t.id;
         });
         if (found.FACTURAS) localStorage.setItem('AIRTABLE_TABLE_FACTURAS', found.FACTURAS);
         if (found.ALBARANES) localStorage.setItem('AIRTABLE_TABLE_ALBARANES', found.ALBARANES);
         if (found.GASTOS_VARIOS) localStorage.setItem('AIRTABLE_TABLE_GASTOS', found.GASTOS_VARIOS);
         if (found.PEDIDOS) localStorage.setItem('AIRTABLE_TABLE_PEDIDOS', found.PEDIDOS);
         if (found.AGENDA) localStorage.setItem('AIRTABLE_TABLE_AGENDA', found.AGENDA);
-        if (found.PRODUCTOS) localStorage.setItem('AIRTABLE_TABLE_PRODUCTOS', found.PRODUCTOS);
+        if (found.PRODUCTO) localStorage.setItem('AIRTABLE_TABLE_PRODUCTO', found.PRODUCTO);
         return found;
     },
 
@@ -146,16 +146,16 @@ const DulceAPI = {
         if (map.PEDIDOS) tasks.push(airtableDirectFetch(map.PEDIDOS));
         // Si Agenda está en el mapa, será el índice 4
         if (map.AGENDA) tasks.push(airtableDirectFetch(map.AGENDA));
-        if (map.PRODUCTOS) tasks.push(airtableDirectFetch(map.PRODUCTOS));
+        if (map.PRODUCTO) tasks.push(airtableDirectFetch(map.PRODUCTO));
 
         const results = await Promise.all(tasks);
 
         // El array results puede tener 3, 4, 5 o 6 elementos.
-        let resPedidos = [], resAgenda = [], resProductos = [];
+        let resPedidos = [], resAgenda = [], resProducto = [];
         let cursor = 3;
         if (map.PEDIDOS) { resPedidos = results[cursor]; cursor++; }
         if (map.AGENDA) { resAgenda = results[cursor]; cursor++; }
-        if (map.PRODUCTOS) { resProductos = results[cursor]; cursor++; }
+        if (map.PRODUCTO) { resProducto = results[cursor]; cursor++; }
 
         return {
             facturas: results[0].records || [],
@@ -163,7 +163,7 @@ const DulceAPI = {
             gastos: results[2].records || [],
             pedidos: resPedidos.records || [],
             agenda: resAgenda.records || [],
-            productos: resProductos.records || []
+            productos: resProducto.records || []
         };
     },
 
@@ -236,17 +236,71 @@ const DulceAPI = {
         return res.json();
     },
 
+    /** Elimina un registro (DELETE) */
+    async deleteRecord(tableName, recordId) {
+        try {
+            const serverOk = await serverIsAvailable();
+            if (serverOk) {
+                const res = await fetch(`${API_BASE}/api/records/${tableName}/${recordId}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+                if (res.ok) return res.json();
+            }
+        } catch (e) { }
+        // Fallback directo a Airtable
+        const keys = getAirtableKeys();
+        const map = getTablesMap();
+        const tableId = map[tableName.toUpperCase()];
+        const url = `https://api.airtable.com/v0/${keys.baseId}/${tableId}/${recordId}`;
+        const res = await fetch(url, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${keys.token}` }
+        });
+        if (!res.ok) throw new Error('Error al eliminar registro en Airtable');
+        return res.json();
+    },
+
     /** ESCÁNER: Procesa imagen con IA Gemini (Requiere Servidor) */
     async scanInvoice(base64Image, mimeType = 'image/jpeg') {
-        const res = await fetch(`${API_BASE}/webhook/scan-invoice`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ image: base64Image, mimeType })
-        });
-        if (res.status === 401) handle401(res);
-        if (!res.ok) {
-            const err = await res.text();
-            throw new Error(`Fallo en escáner (${res.status}): ${err.substring(0, 100)}`);
+        const payload = { image: base64Image, mimeType };
+        let res;
+        try {
+            const serverOk = await serverIsAvailable();
+            if (serverOk) {
+                res = await fetch(`${API_BASE}/webhook/scan-invoice`, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify(payload)
+                });
+            } else {
+                // Si el servidor NO está disponible, lanzamos error para disparar el fallback local (solo desarrollo)
+                throw new Error('Server not available');
+            }
+        } catch (err) {
+            // El servidor no está disponible — informamos al usuario con claridad
+            if (window.location.protocol === 'file:' || window.location.hostname === 'localhost') {
+                throw new Error(
+                    '⚠️ El servidor backend no está activo. ' +
+                    'Para escanear documentos, ejecuta "node server.js" en la carpeta /backend y recarga la página.'
+                );
+            } else {
+                throw err;
+            }
+        }
+        
+        if (res && res.status === 401) handle401(res);
+        if (!res || !res.ok) {
+            let errorText = 'Sin conexión al servidor proxy ni webhook.';
+            if (res) {
+                try {
+                    const data = await res.json();
+                    errorText = data.error || `Error ${res.status}`;
+                } catch (e) {
+                    errorText = await res.text();
+                }
+            }
+            throw new Error(errorText.substring(0, 150));
         }
         return res.json();
     },

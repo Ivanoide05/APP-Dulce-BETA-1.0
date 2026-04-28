@@ -5,9 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Dulce Jaleo - Gestión Inteligente</title>
-    <meta name="description" content="App de gestión de facturas y documentos para Dulce Jaleo panadería artesanal">
-
+    <title>DulceOS - Gestión Inteligente</title>
+    <meta name="description" content="App de gestión integral y operaciones B2B/B2E">
+    
+    <!-- Evitar caché agresiva en PWA -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <!-- PWA: Manifest -->
     <link rel="manifest" href="manifest.json?v=3">
     <meta name="theme-color" content="#f8f9fb">
@@ -20,7 +24,7 @@
     <!-- Apple PWA (iOS Safari/Brave/Chrome) -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Dulce Jaleo">
+    <meta name="apple-mobile-web-app-title" content="DulceOS">
     <link rel="apple-touch-icon" href="icon-512.png?v=3">
     <!-- Icono redundante para asegurar detección en versiones antiguas de iOS -->
     <link rel="apple-touch-icon" sizes="180x180" href="icon-512.png?v=3">
@@ -28,6 +32,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <!-- Lucide Icons (Carga Temprana) -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- SweetAlert2 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script src="public/js/auth.js"></script>
     <script>
         // Protección de ruta inmediata
@@ -45,18 +54,36 @@
             --text-primary: #1a1c1d;
             --text-secondary: #5f6368;
             --text-muted: #8e8e93;
-            
+
+            /* Warm palette */
+            --white: #ffffff;
+            --warm-50: #faf9f7;
+            --warm-100: #f0ece5;
+            --warm-200: #e4ddd2;
+            --warm-300: #d4cab8;
+
+            /* Accent */
+            --rose: #c0392b;
+            --rose-light: #e05a4b;
+            --rose-dark: #962d22;
+            --rose-glow: rgba(192, 57, 43, 0.35);
+
+            /* Misc */
+            --success: #10b981;
+            --radius-native: 20px;
+            --cyan-glow: 0 0 12px rgba(0, 200, 255, 0.2);
+
             /* Glass & Depth */
             --glass-bg: rgba(255, 255, 255, 0.85);
             --glass-blur: blur(20px);
             --border: rgba(0, 0, 0, 0.05);
             --border-soft: rgba(0, 0, 0, 0.02);
-            
+
             /* Shadows Apple Style */
             --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
             --shadow-md: 0 12px 32px rgba(26, 28, 29, 0.08); /* Sombra ambiental Stitch */
             --shadow-lg: 0 24px 64px rgba(26, 28, 29, 0.12);
-            
+
             --gutter: 24px;
             --radius-pill: 50px;
             --radius-card: 32px;
@@ -74,6 +101,11 @@
             --border: rgba(255, 255, 255, 0.08);
             --border-soft: rgba(255, 255, 255, 0.03);
             --shadow-md: 0 12px 48px rgba(0, 0, 0, 0.5);
+            --white: #1e1e1e;
+            --warm-50: #1a1a18;
+            --warm-100: #222220;
+            --warm-200: #2a2a26;
+            --warm-300: #363630;
         }
 
         * {
@@ -2208,6 +2240,34 @@
             background: var(--gold);
             border-radius: 10px;
         }
+        body:not(.dark-theme) .dot { background: rgba(0,0,0,0.18); }
+
+        /* Botones nav carrusel — visibles en todos los tamaños */
+        .carousel-nav-btn {
+            display: flex;
+            position: absolute;
+            top: calc(50% - 18px);
+            transform: translateY(-50%);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--border);
+            color: var(--gold);
+            font-size: 18px;
+            line-height: 1;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+            opacity: 1;
+            transition: opacity 0.2s ease;
+            padding: 0;
+        }
+        .carousel-nav-btn:disabled { opacity: 0 !important; pointer-events: none; }
+        .carousel-nav-btn.prev { left: -14px; }
+        .carousel-nav-btn.next { right: -14px; }
+        body:not(.dark-theme) .carousel-nav-btn { background: rgba(0,0,0,0.05); }
 
 
         /* ===== [FASE 13] HEALTH BADGES & SPARKLINES ===== */
@@ -2863,66 +2923,13 @@
             --glass-border: rgba(255, 255, 255, 0.1);
         }
 
-        /* --- [NUEVO] Carousel Charts Style v3.0 --- */
-    .carousel-charts-wrapper {
-        display: flex;
-        overflow-x: auto;
-        scroll-snap-type: x mandatory;
-        gap: 12px;
-        padding: 4px 0 12px;
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE 10+ */
-    }
-    .carousel-charts-wrapper::-webkit-scrollbar {
-        display: none; /* Chrome/Safari */
-    }
-    .carousel-chart-item {
-        flex: 0 0 100%;
-        scroll-snap-align: center;
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 18px;
-        padding: 16px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        min-height: 110px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-    .carousel-chart-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 10px;
-    }
-    .carousel-chart-header i {
-        width: 14px;
-        color: var(--gold);
-    }
-    .carousel-chart-header span {
-        font-size: 10px;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--text-muted);
-    }
-    .carousel-dots {
-        display: flex;
-        justify-content: center;
-        gap: 6px;
-        margin-top: 4px;
-    }
-    .dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 3px;
-        background: rgba(255, 255, 255, 0.15);
-        transition: all 0.3s ease;
-    }
-    .dot.active {
-        width: 18px;
-        background: var(--gold);
-    }
-    /* --- [FIN] Carousel Style --- */
+        body:not(.dark-theme) .bento-item {
+            background: #ffffff;
+            border-color: rgba(0, 0, 0, 0.07);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+        }
+
+        /* --- [NUEVO] Carousel Charts Style v3.0 — bloque consolidado arriba --- */
 
         .bento-grid {
             display: grid;
@@ -3248,11 +3255,13 @@
             font-weight: 700;
             margin-bottom: 2px;
             color: var(--text-primary);
+            text-align: center;
         }
 
         .scanner-text p {
             font-size: 11px;
             color: var(--text-muted);
+            text-align: center;
         }
 
         .scanner-btn-circle {
@@ -3904,6 +3913,76 @@
         .gestor-status-pagado { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.2); }
         .gestor-status-pill:hover { filter: brightness(1.2); }
 
+        /* Bulk Actions Toolbar */
+        .bulk-toolbar {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(var(--bg-card-rgb), 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 12px 24px;
+            border-radius: 50px;
+            border: 1px solid var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100000;
+        }
+        .bulk-toolbar.visible { transform: translateX(-50%) translateY(0); }
+        .bulk-info { font-size: 13px; font-weight: 700; color: var(--gold); border-right: 1px solid rgba(212,175,55,0.2); padding-right: 16px; margin-right: 4px; }
+        .bulk-btn { background: none; border: none; color: var(--text-primary); cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 600; padding: 8px 12px; border-radius: 12px; transition: all 0.2s; }
+        .bulk-btn:hover { background: rgba(255,255,255,0.05); color: var(--gold); }
+        .bulk-btn.delete:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+        /* Custom Checkbox */
+        .gestor-checkbox {
+            width: 18px;
+            height: 18px;
+            border-radius: 6px;
+            border: 2px solid var(--border);
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            background: transparent;
+        }
+        .gestor-checkbox:checked { background: var(--gold); border-color: var(--gold); }
+        .gestor-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: #000;
+            font-size: 12px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 900;
+        }
+
+        /* Print Styles */
+        @media print {
+            body * { visibility: hidden; }
+            #gestorMaestroModal, #gestorMaestroModal * { visibility: visible; }
+            #gestorMaestroModal { position: static; width: 100%; height: auto; background: white !important; backdrop-filter: none !important; opacity: 1 !important; display: block !important; }
+            .gestor-modal-content { position: static; width: 100% !important; height: auto !important; box-shadow: none !important; border: none !important; background: white !important; }
+            .gestor-modal-content > div:not([style*="overflow-y: auto"]) { display: none !important; } /* Hide header and toolbar */
+            .gestor-modal-content div[style*="overflow-y: auto"] { overflow: visible !important; height: auto !important; }
+            table { width: 100% !important; border-collapse: collapse !important; color: black !important; }
+            th { border-bottom: 2px solid #333 !important; color: black !important; text-align: left !important; padding: 10px !important; }
+            td { border-bottom: 1px solid #eee !important; color: black !important; padding: 10px !important; }
+            .gestor-status-pill { border: 1px solid #333 !important; background: transparent !important; color: black !important; padding: 2px 6px !important; }
+            .gestor-checkbox-col, #bulkActionsToolbar, .gestor-btn-print { display: none !important; }
+            .print-header { display: block !important; margin-bottom: 20px; text-align: center; }
+            .print-header h1 { font-size: 24px; margin: 0; color: black; }
+            .print-header p { font-size: 14px; color: #666; }
+        }
+        .print-header { display: none; }
+
+
     </style>
 </head>
 
@@ -3928,7 +4007,7 @@
 
     <!-- SPLASH SCREEN PWA -->
     <div class="splash-screen" id="splashScreen">
-        <img src="icon-512.png" alt="Dulce Jaleo" class="splash-logo">
+        <img src="icon-512.png" alt="DulceOS" class="splash-logo">
     </div>
 
     <!-- ZONA ALTA (HEADER PREMIUM) -->
@@ -3947,21 +4026,17 @@
             <div class="action-circle" onclick="activateTab('agenda')" title="Buscar">
                 <i data-lucide="search"></i>
             </div>
-            <!-- Cerrar Sesión -->
-            <div class="action-circle" title="Cerrar Sesión" onclick="DulceAuth.logout()" style="color: var(--premium-red);">
-                <i data-lucide="log-out"></i>
-            </div>
             <!-- Tema (Sol/Luna) -->
             <div class="action-circle" title="Cambiar Tema" id="btn-theme-toggle" onclick="toggleTheme()">
                 <i data-lucide="moon"></i>
             </div>
-            <!-- Ajustes Técnicos -->
-            <div class="action-circle" id="headerGearBtn" title="Ajustes Técnicos" onclick="const m=document.getElementById('configModal'); if(m) m.classList.add('open');" style="cursor:pointer;">
-                <i data-lucide="settings"></i>
+            <!-- Sanidad APPCC -->
+            <div class="action-circle" id="headerSanidadBtn" title="Sanidad y Registros" onclick="openSanidad()" style="cursor:pointer; color: #10b981;">
+                <i data-lucide="clipboard-check"></i>
             </div>
-            <!-- Cerrar sesión -->
-            <div class="action-circle" onclick="if(window.DulceAuth) DulceAuth.logout();" title="Cerrar sesión" style="cursor:pointer;">
-                <i data-lucide="log-out"></i>
+            <!-- Ajustes Técnicos -->
+            <div class="action-circle" id="headerGearBtn" title="Ajustes Técnicos" onclick="openSettings()" style="cursor:pointer;">
+                <i data-lucide="settings"></i>
             </div>
         </div>
     </header>
@@ -3986,15 +4061,15 @@
             </div>
 
             <!-- MINI CHART: Desglose mensual -->
-            <div id="dashMiniChart" class="glass-panel" style="margin: 0 var(--gutter) 16px; padding: 16px 20px; border-radius: 20px; border: 1px solid var(--border); display: none;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div id="dashMiniChart" class="glass-panel" style="margin: 0 var(--gutter) 16px; padding: 20px 20px; border-radius: 20px; border: 1px solid var(--border); display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 16px; width: 100%;">
                     <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--gold); display: flex; align-items: center; gap: 6px;">
                         <i data-lucide="bar-chart-3" style="width: 13px;"></i>
                         Desglose del Mes
                     </div>
                     <div id="dashChartTotal" style="font-size: 11px; color: var(--text-muted); font-weight: 600;">0.00€</div>
                 </div>
-                <div id="dashBarChart" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                <div id="dashBarChart" style="display: flex; flex-direction: column; gap: 14px;"></div>
             </div>
 
             <!-- BENTO GRID PRINCIPAL -->
@@ -4007,7 +4082,7 @@
                             GASTOS DEL MES
                         </div>
                         
-                        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 5px;">
+                        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 14px; margin-bottom: 8px;">
                             <div id="dash-total-gastos" class="bento-value">0.00€</div>
                             <div class="bento-trend trend-up">
                                 <i data-lucide="arrow-up-right" style="width: 12px;"></i>
@@ -4015,43 +4090,56 @@
                             </div>
                         </div>
 
-                        <!-- [NUEVO] Carrusel de Diagramas Responsivo v3.0 -->
-                        <div class="carousel-charts-container" style="margin-top: 20px; margin-bottom: 10px; position: relative;">
+                        <!-- Carrusel de KPIs v4.0 -->
+                        <div class="carousel-charts-container" style="margin-top: 20px; margin-bottom: 10px; position: relative;" onclick="event.stopPropagation()">
+                            <button class="carousel-nav-btn prev" id="carouselPrev" onclick="event.stopPropagation(); carouselNav(-1)">&#8249;</button>
                             <div class="carousel-charts-wrapper" id="carouselWrapper">
-                                <!-- Tarjeta 1: Tendencia (Línea) -->
+
+                                <!-- Tarjeta 1: Proyección fin de mes -->
                                 <div class="carousel-chart-item">
                                     <div class="carousel-chart-header">
                                         <i data-lucide="trending-up"></i>
-                                        <span>Tendencia Mensual</span>
+                                        <span>Proyección Mes</span>
                                     </div>
-                                    <div id="miniChartTrend" class="bento-chart-mini" style="height: 88px;"></div>
+                                    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+                                        <div id="c1-actual" style="font-size:18px;font-weight:800;color:var(--text-primary);">—</div>
+                                        <div style="text-align:right;">
+                                            <div style="font-size:9px;color:var(--text-muted);margin-bottom:1px;">fin de mes</div>
+                                            <div id="c1-proyeccion" style="font-size:12px;font-weight:700;color:var(--gold);">~—</div>
+                                        </div>
+                                    </div>
+                                    <div id="miniChartTrend" class="bento-chart-mini" style="height:52px;"></div>
                                 </div>
-                                <!-- Tarjeta 2: Actividad Diaria (Línea) -->
+
+                                <!-- Tarjeta 2: Top Proveedores del mes -->
                                 <div class="carousel-chart-item">
                                     <div class="carousel-chart-header">
-                                        <i data-lucide="activity"></i>
-                                        <span>Actividad Diaria</span>
+                                        <i data-lucide="users"></i>
+                                        <span>Top Proveedores</span>
                                     </div>
-                                    <div id="miniChartActivity" class="bento-chart-mini" style="height: 88px;"></div>
+                                    <div id="miniChartActivity" style="flex:1;overflow:hidden;"></div>
                                 </div>
-                                <!-- Tarjeta 3: Distribución (Pie) -->
+
+                                <!-- Tarjeta 3: Mayor gasto (proveedor #1) -->
                                 <div class="carousel-chart-item">
                                     <div class="carousel-chart-header">
-                                        <i data-lucide="pie-chart"></i>
-                                        <span>Distribución Gastos</span>
+                                        <i data-lucide="award"></i>
+                                        <span>Mayor Gasto</span>
                                     </div>
-                                    <div id="miniChartDistribution" class="bento-chart-mini" style="height: 88px;"></div>
+                                    <div id="miniChartDistribution" style="flex:1;display:flex;flex-direction:column;justify-content:center;"></div>
                                 </div>
-                                <!-- Tarjeta 4: Balance (Barras Comparativo) -->
+
+                                <!-- Tarjeta 4: Comparativa 3 meses -->
                                 <div class="carousel-chart-item">
                                     <div class="carousel-chart-header">
                                         <i data-lucide="bar-chart-2"></i>
-                                        <span>Balance vs Anterior</span>
+                                        <span>Comparativa Meses</span>
                                     </div>
-                                    <div id="miniChartBalance" class="bento-chart-mini" style="height: 88px;"></div>
+                                    <div id="miniChartBalance" class="bento-chart-mini" style="height:88px;"></div>
                                 </div>
+
                             </div>
-                            <!-- Indicadores de Navegación (Dots) -->
+                            <button class="carousel-nav-btn next" id="carouselNext" onclick="event.stopPropagation(); carouselNav(1)">&#8250;</button>
                             <div class="carousel-dots" id="carouselDots">
                                 <div class="dot active"></div>
                                 <div class="dot"></div>
@@ -4060,43 +4148,18 @@
                             </div>
                         </div>
 
-                        <!-- Widget Control Horario -->
-                        <div class="horario-widget">
-                            <div class="horario-widget-header">
-                                <div class="hw-title">
-                                    <i data-lucide="clock" style="width: 12px;"></i>
-                                    Control de Horario
-                                </div>
-                                <div style="display:flex;align-items:center;gap:8px;">
-                                    <div class="hw-link" onclick="event.stopPropagation();">Ver todo →</div>
-                                    <div class="hw-gear" onclick="event.stopPropagation(); openGN();" title="Gestión del Negocio">
-                                        <i data-lucide="settings" style="width:12px;height:12px;"></i>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="horario-list" id="hwDynamicList"></div>
-                        </div>
+
                     </div>
                 </div>
 
-                <!-- Widget Albaranes (Medium) -->
-                <div class="bento-item" onclick="activateTab('facturas')">
+                <!-- Widget Albaranes (Full width) -->
+                <div class="bento-item" onclick="activateTab('facturas')" style="grid-column: 1 / -1; align-items:center; text-align:center;">
                     <div class="bento-label">
                         <i data-lucide="package" style="width: 14px; color: var(--gold);"></i>
                         Albaranes
                     </div>
                     <div id="dash-count-albaranes" class="bento-value">0</div>
                     <p style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Pendientes de validar</p>
-                </div>
-
-                <!-- Widget Ruta (Medium) -->
-                <div class="bento-item" onclick="activateTab('ruta')">
-                    <div class="bento-label">
-                        <i data-lucide="map" style="width: 14px; color: var(--gold);"></i>
-                        Hoja Ruta
-                    </div>
-                    <div id="dash-ruta-prog" class="bento-value">0/0</div>
-                    <p style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">Tareas hoy</p>
                 </div>
             </div>
 
@@ -4167,15 +4230,38 @@
                         </div>
                     </div>
                     <div id="resultGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;"></div>
+                    <div id="resultDetalles" style="display:none;margin-top:12px;padding:12px 14px;border-radius:14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);"
+                        ><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);margin-bottom:6px;">Resumen IA</div>
+                        <div id="resultDetallesText" style="font-size:12px;color:var(--text-muted);line-height:1.5;"></div>
+                    </div>
                     <button onclick="document.getElementById('resultArea').style.display='none'; resetScanner(); hideGlobalScanner();" class="btn btn-secondary" style="margin-top: 16px; width: 100%;">Cerrar y Volver</button>
                 </div>
             </div>
         </div>
 
-        <!-- ===== TAB: PRODUCTOS (Base: Facturas) ===== -->
-        <div id="tab-facturas" class="tab-content">
-            <div class="section-title">Documentos</div>
-            <div class="section-subtitle" style="text-align:center;">Gestión de facturas y albaranes</div>
+        <!-- ===== TAB: BÚNKER DE DOCUMENTACIÓN ===== -->
+        <div id="tab-facturas" class="tab-content bunker-mode">
+            <div class="section-title" style="display:flex;align-items:center;justify-content:center;gap:8px;">
+                <i data-lucide="shield-check" style="color:var(--gold);width:28px;height:28px;"></i>
+                Búnker Doc.
+            </div>
+            <div style="text-align:center;margin-top:-10px;margin-bottom:24px;">
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;opacity:0.35;font-family:'Outfit',sans-serif;">Archivo digital seguro y análisis por IA</span>
+            </div>
+
+            <!-- Gran Botón de Escáner Integrado -->
+            <div class="glass-panel bunker-upload-zone" onclick="showGlobalScanner()" style="margin: 0 var(--gutter) 24px; padding: 28px 20px; text-align: center; border-radius: 24px; border: 2px dashed rgba(212,175,55,0.3); cursor: pointer; transform: translateZ(0); transition: all 0.3s ease;">
+                <div style="width: 64px; height: 64px; background: linear-gradient(135deg, rgba(212,175,55,0.2) 0%, rgba(212,175,55,0.05) 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; color: var(--gold); border: 1px solid rgba(212,175,55,0.2); box-shadow: 0 8px 16px rgba(0,0,0,0.1);">
+                    <i data-lucide="scan-line" style="width: 32px; height: 32px;"></i>
+                </div>
+                <h3 style="font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; text-align: center;">Subir Documento</h3>
+                <p style="font-size: 13px; color: var(--text-muted); padding: 0 10px; text-align: center;">Captura facturas o albaranes para extracción automática con IA</p>
+            </div>
+            <!-- Banner de estado del backend -->
+            <div id="backendStatusBanner" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:0 var(--gutter) 16px;padding:8px 16px;border-radius:50px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);">
+                <span id="backendStatusDot" style="width:8px;height:8px;border-radius:50%;background:#f59e0b;display:inline-block;flex-shrink:0;"></span>
+                <span id="backendStatusText" style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:0.05em;">Comprobando conexión...</span>
+            </div>
 
             <!-- STATS 2x2 con iconos dorados -->
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 var(--gutter);margin-bottom:20px;">
@@ -4201,49 +4287,75 @@
                 </div>
             </div>
 
+            <!-- EXPORT TRIMESTRAL -->
+            <div class="glass-panel" style="margin:0 var(--gutter) 16px;padding:16px 20px;border-radius:20px;border:1px solid rgba(212,175,55,0.15);text-align:center;">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;opacity:0.4;margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:5px;">
+                    <i data-lucide="archive" style="width:12px;height:12px;color:var(--gold);"></i>
+                    Exportar para asesoría
+                </div>
+                <div style="display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap;">
+                    <select id="exportYear" style="padding:8px 12px;border-radius:50px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:var(--text-primary);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">
+                        <option value="2026">2026</option>
+                        <option value="2025" selected>2025</option>
+                        <option value="2024">2024</option>
+                    </select>
+                    <select id="exportQ" style="padding:8px 12px;border-radius:50px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:var(--text-primary);font-family:'Outfit',sans-serif;font-size:13px;font-weight:600;cursor:pointer;">
+                        <option value="1">Q1 · Ene–Mar</option>
+                        <option value="2">Q2 · Abr–Jun</option>
+                        <option value="3">Q3 · Jul–Sep</option>
+                        <option value="4">Q4 · Oct–Dic</option>
+                    </select>
+                    <button id="exportBtn" onclick="exportarTrimestre()" style="padding:8px 18px;border-radius:50px;border:none;background:var(--gold);color:#000;font-family:'Outfit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                        <i data-lucide="download" style="width:13px;height:13px;"></i>
+                        ZIP
+                    </button>
+                </div>
+                <div id="exportStatus" style="margin-top:8px;font-size:11px;color:var(--text-muted);display:none;"></div>
+            </div>
+
             <!-- FILTROS DE CATEGORÍA -->
-            <div style="padding:0 var(--gutter);margin-bottom:12px;overflow-x:auto;">
+            <div style="padding:0 var(--gutter);margin-bottom:12px;">
                 <div class="sub-tabs glass-panel" id="filterContainer"
-                    style="padding:6px;display:inline-flex;gap:4px;border-radius:50px;white-space:nowrap;">
-                    <button class="sub-tab-btn active" data-filter="all" style="padding:10px 18px;border-radius:50px;display:flex;align-items:center;gap:6px;font-size:13px;">
+                    style="padding:6px;display:flex;gap:4px;border-radius:50px;width:100%;box-sizing:border-box;">
+                    <button class="sub-tab-btn active" data-filter="all" style="padding:8px 0;flex:1;border-radius:50px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;">
                         <i data-lucide="layers" style="width:14px;"></i>Todos
                     </button>
-                    <button class="sub-tab-btn" data-filter="FACTURA" style="padding:10px 18px;border-radius:50px;display:flex;align-items:center;gap:6px;font-size:13px;">
+                    <button class="sub-tab-btn" data-filter="FACTURA" style="padding:8px 0;flex:1;border-radius:50px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;">
                         <i data-lucide="file-check" style="width:14px;"></i>Facturas
                     </button>
-                    <button class="sub-tab-btn" data-filter="ALBARAN" style="padding:10px 18px;border-radius:50px;display:flex;align-items:center;gap:6px;font-size:13px;">
+                    <button class="sub-tab-btn" data-filter="ALBARAN" style="padding:8px 0;flex:1;border-radius:50px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;">
                         <i data-lucide="package" style="width:14px;"></i>Albaranes
                     </button>
-                    <button class="sub-tab-btn" data-filter="GASTOS_VARIOS" style="padding:10px 18px;border-radius:50px;display:flex;align-items:center;gap:6px;font-size:13px;">
+                    <button class="sub-tab-btn" data-filter="GASTOS_VARIOS" style="padding:8px 0;flex:1;border-radius:50px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;">
                         <i data-lucide="credit-card" style="width:14px;"></i>Gastos
                     </button>
                 </div>
             </div>
 
-            <!-- ORDENACIÓN: Recientes / Mayor precio / Menor precio -->
-            <div style="padding:0 var(--gutter);margin-bottom:16px;display:flex;gap:8px;overflow-x:auto;">
-                <button id="sortBtn-recientes" onclick="setSortFacturas('recientes')"
-                    style="display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:50px;border:none;background:var(--gold);color:#000;font-family:'Outfit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0;">
-                    <i data-lucide="clock" style="width:14px;"></i>Recientes
-                </button>
-                <button id="sortBtn-mayor" onclick="setSortFacturas('mayor')"
-                    style="display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:50px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--text-muted);font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0;">
-                    <i data-lucide="trending-up" style="width:14px;"></i>Mayor precio
-                </button>
-                <button id="sortBtn-menor" onclick="setSortFacturas('menor')"
-                    style="display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:50px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--text-muted);font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0;">
-                    <i data-lucide="trending-down" style="width:14px;"></i>Menor precio
-                </button>
-                <button class="refresh-btn" id="refreshBtn" style="margin-left:auto;padding:10px 16px;border-radius:50px;flex-shrink:0;">🔄</button>
-            </div>
-
             <!-- TOTAL PERIODO -->
-            <div class="glass-panel" style="margin:0 var(--gutter) 16px;padding:16px 20px;border-radius:20px;border:1px solid rgba(212,175,55,0.15);background:rgba(212,175,55,0.03);display:flex;align-items:center;justify-content:space-between;">
+            <div class="glass-panel" style="margin:0 var(--gutter) 12px;padding:16px 20px;border-radius:20px;border:1px solid rgba(212,175,55,0.15);background:rgba(212,175,55,0.03);display:flex;align-items:center;justify-content:space-between;">
                 <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0.5;">Total Periodo</span>
                 <span id="totalPeriodoBanner" style="font-size:24px;font-weight:900;color:var(--gold);font-family:'Syne',sans-serif;">0.00 €</span>
             </div>
 
-            <div id="facturasList"></div>
+            <!-- ORDENACIÓN: Recientes / Mayor precio / Menor precio -->
+            <div style="padding:0 var(--gutter);margin-bottom:16px;display:flex;gap:6px;flex-wrap:wrap;">
+                <button id="sortBtn-recientes" onclick="setSortFacturas('recientes')"
+                    style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 0;flex:1;min-width:0;border-radius:50px;border:none;background:var(--gold);color:#000;font-family:'Outfit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">
+                    <i data-lucide="clock" style="width:14px;"></i>Recientes
+                </button>
+                <button id="sortBtn-mayor" onclick="setSortFacturas('mayor')"
+                    style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 0;flex:1;min-width:0;border-radius:50px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--text-muted);font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;">
+                    <i data-lucide="trending-up" style="width:14px;"></i>Mayor
+                </button>
+                <button id="sortBtn-menor" onclick="setSortFacturas('menor')"
+                    style="display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 0;flex:1;min-width:0;border-radius:50px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:var(--text-muted);font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;">
+                    <i data-lucide="trending-down" style="width:14px;"></i>Menor
+                </button>
+                <button class="refresh-btn" id="refreshBtn" style="margin-left:auto;padding:10px 16px;border-radius:50px;flex-shrink:0;">🔄</button>
+            </div>
+
+            <div id="facturasList" style="width:100%;padding:0 var(--gutter);box-sizing:border-box;"></div>
         </div>
 
         <!-- ===== TAB: AGENDA / CONTACTOS ===== -->
@@ -4297,41 +4409,46 @@
             <div class="section-title">Márgenes</div>
             <div class="section-subtitle" style="text-align: center;">Escudo de rentabilidad · Control de pérdidas</div>
 
-            <!-- Hero: Escudo de Rentabilidad -->
-            <div class="margin-hero glass-panel" style="margin: 0 var(--gutter) 20px; padding: 28px; text-align: center; width: calc(100% - 48px);">
-                <div class="margen-health-indicator warning" id="margenHealthBadge">
-                    <div class="margen-health-dot"></div>
-                    <span>Sin Datos</span>
+            <!-- Hero: Escudo de Rentabilidad -> Auditoría Gema -->
+            <div class="margin-hero glass-panel" style="margin: 0 var(--gutter) 24px; padding: 28px; text-align: center; width: calc(100% - 48px); position: relative; overflow: hidden; background: var(--bg-card); box-shadow: var(--shadow-md);">
+                <div class="margen-health-indicator" id="margenHealthBadge" style="background: rgba(212,175,55,0.1); border-color: rgba(212,175,55,0.3); color: var(--gold);">
+                    <div class="margen-health-dot" style="background: var(--gold);"></div>
+                    <span>Gema Inactiva</span>
                 </div>
-                <div style="font-size: 12px; opacity: 0.5; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Beneficio Neto Estimado</div>
-                <div class="margin-value neutral" id="margenValor" style="font-family: 'Outfit', sans-serif; font-size: 48px; font-weight: 800; margin-bottom: 8px;">—</div>
-                <div class="margin-sub" id="margenSub" style="font-size: 13px; opacity: 0.5;">Analizando datos de Airtable...</div>
-                <div style="height: 8px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-top: 24px;">
-                    <div id="margenBar" style="width:0%; height: 100%; background: var(--gold); transition: width 1s ease; border-radius: 4px;"></div>
+                
+                <div style="font-size: 12px; font-weight: 800; color: var(--gold); margin-bottom: 12px; letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase;">
+                    <i data-lucide="sparkles" style="width: 14px;"></i>
+                    GEMA AI: AUDITORÍA DE FUGAS
                 </div>
+                
+                <div class="margin-value neutral" id="margenValor" style="font-family: 'Outfit', sans-serif; font-size: 30px; font-weight: 800; margin-bottom: 12px; line-height: 1.1;">¿Fugas de capital?</div>
+                <div class="margin-sub" id="margenSub" style="font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.5; font-weight: 500;">
+                    Analizaré tus gastos en materias primas y mermas registradas del mes actual para detectar ineficiencias financieras.
+                </div>
+                
+                <button id="btn-gema-audit" onclick="ejecutarAuditoriaGema()" style="background: linear-gradient(135deg, #18191a, #0a0a0a); color: rgba(255,255,255,0.9); border: 1px solid rgba(255,255,255,0.1); padding: 14px 28px; border-radius: 50px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                    <i data-lucide="cpu" style="width: 18px;"></i>
+                    Ejecutar Auditoría
+                </button>
             </div>
 
-            <!-- Stats Grid: 4 cards -->
-            <div class="margen-stats-grid">
-                <div class="margen-stat-card">
-                    <div class="margen-stat-icon">💰</div>
-                    <div class="margen-stat-value" id="mIngresos">—</div>
-                    <div class="margen-stat-label">Ingresos Est.</div>
-                </div>
+            <!-- Contenedor Resultados Gema -->
+            <div id="gema-results-container" style="display: none; padding: 0 var(--gutter); margin-bottom: 28px;">
+                <div style="font-size: 12px; text-transform: uppercase; font-weight: 800; color: var(--text-muted); margin-bottom: 12px; letter-spacing: 0.5px;">Insights & Recomendaciones</div>
+                <div id="gema-insights-grid" style="display: flex; flex-direction: column; gap: 12px;"></div>
+            </div>
+
+            <!-- Stats Grid: 2 cards (reducidas porque no hay ventas) -->
+            <div class="margen-stats-grid" style="grid-template-columns: 1fr 1fr;">
                 <div class="margen-stat-card">
                     <div class="margen-stat-icon">📉</div>
                     <div class="margen-stat-value" id="mGastos">—</div>
-                    <div class="margen-stat-label">Gastos Mes</div>
+                    <div class="margen-stat-label">Proveedores Mes</div>
                 </div>
                 <div class="margen-stat-card">
                     <div class="margen-stat-icon">🗑️</div>
                     <div class="margen-stat-value" id="mMermas" style="color: #ef4444;">0€</div>
                     <div class="margen-stat-label">Mermas Mes</div>
-                </div>
-                <div class="margen-stat-card">
-                    <div class="margen-stat-icon">📄</div>
-                    <div class="margen-stat-value" id="mFacturas">—</div>
-                    <div class="margen-stat-label">Docs Mes</div>
                 </div>
             </div>
 
@@ -4381,7 +4498,7 @@
             <div style="padding: 0 var(--gutter); margin-bottom: 24px;">
                 <div class="merma-section-title" style="margin-bottom: 12px;">
                     <i data-lucide="search" style="width: 16px; color: var(--gold);"></i>
-                    Análisis por Cliente / Proveedor
+                    Análisis por Proveedor / Gastos
                 </div>
                 <div style="position: relative;">
                     <div class="glass-panel" style="display:flex;align-items:center;gap:12px;padding:12px 16px;border:1px solid var(--border);border-radius:16px;">
@@ -4389,49 +4506,30 @@
                         <input
                             id="margenClientSearch"
                             type="text"
-                            placeholder="Buscar cliente o proveedor..."
+                            placeholder="Buscar proveedor o concepto..."
                             oninput="searchMargenClient()"
                             style="background:none;border:none;outline:none;width:100%;font-family:'Outfit',sans-serif;font-size:14px;color:var(--text-primary);"
                         />
                     </div>
-                    <div id="margenClientResults" style="display:none;position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:100;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 12px 32px rgba(0,0,0,0.2);max-height:220px;overflow-y:auto;"></div>
                 </div>
-                <div id="selectedClientDash" style="display:none;margin-top:16px;"></div>
             </div>
-
-            <!-- Config Venta Semanal -->
-            <div class="margen-config-section">
-                <div class="margen-config-title">
-                    <i data-lucide="settings" style="width: 16px; color: var(--gold);"></i>
-                    Configurar Venta Semanal
-                </div>
-                <div style="margin-bottom: 12px;">
-                    <label style="font-size: 12px; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 6px;">Venta media semanal (€)</label>
-                    <input class="merma-input" id="ventaSemanalInput" type="number" placeholder="Ej: 4500" min="0" step="100">
-                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.4;">
-                        Usaremos este dato para estimar tu margen hasta integrar los tickets Z de caja.
-                    </div>
-                </div>
-                <button class="merma-submit-btn" id="saveVentaBtn" style="background: linear-gradient(135deg, #ebae1c, #D4AF37);">
-                    <i data-lucide="save" style="width: 16px;"></i>
-                    Guardar y Recalcular
-                </button>
-            </div>
-
-            <p style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 11px; color: var(--text-muted); margin: 0 var(--gutter) 20px; text-align: center;">
-                <i data-lucide="alert-triangle" style="width: 14px; height: 14px; color: var(--gold);"></i>
-                Estimación basada en gastos reales + venta media. Los márgenes reales incluyen mermas registradas.
-            </p>
         </div>
 
         <!-- ===== TAB: HOJA DE RUTA ===== -->
         <div id="tab-ruta" class="tab-content">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 16px;">
                 <div class="section-title" style="margin-bottom: 0;">Hoja de Ruta</div>
-                <button onclick="abrirGestorMaestro()" style="background: linear-gradient(135deg, rgba(212,175,55,0.1), rgba(212,175,55,0.02)); border: 1px solid var(--gold); color: var(--gold); border-radius: 12px; padding: 6px 12px; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;">
-                    <i data-lucide="database" style="width: 14px; height: 14px;"></i>
-                    Gestor Maestro
-                </button>
+                <div id="ruta-filters" style="display: flex; gap: 4px; background: rgba(255,255,255,0.03); padding: 4px; border-radius: 20px; border: 1px solid var(--border);">
+                    <button class="fin-pill active" onclick="setRutaFilter('all')">Todos</button>
+                    <button class="fin-pill" onclick="setRutaFilter('recurrent')">Recurrentes</button>
+                    <button class="fin-pill" onclick="setRutaFilter('dynamic')">Dinámicos</button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-gestor-maestro" onclick="abrirGestorMaestro()" style="background: linear-gradient(135deg, rgba(212,175,55,0.1), rgba(212,175,55,0.02)); border: 1px solid var(--gold); color: var(--gold); border-radius: 12px; padding: 6px 12px; font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 6px; cursor: pointer; transition: all 0.2s;">
+                        <i data-lucide="database" style="width: 14px; height: 14px;"></i>
+                        Gestor Maestro
+                    </button>
+                </div>
             </div>
             
             <!-- WhatsApp Status -->
@@ -4531,255 +4629,300 @@
 
     </main>
 
-    <!-- Modal Config Técnica (desde header ⚙️) -->
-    <div class="config-modal-overlay" id="configModal">
-        <div class="config-modal">
-            <h2 class="config-modal-title"
-                style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <i data-lucide="settings" style="width: 20px; height: 20px;"></i>
-                Ajustes Técnicos
-            </h2>
-            <p class="config-modal-desc" style="margin-bottom:20px;color:var(--text-muted);font-size:13px;">
-                Configuración unificada</p>
 
-            <div class="config-field">
-                <label class="config-label">🔑 Airtable Personal Access Token</label>
-                <input class="config-input" id="cfgAirtableToken" type="password" placeholder="patXXXXXXXXXXXXXX"
-                    required>
-                <div class="config-help">Token de acceso personal de Airtable.</div>
+
+    <!-- ===== PANEL SANIDAD / INSPECCIÓN ===== -->
+    <div id="sanidadOverlay" class="gn-overlay" onclick="if(event.target===this)closeSanidad()">
+        <div class="gn-panel" style="background: var(--bg-card);">
+            <div class="gn-header">
+                <div class="gn-back" onclick="closeSanidad()"><i data-lucide="x" style="width:18px;height:18px;"></i></div>
+                <div class="gn-title">Sanidad e Inspección</div>
+                <div style="width:36px;"></div>
             </div>
 
-            <div class="config-field">
-                <label class="config-label">🆔 Airtable Base ID</label>
-                <input class="config-input" id="cfgAirtableBase" type="text" placeholder="appXXXXXXXXXXXXXX"
-                    required>
-                <div class="config-help">El ID de tu base de Airtable (empieza por 'app').</div>
-            </div>
+            <div class="gn-body" style="padding: 20px; display:flex; flex-direction:column; gap:16px;">
+                <!-- Banner Progreso Mes -->
+                <div id="sanidadMesAlert"></div>
 
-            <div style="background:var(--warm-50); padding:10px; border-radius:10px; border:1px solid var(--border); margin-bottom:15px;">
-                <label class="config-label" style="font-size:11px; color:var(--text-muted); text-transform:uppercase;">📊 IDs de Tablas (Opcional - solo si falla el auto)</label>
-                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:8px; margin-top:5px;">
-                    <input class="config-input" id="cfgTableFacturas" type="text" placeholder="tbl... (Facturas)" style="font-size:10px; padding:6px;">
-                    <input class="config-input" id="cfgTableAlbaranes" type="text" placeholder="tbl... (Albaranes)" style="font-size:10px; padding:6px;">
-                    <input class="config-input" id="cfgTableGastos" type="text" placeholder="tbl... (Gastos)" style="font-size:10px; padding:6px;">
+                <!-- ==================== TEMPERATURAS ==================== -->
+                <div class="glass-panel" style="border-radius:16px; border:1px solid rgba(59,130,246,0.3); overflow:hidden;">
+                    <div style="padding:16px 20px; border-bottom:1px solid rgba(59,130,246,0.15); display:flex; align-items:center; gap:10px;">
+                        <i data-lucide="thermometer-snowflake" style="color:#3b82f6;width:20px;height:20px;"></i>
+                        <span style="font-weight:700;font-size:15px;">Registro de Temperaturas</span>
+                        <span id="tempBadgeHoy" style="margin-left:auto; font-size:11px; font-weight:600; background:rgba(59,130,246,0.1); color:#3b82f6; padding:3px 10px; border-radius:20px; display:none;">✓ Registrado hoy</span>
+                    </div>
+                    <div style="padding:16px 20px; display:flex; flex-direction:column; gap:12px;">
+                        <!-- Fila temperaturas -->
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;" id="tempZonasGrid">
+                            <div class="sanidad-temp-zone">
+                                <label>🧊 Mesa Fría (°C)</label>
+                                <input type="number" id="temp-mesa-fria" placeholder="Ej: 3.5" step="0.1">
+                                <span class="temp-limite">Límite: ≤ 4°C</span>
+                            </div>
+                            <div class="sanidad-temp-zone">
+                                <label>❄️ Congelador (°C)</label>
+                                <input type="number" id="temp-congelador" placeholder="Ej: -18" step="0.1">
+                                <span class="temp-limite">Límite: ≤ -18°C</span>
+                            </div>
+                            <div class="sanidad-temp-zone">
+                                <label>🏔️ Arcón (°C)</label>
+                                <input type="number" id="temp-arcon" placeholder="Ej: -18" step="0.1">
+                                <span class="temp-limite">Límite: ≤ -18°C</span>
+                            </div>
+                            <div class="sanidad-temp-zone">
+                                <label>🌡️ Obrador (°C)</label>
+                                <input type="number" id="temp-obrador" placeholder="Ej: 16" step="0.1">
+                                <span class="temp-limite">Ref: 15–25°C</span>
+                            </div>
+                        </div>
+                        <!-- Incidencia -->
+                        <div style="display:flex; align-items:center; gap:10px; padding:10px; background:rgba(239,68,68,0.06); border-radius:10px; border:1px solid rgba(239,68,68,0.15);">
+                            <input type="checkbox" id="temp-incidencia" style="width:16px;height:16px;accent-color:#ef4444;">
+                            <label for="temp-incidencia" style="font-size:13px; color:#ef4444; font-weight:600; cursor:pointer;">⚠️ Reportar incidencia o avería</label>
+                        </div>
+                        <textarea id="temp-incidencia-nota" placeholder="Describe la incidencia: equipo afectado, temperatura detectada, acción tomada..." style="display:none; width:100%; padding:10px; border-radius:10px; border:1px solid rgba(239,68,68,0.3); font-size:13px; resize:vertical; min-height:70px; background:var(--bg-card); color:var(--text-primary);"></textarea>
+                        <!-- Firma -->
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <label style="font-size:12px; color:var(--text-muted); white-space:nowrap;">Firmado por:</label>
+                            <input type="text" id="temp-firma" placeholder="Iniciales (ej: G.A.)" style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid var(--border); font-size:13px; background:var(--bg-card); color:var(--text-primary);">
+                        </div>
+                        <button onclick="registrarTemperaturas()" style="background:rgba(59,130,246,0.12); color:#3b82f6; border:1px solid #3b82f6; border-radius:12px; padding:13px; font-weight:700; width:100%; cursor:pointer; font-size:14px; transition:all 0.2s;">
+                            ✅ Guardar Temperaturas del Día
+                        </button>
+                        <div id="temperaturasStatus" style="font-size:11px; text-align:center; color:var(--text-muted);"></div>
+                    </div>
                 </div>
-            </div>
 
-            <div class="config-field">
-                <label class="config-label">🔗 Webhook URL (n8n)</label>
-                <input class="config-input" id="cfgWebhookUrl" type="url" placeholder="https://tu-n8n.com/webhook/..."
-                    required>
-            </div>
+                <!-- ==================== LIMPIEZA ==================== -->
+                <div class="glass-panel" style="border-radius:16px; border:1px solid rgba(16,185,129,0.3); overflow:hidden;">
+                    <div style="padding:16px 20px; border-bottom:1px solid rgba(16,185,129,0.15); display:flex; align-items:center; gap:10px;">
+                        <i data-lucide="sparkles" style="color:#10b981;width:20px;height:20px;"></i>
+                        <span style="font-weight:700;font-size:15px;">Limpieza y Desinfección</span>
+                        <span id="limpiezaBadgeHoy" style="margin-left:auto; font-size:11px; font-weight:600; background:rgba(16,185,129,0.1); color:#10b981; padding:3px 10px; border-radius:20px; display:none;">✓ Registrado hoy</span>
+                    </div>
+                    <div style="padding:16px 20px; display:flex; flex-direction:column; gap:10px;">
+                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Marca las zonas limpiadas y desinfectadas hoy:</p>
 
-
-            <div id="configStatusMsg" style="margin-top:10px; font-size:12px; text-align:center; display:none; padding:8px; border-radius:8px;"></div>
-
-            <div class="config-actions" style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
-                <div style="display:flex; gap:10px; margin-bottom:5px;">
-                    <button class="btn btn-secondary" id="testConfigBtn" style="flex:1; background:rgba(212,175,55,0.05); color:var(--amber-dark); font-size:12px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid var(--amber);">
-                        <i data-lucide="zap" style="width: 14px; height: 14px;"></i>
-                        Probar
-                    </button>
-                    <button class="btn btn-secondary" id="discoverTablesBtn" style="flex:1.5; background:rgba(34,197,94,0.05); color:#166534; font-size:12px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 1px solid #22c55e;">
-                        <i data-lucide="search" style="width: 14px; height: 14px;"></i>
-                        Detectar Tablas
-                    </button>
+                        <!-- Checklist DIARIO -->
+                        <div style="background:rgba(16,185,129,0.05); border-radius:10px; padding:12px; border:1px solid rgba(16,185,129,0.1);">
+                            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#10b981; margin-bottom:10px;">📋 Zonas Diarias</div>
+                            <div id="limpieza-checklist-diaria" style="display:flex; flex-direction:column; gap:8px;">
+                                <label class="lim-check"><input type="checkbox" name="lim-diaria" value="Chocolatera y cazos"> <span>Chocolatera y cazos</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-diaria" value="Obrador (superficies)"> <span>Obrador (superficies de trabajo)</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-diaria" value="Mesa de trabajo"> <span>Mesa de trabajo</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-diaria" value="Suelo del obrador"> <span>Suelo del obrador</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-diaria" value="Útiles y herramientas"> <span>Útiles y herramientas</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-diaria" value="Fregadero y grifería"> <span>Fregadero y grifería</span></label>
+                            </div>
+                        </div>
+                        <!-- Checklist SEMANAL -->
+                        <div style="background:rgba(251,191,36,0.05); border-radius:10px; padding:12px; border:1px solid rgba(251,191,36,0.1);">
+                            <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#f59e0b; margin-bottom:10px;">📋 Zonas Semanales (si aplica hoy)</div>
+                            <div id="limpieza-checklist-semanal" style="display:flex; flex-direction:column; gap:8px;">
+                                <label class="lim-check"><input type="checkbox" name="lim-semanal" value="Mesa fría (interior)"> <span>Mesa fría (interior)</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-semanal" value="Armarios y estanterías"> <span>Armarios y estanterías</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-semanal" value="Depósitos de residuos"> <span>Depósitos de residuos</span></label>
+                                <label class="lim-check"><input type="checkbox" name="lim-semanal" value="Patio y zona exterior"> <span>Patio y zona exterior</span></label>
+                            </div>
+                        </div>
+                        <!-- Observaciones y firma -->
+                        <textarea id="limpieza-obs" placeholder="Observaciones o incidencias en la limpieza..." style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); font-size:13px; resize:vertical; min-height:60px; background:var(--bg-card); color:var(--text-primary);"></textarea>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <label style="font-size:12px; color:var(--text-muted); white-space:nowrap;">Firmado por:</label>
+                            <input type="text" id="limpieza-firma" placeholder="Iniciales (ej: G.A.)" style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid var(--border); font-size:13px; background:var(--bg-card); color:var(--text-primary);">
+                        </div>
+                        <button onclick="registrarLimpieza()" style="background:rgba(16,185,129,0.12); color:#10b981; border:1px solid #10b981; border-radius:12px; padding:13px; font-weight:700; width:100%; cursor:pointer; font-size:14px; transition:all 0.2s;">
+                            ✅ Confirmar Limpieza del Día
+                        </button>
+                        <div id="limpiezaStatus" style="font-size:11px; text-align:center; color:var(--text-muted);"></div>
+                    </div>
                 </div>
-                <button class="btn btn-primary" id="saveConfigBtn"
-                    style="width:100%; background:var(--amber); color:var(--amber-dark); display: flex; align-items: center; justify-content: center; gap: 8px;">
-                    <i data-lucide="save" style="width: 18px; height: 18px;"></i>
-                    Guardar Configuración
+
+                <!-- ==================== PRODUCCIÓN ==================== -->
+                <div class="glass-panel" style="border-radius:16px; border:1px solid rgba(212,175,55,0.3); overflow:hidden;">
+                    <div style="padding:16px 20px; border-bottom:1px solid rgba(212,175,55,0.15); display:flex; align-items:center; gap:10px;">
+                        <i data-lucide="croissant" style="color:var(--gold);width:20px;height:20px;"></i>
+                        <span style="font-weight:700;font-size:15px;">Producción Diaria</span>
+                        <span id="prodBadgeHoy" style="margin-left:auto; font-size:11px; font-weight:600; background:rgba(212,175,55,0.1); color:var(--gold); padding:3px 10px; border-radius:20px; display:none;">✓ Registrado hoy</span>
+                    </div>
+                    <div style="padding:16px 20px; display:flex; flex-direction:column; gap:10px;">
+                        <p style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Añade los lotes de producción elaborados hoy:</p>
+
+                        <!-- Lista de líneas de producción -->
+                        <div id="produccion-lineas" style="display:flex; flex-direction:column; gap:10px;"></div>
+
+                        <!-- Botón Añadir producto -->
+                        <button onclick="agregarLineaProduccion()" style="background:transparent; color:var(--gold); border:1px dashed rgba(212,175,55,0.4); border-radius:10px; padding:10px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all 0.2s;">
+                            <i data-lucide="plus-circle" style="width:16px;height:16px;"></i> Añadir producto
+                        </button>
+
+                        <!-- Temperatura de producción -->
+                        <div style="display:flex; gap:10px; align-items:center; padding:10px; background:rgba(212,175,55,0.05); border-radius:10px; border:1px solid rgba(212,175,55,0.15);">
+                            <label style="font-size:12px; color:var(--text-muted); white-space:nowrap;">🌡️ Temp. Obrador:</label>
+                            <input type="number" id="prod-temp-obrador" placeholder="°C" step="0.1" style="width:80px; padding:8px; border-radius:8px; border:1px solid var(--border); font-size:13px; background:var(--bg-card); color:var(--text-primary); text-align:center;">
+                        </div>
+
+                        <!-- Observaciones y firma -->
+                        <textarea id="prod-obs" placeholder="Observaciones: proveedores de materias primas, incidencias de proceso..." style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border); font-size:13px; resize:vertical; min-height:60px; background:var(--bg-card); color:var(--text-primary);"></textarea>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <label style="font-size:12px; color:var(--text-muted); white-space:nowrap;">Firmado por:</label>
+                            <input type="text" id="prod-firma" placeholder="Iniciales (ej: G.A.)" style="flex:1; padding:8px 12px; border-radius:8px; border:1px solid var(--border); font-size:13px; background:var(--bg-card); color:var(--text-primary);">
+                        </div>
+                        <button onclick="registrarProduccion()" style="background:rgba(212,175,55,0.12); color:var(--gold); border:1px solid var(--gold); border-radius:12px; padding:13px; font-weight:700; width:100%; cursor:pointer; font-size:14px; transition:all 0.2s;">
+                            ✅ Guardar Producción del Día
+                        </button>
+                        <div id="produccionStatus" style="font-size:11px; text-align:center; color:var(--text-muted);"></div>
+                    </div>
+                </div>
+
+                <!-- Botón Exportar PDF -->
+                <button onclick="generarPDFSanidad()" class="glass-panel" style="width:100%; border:1px solid rgba(239,68,68,0.4); background:rgba(239,68,68,0.05); color:#ef4444; display:flex; align-items:center; justify-content:center; gap:8px; padding:14px; border-radius:12px; font-weight:600; cursor:pointer;">
+                    <i data-lucide="file-down" style="width:18px;"></i>
+                    Exportar Informe APPCC (PDF)
                 </button>
-                <button class="btn" id="closeConfigModal" style="padding:10px; font-size:12px; color:var(--text-muted); background:transparent;">Cerrar sin guardar</button>
-            </div>
-
-            <div class="version-info"
-                style="margin-top:24px;background:var(--warm-50);padding:12px;border-radius:12px;font-size:11px;color:var(--text-muted);border:1px solid var(--border);">
-                <strong>Estado:</strong> WebApp ✓ | n8n Self-hosted ✓ | Airtable Free ✓ | IA ~0.02€/imagen<br>
-                <strong>Versión:</strong> Dulce Jaleo 2.1
             </div>
         </div>
     </div>
 
-    <!-- ===== GESTIÓN DEL NEGOCIO PANEL ===== -->
-    <div id="gnOverlay" class="gn-overlay" onclick="if(event.target===this)closeGN()">
-        <div class="gn-panel">
 
-            <!-- Page: Menú Principal -->
-            <div id="gnPageMenu" class="gn-page active">
-                <div class="gn-header">
-                    <div class="gn-back" onclick="closeGN()"><i data-lucide="x" style="width:18px;height:18px;"></i></div>
-                    <div class="gn-title">Gestión del Negocio</div>
-                    <div style="width:36px;"></div>
-                </div>
-                <div class="gn-body">
-                    <div class="gn-menu-item" onclick="gnShowPage('gnPageEmpleados')">
-                        <div class="gn-menu-icon" style="background:rgba(212,175,55,0.12);"><i data-lucide="users" style="color:#D4AF37;width:20px;height:20px;"></i></div>
-                        <div class="gn-menu-text"><div class="gn-menu-label">Empleados</div><div class="gn-menu-sub">Gestionar equipo y contactos</div></div>
-                        <i data-lucide="chevron-right" style="color:var(--text-muted);width:18px;height:18px;"></i>
-                    </div>
-                    <div class="gn-menu-item" onclick="gnShowPage('gnPageHorarios')">
-                        <div class="gn-menu-icon" style="background:rgba(59,130,246,0.12);"><i data-lucide="clock" style="color:#3b82f6;width:20px;height:20px;"></i></div>
-                        <div class="gn-menu-text"><div class="gn-menu-label">Horarios del Negocio</div><div class="gn-menu-sub">Apertura y cierre por día</div></div>
-                        <i data-lucide="chevron-right" style="color:var(--text-muted);width:18px;height:18px;"></i>
-                    </div>
-                    <div class="gn-menu-item" onclick="gnShowPage('gnPageTurnos')">
-                        <div class="gn-menu-icon" style="background:rgba(139,92,246,0.12);"><i data-lucide="calendar-clock" style="color:#8b5cf6;width:20px;height:20px;"></i></div>
-                        <div class="gn-menu-text"><div class="gn-menu-label">Turnos</div><div class="gn-menu-sub">Asignar turnos por empleado</div></div>
-                        <i data-lucide="chevron-right" style="color:var(--text-muted);width:18px;height:18px;"></i>
-                    </div>
-                    <div class="gn-menu-item" onclick="gnShowPage('gnPageFestivos')">
-                        <div class="gn-menu-icon" style="background:rgba(16,185,129,0.12);"><i data-lucide="palm-tree" style="color:#10b981;width:20px;height:20px;"></i></div>
-                        <div class="gn-menu-text"><div class="gn-menu-label">Festivos y Vacaciones</div><div class="gn-menu-sub">Días libres y festivos</div></div>
-                        <i data-lucide="chevron-right" style="color:var(--text-muted);width:18px;height:18px;"></i>
-                    </div>
-                    <div class="gn-menu-item" onclick="gnShowPage('gnPageRoles')">
-                        <div class="gn-menu-icon" style="background:rgba(245,158,11,0.12);"><i data-lucide="shield" style="color:#f59e0b;width:20px;height:20px;"></i></div>
-                        <div class="gn-menu-text"><div class="gn-menu-label">Roles y Permisos</div><div class="gn-menu-sub">Definir roles con colores</div></div>
-                        <i data-lucide="chevron-right" style="color:var(--text-muted);width:18px;height:18px;"></i>
-                    </div>
-                    <div class="gn-menu-item" onclick="gnShowPage('gnPageObjetivos')">
-                        <div class="gn-menu-icon" style="background:rgba(239,68,68,0.12);"><i data-lucide="target" style="color:#ef4444;width:20px;height:20px;"></i></div>
-                        <div class="gn-menu-text"><div class="gn-menu-label">Objetivos del Equipo</div><div class="gn-menu-sub">Metas de ventas y KPIs</div></div>
-                        <i data-lucide="chevron-right" style="color:var(--text-muted);width:18px;height:18px;"></i>
-                    </div>
-                </div>
+    <!-- ===== PANEL DE AJUSTES Y COMPLIANCE ===== -->
+    <div id="settingsOverlay" class="gn-overlay" onclick="if(event.target===this)closeSettings()">
+        <div class="gn-panel" style="background: var(--bg-card); max-width: 600px; padding:0; display:flex; flex-direction:column; overflow:hidden;">
+            <div class="gn-header" style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); flex-shrink: 0; background: var(--bg-card); position: sticky; top:0; z-index: 10;">
+                <div class="gn-back" onclick="closeSettings()"><i data-lucide="x" style="width:18px;height:18px;"></i></div>
+                <div class="gn-title" style="flex:1; text-align:center;">Configuración</div>
+                <div style="width:36px;"></div>
             </div>
-
-            <!-- Page: Lista de Empleados -->
-            <div id="gnPageEmpleados" class="gn-page">
-                <div class="gn-header">
-                    <div class="gn-back" onclick="gnShowPage('gnPageMenu')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
-                    <div class="gn-title">Empleados</div>
-                    <div style="width:36px;"></div>
+            
+            <div style="display:flex; flex:1; overflow:hidden; min-height: 500px;">
+                <!-- Sidebar Menú -->
+                <div id="settingsSidebar" style="width:180px; background: rgba(0,0,0,0.02); border-right: 1px solid var(--border-color); overflow-y:auto; padding:10px 0;">
+                    <div class="settings-tab active" onclick="activateSettingsTab('airtable', this)" style="padding:16px 20px; cursor:pointer; font-size:14px; font-weight:600; display:flex; align-items:center; gap:10px; color: var(--text-color);">
+                        <i data-lucide="database" style="width:18px;height:18px;"></i> Servidor
+                    </div>
+                    <div class="settings-tab" onclick="activateSettingsTab('empleados', this)" style="padding:16px 20px; cursor:pointer; font-size:14px; font-weight:600; display:flex; align-items:center; gap:10px; color: var(--text-color);">
+                        <i data-lucide="users" style="width:18px;height:18px;"></i> Personal
+                    </div>
+                    <div class="settings-tab" onclick="activateSettingsTab('legal', this)" style="padding:16px 20px; cursor:pointer; font-size:14px; font-weight:600; display:flex; align-items:center; gap:10px; border-top:1px solid var(--border-color); margin-top:10px; padding-top:20px; color: var(--text-color);">
+                        <i data-lucide="shield" style="width:18px;height:18px;"></i> Legal
+                    </div>
                 </div>
-                <div class="gn-body" id="gnEmpleadosList"></div>
-                <div class="gn-fab"><button onclick="gnShowEmpleadoForm()"><i data-lucide="plus" style="width:18px;height:18px;"></i> Añadir empleado</button></div>
-            </div>
 
-            <!-- Page: Formulario Empleado -->
-            <div id="gnPageEmpleadoForm" class="gn-page">
-                <div class="gn-header">
-                    <div class="gn-back" onclick="gnShowPage('gnPageEmpleados')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
-                    <div class="gn-title" id="gnFormTitle">Nuevo Empleado</div>
-                    <div style="width:36px;"></div>
-                </div>
-                <div class="gn-body">
-                    <form id="gnEmpleadoForm" onsubmit="gnSaveEmpleado(event)">
-                        <input type="hidden" id="gnEmpId">
-                        <div class="gn-form-group">
-                            <label class="gn-form-label">Nombre *</label>
-                            <input type="text" id="gnEmpNombre" class="gn-form-input" required placeholder="Nombre">
+                <!-- Contenido -->
+                <div style="flex:1; overflow-y:auto; padding:24px; position:relative;" id="settingsContentArea">
+                    
+                    <!-- TAB AIRTABLE -->
+                    <div id="settingsTab-airtable" class="settings-tab-content">
+                        <h3 style="font-size:18px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="database" style="color:#10b981;"></i> Gateway de Conexión
+                        </h3>
+                        <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px; line-height:1.5;">Configuración global del servidor Airtable. Esto impactará en la sincronización de toda la infraestructura.</p>
+                        
+                        <div style="margin-bottom:16px;">
+                            <label style="font-size:12px; font-weight:600; color:var(--text-muted); display:block; margin-bottom:6px;">Airtable Base ID</label>
+                            <input type="text" id="settingAirtableBase" placeholder="appXXXXXXXXX" style="width:100%; border-radius:8px; border:1px solid var(--border-color); padding:12px; background:transparent; color:var(--text-color);">
                         </div>
-                        <div class="gn-form-group">
-                            <label class="gn-form-label">Apellido</label>
-                            <input type="text" id="gnEmpApellido" class="gn-form-input" placeholder="Apellido">
+                        <div style="margin-bottom:24px;">
+                            <label style="font-size:12px; font-weight:600; color:var(--text-muted); display:block; margin-bottom:6px;">Personal Access Token (API Key)</label>
+                            <input type="password" id="settingAirtableKey" placeholder="patXXXXXXXXX" style="width:100%; border-radius:8px; border:1px solid var(--border-color); padding:12px; background:transparent; color:var(--text-color);">
                         </div>
-                        <div class="gn-form-group">
-                            <label class="gn-form-label">Teléfono</label>
-                            <input type="tel" id="gnEmpTelefono" class="gn-form-input" placeholder="600 000 000">
-                        </div>
-                        <div class="gn-form-group">
-                            <label class="gn-form-label">Email</label>
-                            <input type="email" id="gnEmpEmail" class="gn-form-input" placeholder="correo@ejemplo.com">
-                        </div>
-                        <div class="gn-form-group">
-                            <label class="gn-form-label">Rol</label>
-                            <select id="gnEmpRol" class="gn-form-select"></select>
-                        </div>
-                        <button type="submit" class="gn-form-submit">
-                            <i data-lucide="save" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;"></i>
-                            Guardar Empleado
+                        
+                        <button onclick="saveAirtableSettings()" style="background:#10b981; color:#fff; border:none; border-radius:8px; width:100%; padding:14px; font-size:14px; font-weight:700; cursor:pointer;">
+                            Salvar Configuración
                         </button>
-                    </form>
-                </div>
-            </div>
-
-            <!-- Page: Horarios del Negocio -->
-            <div id="gnPageHorarios" class="gn-page">
-                <div class="gn-header">
-                    <div class="gn-back" onclick="gnShowPage('gnPageMenu')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
-                    <div class="gn-title">Horarios del Negocio</div>
-                    <div style="width:36px;"></div>
-                </div>
-                <div class="gn-body" id="gnHorariosList"></div>
-            </div>
-
-            <!-- Page: Turnos -->
-            <div id="gnPageTurnos" class="gn-page">
-                <div class="gn-header">
-                    <div class="gn-back" onclick="gnShowPage('gnPageMenu')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
-                    <div class="gn-title">Turnos</div>
-                    <div style="width:36px;"></div>
-                </div>
-                <div class="gn-body">
-                    <div class="gn-turno-week">
-                        <div class="gn-turno-weekbtn" onclick="gnTurnoWeek(-1)"><i data-lucide="chevron-left" style="width:16px;height:16px;"></i></div>
-                        <div class="gn-turno-weeklabel" id="gnTurnoWeekLabel"></div>
-                        <div class="gn-turno-weekbtn" onclick="gnTurnoWeek(1)"><i data-lucide="chevron-right" style="width:16px;height:16px;"></i></div>
                     </div>
-                    <div class="gn-turno-grid" id="gnTurnoGrid"></div>
-                </div>
-            </div>
 
-            <!-- Page: Festivos y Vacaciones -->
-            <div id="gnPageFestivos" class="gn-page">
-                <div class="gn-header">
-                    <div class="gn-back" onclick="gnShowPage('gnPageMenu')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
-                    <div class="gn-title">Festivos y Vacaciones</div>
-                    <div style="width:36px;"></div>
-                </div>
-                <div class="gn-body" id="gnFestivosBody"></div>
-            </div>
-
-            <!-- Page: Roles y Permisos -->
-            <div id="gnPageRoles" class="gn-page">
-                <div class="gn-header">
-                    <div class="gn-back" onclick="gnShowPage('gnPageMenu')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
-                    <div class="gn-title">Roles y Permisos</div>
-                    <div style="width:36px;"></div>
-                </div>
-                <div class="gn-body" id="gnRolesList"></div>
-                <div class="gn-fab"><button onclick="gnShowRolForm()"><i data-lucide="plus" style="width:18px;height:18px;"></i> Nuevo rol</button></div>
-            </div>
-
-            <!-- Page: Formulario de Rol -->
-            <div id="gnPageRolForm" class="gn-page">
-                <div class="gn-header">
-                    <div class="gn-back" onclick="gnShowPage('gnPageRoles')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
-                    <div class="gn-title" id="gnRolFormTitle">Nuevo Rol</div>
-                    <div style="width:36px;"></div>
-                </div>
-                <div class="gn-body">
-                    <form id="gnRolForm" onsubmit="gnSaveRol(event)">
-                        <input type="hidden" id="gnRolId">
-                        <div class="gn-form-group">
-                            <label class="gn-form-label">Nombre del rol *</label>
-                            <input type="text" id="gnRolNombre" class="gn-form-input" required placeholder="Ej: Pastelero">
+                    <!-- TAB EMPLEADOS -->
+                    <div id="settingsTab-empleados" class="settings-tab-content" style="display:none;">
+                        <h3 style="font-size:18px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="users" style="color:#f59e0b;"></i> Recursos Humanos
+                        </h3>
+                        <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px; line-height:1.5;">Gestión del personal y turnos de la pastelería.</p>
+                        
+                        <div style="background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.2); border-radius:12px; padding:16px; margin-bottom:24px;">
+                            <h4 style="font-size:14px; font-weight:600; margin-bottom:12px; border-bottom:1px solid rgba(245,158,11,0.2); padding-bottom:8px; color:#f59e0b;">Accesos Rápidos</h4>
+                            <div style="display:flex; gap:10px; margin-bottom:10px;">
+                                <button onclick="showHRTab('lista')" style="flex:1; background:var(--bg-body); color:var(--text-color); border:1px solid var(--border-color); padding:10px; border-radius:8px; font-size:12px; cursor:pointer;"><i data-lucide="users" style="width:14px; margin-right:4px;"></i> Lista</button>
+                                <button onclick="showHRTab('turnos')" style="flex:1; background:var(--bg-body); color:var(--text-color); border:1px solid var(--border-color); padding:10px; border-radius:8px; font-size:12px; cursor:pointer;"><i data-lucide="calendar" style="width:14px; margin-right:4px;"></i> Turnos</button>
+                                <button onclick="showHRTab('festivos')" style="flex:1; background:var(--bg-body); color:var(--text-color); border:1px solid var(--border-color); padding:10px; border-radius:8px; font-size:12px; cursor:pointer;"><i data-lucide="palm-tree" style="width:14px; margin-right:4px;"></i> Festivos</button>
+                            </div>
                         </div>
-                        <div class="gn-form-group">
-                            <label class="gn-form-label">Color</label>
-                            <div class="gn-color-picker" id="gnRolColorPicker"></div>
-                            <input type="hidden" id="gnRolColor" value="#D4AF37">
+
+                        <!-- CONTENIDO DINÁMICO HR -->
+                        <div id="hr-lista" class="hr-section" style="display:block; margin-bottom: 20px;">
+                            <h4 style="font-size:14px; font-weight:600; margin-bottom:12px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">Alta y Baja de Empleados</h4>
+                            <div style="display:flex; gap:10px; margin-bottom:16px;">
+                                <input type="text" id="newEmpName" placeholder="Nombre completo..." style="flex:1; border-radius:8px; border:1px solid var(--border-color); padding:12px; background:transparent; color:var(--text-color);">
+                                <button onclick="addEmployeeUI()" style="background:var(--text-color); color:var(--bg-body); border:none; border-radius:8px; padding:10px 20px; font-weight:700; cursor:pointer;">Añadir</button>
+                            </div>
+                            <div id="hrEmpListContainer" style="display:flex; flex-direction:column; gap:10px;"></div>
                         </div>
-                        <button type="submit" class="gn-form-submit">
-                            <i data-lucide="save" style="width:16px;height:16px;display:inline;vertical-align:middle;margin-right:6px;"></i>
-                            Guardar Rol
+
+                        <div id="hr-turnos" class="hr-section" style="display:none; margin-bottom: 20px;">
+                            <h4 style="font-size:14px; font-weight:600; margin-bottom:12px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">Turnos por Empleado (Plantilla)</h4>
+                            <div id="hrTurnosContainer" style="display:flex; flex-direction:column; gap:20px;"></div>
+                        </div>
+
+                        <div id="hr-festivos" class="hr-section" style="display:none; margin-bottom: 20px;">
+                            <h4 style="font-size:14px; font-weight:600; margin-bottom:12px; border-bottom:1px solid var(--border-color); padding-bottom:8px;">Control de Vacaciones y Bajas</h4>
+                            <div id="hrFestivosContainer" style="display:flex; flex-direction:column; gap:15px;"></div>
+                        </div>
+                        
+                        <!-- BOTÓN DE EXPORTACIÓN (Siempre visible al final) -->
+                        <button onclick="generarCuadrantePDF()" style="background:#f59e0b; color:#fff; border:none; border-radius:8px; width:100%; padding:14px; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+                            <i data-lucide="printer"></i> Generar Cuadrante Semanal (PDF)
                         </button>
-                    </form>
+                    </div>
+
+                    <!-- TAB LEGAL -->
+                    <div id="settingsTab-legal" class="settings-tab-content" style="display:none;">
+                        <h3 style="font-size:18px; font-weight:700; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="shield" style="color:#ef4444;"></i> Compliance 
+                        </h3>
+                        <p style="font-size:13px; color:var(--text-muted); margin-bottom:24px; line-height:1.5;">Estatutos legales sobre el Tratamiento de Datos del Personal en base a normativas EU y Privacidad IT.</p>
+                        
+                        <div style="display:flex; flex-direction:column; gap:12px;">
+                            <div class="legal-card" onclick="openLegalModal('aviso')" style="border:1px solid var(--border-color); border-radius:12px; padding:16px; cursor:pointer; position:relative; overflow:hidden;">
+                                <div style="position:absolute; inset:0; background:rgba(255,255,255,0.03); opacity:0; transition:0.2s;" class="lc-hover"></div>
+                                <h4 style="font-size:15px; font-weight:700; margin-bottom:6px; display:flex; justify-content:space-between;">Aviso Legal y LSSI-CE <i data-lucide="chevron-right" style="width:16px;height:16px; color:var(--text-muted);"></i></h4>
+                                <p style="font-size:12px; color:var(--text-muted); line-height:1.4;">Titularidad jurídica, propiedad del código e información de la empresa proveedora JaleOS.</p>
+                            </div>
+                            <div class="legal-card" onclick="openLegalModal('privacidad')" style="border:1px solid var(--border-color); border-radius:12px; padding:16px; cursor:pointer; position:relative; overflow:hidden;">
+                                <div style="position:absolute; inset:0; background:rgba(255,255,255,0.03); opacity:0; transition:0.2s;" class="lc-hover"></div>
+                                <h4 style="font-size:15px; font-weight:700; margin-bottom:6px; display:flex; justify-content:space-between;">Política de Privacidad Integral <i data-lucide="chevron-right" style="width:16px;height:16px; color:var(--text-muted);"></i></h4>
+                                <p style="font-size:12px; color:var(--text-muted); line-height:1.4;">Declaración de uso de datos laborales bajo RGPD/LOPDGDD y Derechos ARCO para el Staff.</p>
+                            </div>
+                            <div class="legal-card" onclick="openLegalModal('terminos')" style="border:1px solid var(--border-color); border-radius:12px; padding:16px; cursor:pointer; position:relative; overflow:hidden;">
+                                <div style="position:absolute; inset:0; background:rgba(255,255,255,0.03); opacity:0; transition:0.2s;" class="lc-hover"></div>
+                                <h4 style="font-size:15px; font-weight:700; margin-bottom:6px; display:flex; justify-content:space-between;">Términos Internos de Uso <i data-lucide="chevron-right" style="width:16px;height:16px; color:var(--text-muted);"></i></h4>
+                                <p style="font-size:12px; color:var(--text-muted); line-height:1.4;">Obligación de Confidencialidad Laboral respecto a recetas y normativas de operación interna.</p>
+                            </div>
+                        </div>
+
+                        <!-- Cierre de Sesión Seguro -->
+                        <div style="margin-top: 30px;">
+                            <button onclick="if(window.DulceAuth) DulceAuth.logout(); else location.reload();" 
+                                    style="width:100%; border:none; background:rgba(239, 68, 68, 0.1); color:#ef4444; border-radius:14px; padding:16px; font-size:15px; font-family:'Outfit', sans-serif; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition: all 0.2s;">
+                                <i data-lucide="log-out" style="width:18px;height:18px;"></i> Cerrar Sesión
+                            </button>
+                            <p style="text-align:center; font-size:11px; color:var(--text-muted); margin-top:12px;">Desconecta de forma segura el terminal actual.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
 
-            <!-- Page: Objetivos del Equipo -->
-            <div id="gnPageObjetivos" class="gn-page">
-                <div class="gn-header">
-                    <div class="gn-back" onclick="gnShowPage('gnPageMenu')"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
-                    <div class="gn-title">Objetivos del Equipo</div>
-                    <div style="width:36px;"></div>
-                </div>
-                <div class="gn-body" id="gnObjetivosBody"></div>
+    <!-- MODAL DE VISUALIZACIÓN LEGAL TEXT -->
+    <div id="legalTextOverlay" class="gn-overlay" onclick="if(event.target===this)closeLegalModal()" style="z-index: 1000000; display:none;">
+        <div class="gn-panel" style="background: var(--bg-card); max-width: 800px; height: 80vh; padding:0; display:flex; flex-direction:column; border: 1px solid var(--border-color);">
+            <div class="gn-header" style="padding: 20px; border-bottom: 1px solid var(--border-color); flex-shrink: 0;">
+                <div class="gn-back" onclick="closeLegalModal()"><i data-lucide="arrow-left" style="width:18px;height:18px;"></i></div>
+                <div class="gn-title" id="legalModalTitle" style="flex:1; text-align:center;">Documento Legal</div>
+                <div style="width:36px;"></div>
             </div>
-
+            <div class="gn-body" style="flex:1; overflow-y:auto; padding: 30px;" id="legalModalContent">
+            </div>
         </div>
     </div>
 
@@ -4955,10 +5098,10 @@
                 <span class="nav-label">INICIO</span>
             </button>
 
-            <!-- Facturas -->
+            <!-- Búnker de Docs -->
             <button class="nav-btn" data-tab="facturas" onclick="activateTab('facturas')">
-                <span class="nav-icon"><i data-lucide="receipt"></i></span>
-                <span class="nav-label">FACTURAS</span>
+                <span class="nav-icon"><i data-lucide="shield-check"></i></span>
+                <span class="nav-label">BÚNKER</span>
             </button>
 
             <!-- Agenda -->
@@ -4973,11 +5116,12 @@
                 <span class="nav-label">MÁRGENES</span>
             </button>
 
-            <!-- Ruta -->
+            <!-- Hoja de Ruta — desactivada para lanzamiento v1. Descomentar cuando esté lista.
             <button class="nav-btn" data-tab="ruta" onclick="activateTab('ruta')">
                 <span class="nav-icon"><i data-lucide="map"></i></span>
                 <span class="nav-label">HOJA RUTA</span>
             </button>
+            -->
         </div>
     </nav>
 
@@ -5128,6 +5272,13 @@
         const RUTA_KEY = 'dulce_jaleo_ruta';
         const EQUIPO_KEY = 'dulce_jaleo_equipo';
 
+        // Helper: clave localStorage con scope por usuario (aislamiento multi-tenant)
+        function getUserScopedKey(baseKey) {
+            var userInfo = window.DulceAuth ? window.DulceAuth.getUserInfo() : null;
+            var userId = userInfo ? (userInfo.id || userInfo.email || 'default') : 'default';
+            return baseKey + '_' + userId;
+        }
+
         // Catch-all para evitar cierres abruptos y diagnosticar errores
         window.onerror = function (msg, url, lineNo, columnNo, error) {
             console.error('[Global Error]', msg, 'at', url, ':', lineNo);
@@ -5186,7 +5337,8 @@
             const tblAlbaranes = localStorage.getItem('AIRTABLE_TABLE_ALBARANES') || '';
             const tblGastos = localStorage.getItem('AIRTABLE_TABLE_GASTOS') || '';
 
-            document.getElementById('cfgWebhookUrl').value = cfg.webhookUrl;
+            const cfgWebhookUrlEl = document.getElementById('cfgWebhookUrl');
+            if (cfgWebhookUrlEl) cfgWebhookUrlEl.value = cfg.webhookUrl;
             if(document.getElementById('cfgAirtableToken')) {
                 document.getElementById('cfgAirtableToken').value = airtableKey;
             }
@@ -5325,17 +5477,26 @@
         }
 
         let config = loadConfig();
-        document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
-        document.getElementById('testConfigBtn').addEventListener('click', testConfig);
-        document.getElementById('discoverTablesBtn').addEventListener('click', discoverAndSaveTables);
-        document.getElementById('closeConfigModal').addEventListener('click', () => {
-            document.getElementById('configModal').classList.remove('open');
-            document.getElementById('configStatusMsg').style.display = 'none';
+        const svBtn = document.getElementById('saveConfigBtn');
+        if (svBtn) svBtn.addEventListener('click', saveConfig);
+        
+        const tstBtn = document.getElementById('testConfigBtn');
+        if (tstBtn) tstBtn.addEventListener('click', testConfig);
+        
+        const dBtn = document.getElementById('discoverTablesBtn');
+        if (dBtn) dBtn.addEventListener('click', discoverAndSaveTables);
+        
+        const cBtn = document.getElementById('closeConfigModal');
+        if (cBtn) cBtn.addEventListener('click', () => {
+            const m = document.getElementById('configModal');
+            if (m) m.classList.remove('open');
+            const msg = document.getElementById('configStatusMsg');
+            if (msg) msg.style.display = 'none';
         });
 
         // ===== ESTADO GLOBAL CENTRALIZADO =====
         // Fuente de verdad única: una sola consulta a Airtable alimenta TODAS las pestañas
-        let globalStats = {
+        window.globalStats = Object.assign(window.globalStats || {}, {
             allRecords: [],       // Todos los registros normalizados
             mesActual: '',        // 'YYYY-MM' del mes en curso
             // Contadores GLOBALES (todos los registros, sin filtro de mes)
@@ -5352,7 +5513,7 @@
             countTotalMes: 0,
             totalGastosMes: 0,    // Suma € de todos los docs del mes actual
             loaded: false
-        };
+        });
 
         async function fetchGlobalData() {
             const now = new Date();
@@ -5385,8 +5546,26 @@
                 globalStats.pedidos = globalStats.pedidosRaw.map(r => ({
                     id: r.id,
                     ...r.fields,
-                    completed: r.fields.status === 'Done' || r.fields.status === 'Completado'
+                    product: r.fields.Product || r.fields.producto || 'Desconocido',
+                    quantity: r.fields.Quantity || r.fields.cantidad || 0,
+                    unit: r.fields.Unit || r.fields.unidad || 'Uds',
+                    type: r.fields.Type || r.fields.tipo || 'Manual',
+                    completed: r.fields.Completed === true || r.fields.status === 'Done' || r.fields.status === 'Completado',
+                    completedAt: r.fields.Completedat || r.fields.fecha_entrega || null,
+                    total: parseFloat(r.fields.Total || r.fields.total || 0),
+                    fecha_entrega: r.fields["Fecha entrega"] || r.fields.fecha_entrega || ''
                 }));
+
+                // Actualizar cache localStorage scoped con datos frescos de Airtable (offline-ready)
+                if (globalStats.pedidos && globalStats.pedidos.length > 0 && typeof getUserScopedKey === 'function') {
+                    try {
+                        localStorage.setItem(getUserScopedKey(RUTA_KEY), JSON.stringify({
+                            version: 2,
+                            date: new Date().toISOString().slice(0, 10),
+                            orders: globalStats.pedidos
+                        }));
+                    } catch(e) { /* localStorage lleno, no crítico */ }
+                }
 
                 globalStats.allRecords.sort((a, b) => (b.fecha || '').localeCompare(a.fecha || ''));
                 calculateGlobalStats();
@@ -5480,7 +5659,7 @@
                 return `
                     <div style="display: flex; align-items: center; gap: 10px;">
                         <div style="width: 72px; font-size: 10px; font-weight: 600; color: var(--text-muted); white-space: nowrap;">${c.name}</div>
-                        <div style="flex: 1; height: 22px; background: ${c.bg}; border-radius: 8px; overflow: hidden; position: relative;">
+                        <div style="flex: 1; height: 28px; background: ${c.bg}; border-radius: 8px; overflow: hidden; position: relative;">
                             <div style="height: 100%; width: ${pct}%; background: ${c.color}; border-radius: 8px; transition: width 0.8s ease;"></div>
                         </div>
                         <div style="min-width: 60px; text-align: right; font-size: 11px; font-weight: 800; color: var(--text-primary);">${c.sum.toFixed(0)}€ <span style="font-weight: 400; color: var(--text-muted); font-size: 9px;">(${c.count})</span></div>
@@ -5501,19 +5680,30 @@
                 return;
             }
 
+            const catMeta = {
+                FACTURA:       { label: 'Factura', color: '#D4AF37', icon: 'file-text'   },
+                ALBARAN:       { label: 'Albarán', color: '#10b981', icon: 'package'     },
+                GASTOS_VARIOS: { label: 'Gasto',   color: '#f59e0b', icon: 'credit-card' }
+            };
             list.innerHTML = recent.map(r => {
-                const icon = r.categoria === 'FACTURA' ? 'file-text' : (r.categoria === 'ALBARAN' ? 'package' : 'credit-card');
-                const color = r.categoria === 'FACTURA' ? '#D4AF37' : '#888';
+                const meta = catMeta[r.categoria] || catMeta.FACTURA;
+                const nombre = (r.proveedor && r.proveedor !== 'Desconocido')
+                    ? r.proveedor
+                    : (r.numero_doc ? `Doc. ${r.numero_doc}` : (r.detalles ? r.detalles.slice(0, 22) : meta.label));
+                const fechaStr = (r.fecha || r.createdAt || '').slice(0, 10);
                 return `
-                    <div class="glass-panel" style="padding: 14px 16px; display: flex; align-items: center; gap: 12px; border-radius: 20px; margin-bottom: 2px; border: 1px solid rgba(255,255,255,0.03);">
-                        <div style="width: 38px; height: 38px; background: var(--warm-100); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: ${color}; border: 1px solid var(--border);">
-                            <i data-lucide="${icon}" style="width: 16px;"></i>
+                    <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:18px;">
+                        <div style="width:40px;height:40px;background:${meta.color}18;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                            <i data-lucide="${meta.icon}" style="width:16px;color:${meta.color};"></i>
                         </div>
-                        <div style="flex: 1;">
-                            <div style="font-size: 13px; font-weight: 700; color: var(--text-primary);">${r.proveedor || 'Proveedor'}</div>
-                            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.2px;">${r.fecha || '-'} • ${r.categoria}</div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-size:13px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${nombre}</div>
+                            <div style="display:flex;align-items:center;gap:6px;margin-top:3px;">
+                                <span style="font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:${meta.color}22;color:${meta.color};text-transform:uppercase;">${meta.label}</span>
+                                ${fechaStr ? `<span style="font-size:10px;color:var(--text-muted);">${fechaStr}</span>` : ''}
+                            </div>
                         </div>
-                        <div style="font-size: 14px; font-weight: 800; color: var(--text-primary);">${(r.total || 0).toFixed(2)}€</div>
+                        <div style="font-size:15px;font-weight:800;color:var(--text-primary);flex-shrink:0;">${(r.total || 0).toFixed(2)}€</div>
                     </div>
                 `;
             }).join('');
@@ -5683,10 +5873,25 @@
             const data = getEquipoData();
             const emp = data.empleados.find(e => e.id === id);
             if (!emp) return;
-            if (!confirm('¿Eliminar a ' + emp.nombre + ' ' + (emp.apellido || '') + '?')) return;
-            data.empleados = data.empleados.filter(e => e.id !== id);
-            saveEquipoData(data);
-            gnRenderEmpleados();
+            
+            Swal.fire({
+                title: '¿Eliminar empleado?',
+                text: '¿Seguro que quieres eliminar a ' + emp.nombre + ' ' + (emp.apellido || '') + '?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#D4AF37',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    data.empleados = data.empleados.filter(e => e.id !== id);
+                    saveEquipoData(data);
+                    gnRenderEmpleados();
+                    if (typeof mostrarToast === 'function') mostrarToast('Empleado eliminado', 2000, 'trash-2');
+                }
+            });
         }
 
         // ===== WIDGET DINÁMICO (Control de Horario) =====
@@ -6053,15 +6258,37 @@
             const data = getEquipoData();
             const count = data.empleados.filter(e => e.rol === id).length;
             if (count > 0) {
-                alert('No se puede eliminar un rol con ' + count + ' empleado' + (count > 1 ? 's' : '') + ' asignado' + (count > 1 ? 's' : '') + '.\nReasigna los empleados primero.');
+                Swal.fire({
+                    title: 'Acción bloqueada',
+                    text: 'No se puede eliminar un rol con ' + count + ' empleado' + (count > 1 ? 's' : '') + ' asignado' + (count > 1 ? 's' : '') + '. Reasigna los empleados primero.',
+                    icon: 'error',
+                    confirmButtonColor: '#D4AF37',
+                    background: 'var(--bg-card)',
+                    color: 'var(--text-primary)'
+                });
                 return;
             }
             const rol = data.roles.find(r => r.id === id);
             if (!rol) return;
-            if (!confirm('¿Eliminar el rol "' + rol.nombre + '"?')) return;
-            data.roles = data.roles.filter(r => r.id !== id);
-            saveEquipoData(data);
-            gnRenderRoles();
+            
+            Swal.fire({
+                title: '¿Eliminar rol?',
+                text: '¿Seguro que quieres eliminar el rol "' + rol.nombre + '"?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#D4AF37',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    data.roles = data.roles.filter(r => r.id !== id);
+                    saveEquipoData(data);
+                    gnRenderRoles();
+                    if (typeof mostrarToast === 'function') mostrarToast('Rol eliminado', 2000, 'trash-2');
+                }
+            });
         }
 
         // ===== OBJETIVOS DEL EQUIPO =====
@@ -6260,7 +6487,7 @@
         function processSelectedFile(file, isCamera) {
             const isImage = file.type && file.type.startsWith('image/');
             const isHEIC = file.name && (file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif'));
-            if (!isImage && !isHEIC) { alert('Por favor selecciona una imagen válida'); return; }
+            if (!isImage && !isHEIC) { mostrarToastConexion('Por favor selecciona una imagen válida'); return; }
 
             const reader = new FileReader();
             reader.onload = ev => {
@@ -6353,7 +6580,7 @@
                 showResult(finalData);
                 // El usuario cierra el resultado manualmente
             } catch (err) {
-                alert('No se pudo procesar la imagen: ' + err.message);
+                mostrarToastConexion('No se pudo procesar la imagen: ' + err.message);
                 sendBtn.disabled = false;
                 sendBtn.innerHTML = '🚀 Reintentar Procesado';
             }
@@ -6394,6 +6621,17 @@
                 </div>
             `).join('');
 
+            // Mostrar DETALLES DOC si los hay
+            const detalles = fields['DETALLES DOC'] || fields['detalles'] || '';
+            const resultDetalles = document.getElementById('resultDetalles');
+            const resultDetallesText = document.getElementById('resultDetallesText');
+            if (resultDetalles && detalles) {
+                resultDetalles.style.display = 'block';
+                resultDetallesText.textContent = detalles;
+            } else if (resultDetalles) {
+                resultDetalles.style.display = 'none';
+            }
+
             // ✨ INTELIGENCIA DE AGENDA ✨
             const entidadNombre = fields['PROVEDOR/TITULO'] || fields['PROVEDOR/ TITULO'] || fields['proveedor'];
             const agendaActionContainer = document.getElementById('agendaActionContainer') || document.createElement('div');
@@ -6427,12 +6665,48 @@
 
             if (typeof lucide !== 'undefined') lucide.createIcons();
             resetScanner();
+
+            // ✅ Auto-refrescar la lista de Facturas después del escaneo
+            setTimeout(async () => {
+                globalStats.loaded = false; // fuerza refresco del dashboard
+                if (typeof loadFacturas === 'function') await loadFacturas();
+            }, 2000);
         }
 
+        // ───── BACKEND STATUS BANNER ─────
+        async function checkBackendStatus() {
+            const dot  = document.getElementById('backendStatusDot');
+            const text = document.getElementById('backendStatusText');
+            if (!dot || !text) return;
+            try {
+                const ctrl = new AbortController();
+                setTimeout(() => ctrl.abort(), 2000);
+                const base = (window.DulceAPI?.API_BASE !== undefined) ? window.DulceAPI.API_BASE : 'http://localhost:3001';
+                const res = await fetch(base + '/health', { signal: ctrl.signal });
+                if (res.ok) {
+                    dot.style.background  = '#10b981';
+                    dot.style.boxShadow   = '0 0 6px rgba(16,185,129,0.6)';
+                    text.textContent      = 'Backend Seguro Activo';
+                    text.style.color      = '#10b981';
+                } else { throw new Error(); }
+            } catch {
+                dot.style.background  = '#f59e0b';
+                dot.style.boxShadow   = 'none';
+                text.textContent      = 'Modo Local — Inicia el servidor para IA';
+                text.style.color      = 'var(--text-muted)';
+            }
+        }
+        // Llamar al montar el tab de Documentos
+        document.addEventListener('DOMContentLoaded', () => {
+            checkBackendStatus();
+            // Refrescar estado cada 60 segundos
+            setInterval(checkBackendStatus, 60000);
+        });
+
         // ===== FACTURAS (usa estado global) =====
-        let allFacturas = [];
-        let currentFilter = 'all';
-        let currentSort = 'recientes';
+        var allFacturas = window.allFacturas || [];
+        var currentFilter = window.currentFilter || 'all';
+        var currentSort = window.currentSort || 'recientes';
 
         window.setSortFacturas = function(type) {
             currentSort = type;
@@ -6475,7 +6749,7 @@
             try {
                 // Usar estado global centralizado (una sola consulta)
                 await fetchGlobalData();
-                allFacturas = globalStats.allRecords;
+                window.allFacturas = globalStats.allRecords;
 
                 updateStats();
                 renderFacturas();
@@ -6510,7 +6784,7 @@
             }
 
             return {
-                proveedor: f['PROVEDOR/ TITULO'] || f.proveedor || 'Desconocido',
+                proveedor: f['PROVEDOR/TITULO'] || f['PROVEDOR/ TITULO'] || f.proveedor || 'Desconocido',
                 cif: cif,
                 fecha: f.Fecha || f.fecha || '',
                 createdAt: (item.createdTime || '').slice(0, 10),  // YYYY-MM-DD de Airtable
@@ -6583,11 +6857,11 @@
 
         function renderFacturas() {
             const list = document.getElementById('facturasList');
-            let filtered = currentFilter === 'all' ? allFacturas : allFacturas.filter(f => f.categoria === currentFilter);
+            let filtered = window.currentFilter === 'all' ? window.allFacturas : window.allFacturas.filter(f => f.categoria === window.currentFilter);
 
             // Aplicar ordenación
             filtered = [...filtered];
-            if (currentSort === 'recientes') {
+            if (window.currentSort === 'recientes') {
                 filtered.sort((a, b) => {
                     // Soporta DD/MM/YYYY y YYYY-MM-DD
                     function parseFecha(f) {
@@ -6674,7 +6948,7 @@
                             <span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);"><i data-lucide="file-text" style="width:11px;height:11px;"></i>${f.numero_doc || 'S/N'}</span>
                             ${f.cif ? `<span style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);"><i data-lucide="building" style="width:11px;height:11px;"></i>${f.cif}</span>` : ''}
                         </div>
-                        <button onclick='openFacturaModal(${JSON.stringify(f).replace(/'/g, "&#39;")})' style="width:100%;padding:11px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.06);color:var(--text-primary);font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+                        <button onclick='openFacturaModal(${JSON.stringify(f).replace(/'/g, "&#39;")})' style="width:100%;padding:11px;border-radius:12px;border:1px solid var(--border);background:var(--warm-100);color:var(--text-primary);font-family:'Outfit',sans-serif;font-weight:600;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
                             <i data-lucide="eye" style="width:14px;height:14px;"></i>Ver Detalles
                         </button>
                     </div>`;
@@ -6710,8 +6984,16 @@
         function showError(msg) {
             const el = document.getElementById('errorBanner');
             if (el) {
-                el.textContent = '⚠ ' + msg;
+                el.innerHTML = `
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                        <div>⚠️ ${msg}</div>
+                        <div onclick="document.getElementById('errorBanner').style.display='none'" style="cursor:pointer; background:rgba(255,255,255,0.2); border-radius:50%; width:24px; height:24px; display:flex; align-items:center; justify-content:center;">
+                            <i data-lucide="x" style="width:16px;height:16px;color:#fff;"></i>
+                        </div>
+                    </div>
+                `;
                 el.style.display = 'block';
+                if (typeof lucide !== 'undefined') lucide.createIcons({root: el});
             } else {
                 console.error('[Dulce] Error:', msg);
                 // Fallback a toast si el banner no existe
@@ -7092,70 +7374,22 @@
         }
 
         async function loadMargenes() {
-            const ventaGuardada = localStorage.getItem(VENTA_KEY);
-            if (ventaGuardada) document.getElementById('ventaSemanalInput').value = ventaGuardada;
-            document.getElementById('margenSub').textContent = 'Leyendo gastos...';
             try {
                 if (!globalStats.loaded) await fetchGlobalData();
                 const now = new Date();
-                const totalGastos = globalStats.totalGastosMes;
-                const totalDocs = globalStats.countTotalMes;
-                const ventaSemanal = parseFloat(localStorage.getItem(VENTA_KEY) || 0);
-                const ingresosMes = ventaSemanal * 4.33;
+                const totalGastos = globalStats.totalGastosMes || 0;
                 const mermasMes = getMermasMes();
                 const totalMermas = mermasMes.reduce((s, m) => s + (m.total || 0), 0);
-                const beneficioNeto = ingresosMes - totalGastos - totalMermas;
-                const margen = ingresosMes > 0 ? (beneficioNeto / ingresosMes * 100) : null;
 
-                document.getElementById('mGastos').textContent = totalGastos.toFixed(2) + '€';
-                document.getElementById('mIngresos').textContent = ingresosMes > 0 ? ingresosMes.toFixed(0) + '€' : '—';
-                document.getElementById('mFacturas').textContent = totalDocs;
-                document.getElementById('mMermas').textContent = totalMermas.toFixed(2) + '€';
+                if (document.getElementById('mGastos')) document.getElementById('mGastos').textContent = totalGastos.toFixed(2) + '€';
+                if (document.getElementById('mMermas')) document.getElementById('mMermas').textContent = totalMermas.toFixed(2) + '€';
 
-                const valEl = document.getElementById('margenValor');
-                const subEl = document.getElementById('margenSub');
-                const barEl = document.getElementById('margenBar');
-                const healthEl = document.getElementById('margenHealthBadge');
-
-                if (margen === null) {
-                    valEl.textContent = '—'; valEl.style.color = 'var(--text-muted)';
-                    subEl.textContent = 'Configura tu venta semanal para ver el margen estimado';
-                    barEl.style.width = '0%';
-                    healthEl.className = 'margen-health-indicator warning';
-                    healthEl.innerHTML = '<div class="margen-health-dot"></div><span>Sin Datos</span>';
-                } else {
-                    valEl.textContent = (margen >= 0 ? '+' : '') + margen.toFixed(1) + '%';
-                    if (margen >= 20) {
-                        valEl.style.color = '#10b981';
-                        healthEl.className = 'margen-health-indicator healthy';
-                        healthEl.innerHTML = '<div class="margen-health-dot"></div><span>Saludable</span>';
-                        barEl.style.background = 'linear-gradient(90deg,#059669,#10b981)';
-                    } else if (margen >= 0) {
-                        valEl.style.color = '#f59e0b';
-                        healthEl.className = 'margen-health-indicator warning';
-                        healthEl.innerHTML = '<div class="margen-health-dot"></div><span>En Riesgo</span>';
-                        barEl.style.background = 'linear-gradient(90deg,#d97706,#f59e0b)';
-                    } else {
-                        valEl.style.color = '#ef4444';
-                        healthEl.className = 'margen-health-indicator danger';
-                        healthEl.innerHTML = '<div class="margen-health-dot"></div><span>Pérdidas</span>';
-                        barEl.style.background = 'linear-gradient(90deg,#dc2626,#ef4444)';
-                    }
-                    const mermaStr = totalMermas > 0 ? ' | Mermas: ' + totalMermas.toFixed(2) + '€' : '';
-                    subEl.textContent = 'Gastos: ' + totalGastos.toFixed(2) + '€ | Ingresos: ' + ingresosMes.toFixed(0) + '€' + mermaStr + ' | ' + now.toLocaleString('es-ES', { month: 'long' });
-                    barEl.style.width = Math.min(Math.abs((totalGastos + totalMermas) / ingresosMes * 100), 100) + '%';
-                }
                 renderMermasList();
                 updateTGTG(totalMermas);
             } catch (err) {
-                document.getElementById('margenSub').textContent = '❌ Error: ' + err.message;
+                console.error("Error al cargar datos en Márgenes:", err);
             }
         }
-
-        document.getElementById('saveVentaBtn').addEventListener('click', () => {
-            const val = document.getElementById('ventaSemanalInput').value.trim();
-            if (val && !isNaN(val)) { localStorage.setItem(VENTA_KEY, val); loadMargenes(); }
-        });
 
         // Initialize Splash Screen
         window.addEventListener('load', () => {
@@ -7207,7 +7441,7 @@
 
             // Simular búsqueda para filtrar lista
             setTimeout(() => {
-                const results = allFacturas.filter(f => normalize(f.proveedor).includes(normalize(window.contactSelected.nombre)));
+                const results = window.allFacturas.filter(f => normalize(f.proveedor).includes(normalize(window.contactSelected.nombre)));
                 updateListWithCustomData(results, `Historial: ${window.contactSelected.nombre}`);
                 // Si llegamos de la vista contacto, mostramos el tab facturas sin hacer más
             }, 100);
@@ -7302,16 +7536,49 @@
             ]
         };
 
+        // Migración one-time: clave antigua sin scope → clave scoped por usuario
+        function migrateRutaToScopedStorage() {
+            var scopedKey = getUserScopedKey(RUTA_KEY);
+            if (localStorage.getItem(scopedKey)) return; // ya migrado
+
+            // Evitar que clientes (role 'client') hereden datos antiguos (posibles restos de demo o admin)
+            const userInfo = window.DulceAuth ? window.DulceAuth.getUserInfo() : null;
+            if (userInfo && userInfo.role === 'client') {
+                localStorage.setItem(scopedKey, JSON.stringify({ orders: [] }));
+                return;
+            }
+
+            var oldData = localStorage.getItem('dulce_jaleo_ruta');
+            if (oldData) {
+                localStorage.setItem(scopedKey, oldData);
+                var oldStatus = localStorage.getItem('dulce_jaleo_orders_status');
+                if (oldStatus) localStorage.setItem(getUserScopedKey('dulce_jaleo_orders_status'), oldStatus);
+                var oldHistory = localStorage.getItem(RUTA_HISTORY_KEY);
+                if (oldHistory) localStorage.setItem(getUserScopedKey(RUTA_HISTORY_KEY), oldHistory);
+            }
+        }
+
         function getRutaData() {
-            // Prioridad: Datos en vivo de Airtable vía globalStats
+            // Migración de datos existentes (una sola vez por usuario)
+            migrateRutaToScopedStorage();
+
+            // Prioridad 1: Datos en vivo de Airtable vía globalStats
             if (globalStats.loaded && globalStats.pedidos && globalStats.pedidos.length > 0) {
                 return { orders: globalStats.pedidos };
             }
 
-            const raw = localStorage.getItem(RUTA_KEY);
+            // Prioridad 2: Cache localStorage scoped por usuario
+            const raw = localStorage.getItem(getUserScopedKey(RUTA_KEY));
             if (!raw) {
-                saveRutaData(RUTA_SEED);
-                return JSON.parse(JSON.stringify(RUTA_SEED));
+                // Solo admin ve datos demo; clientes nuevos empiezan vacíos
+                var userInfo = window.DulceAuth ? window.DulceAuth.getUserInfo() : null;
+                if (userInfo && userInfo.role === 'admin') {
+                    saveRutaData(RUTA_SEED);
+                    return JSON.parse(JSON.stringify(RUTA_SEED));
+                }
+                var emptyData = { version: 2, date: new Date().toISOString().slice(0, 10), orders: [] };
+                saveRutaData(emptyData);
+                return emptyData;
             }
             const data = JSON.parse(raw);
             // Migración a v2
@@ -7347,14 +7614,14 @@
         // ===== [FASE 13] ESTADO DE PEDIDOS =====
         function getOrderStatus(orderId) {
             if (!orderId) return 'Pendiente';
-            var s = JSON.parse(localStorage.getItem('dulce_jaleo_orders_status') || '{}');
+            var s = JSON.parse(localStorage.getItem(getUserScopedKey('dulce_jaleo_orders_status')) || '{}');
             return s[orderId] || 'Pendiente';
         }
         function setOrderStatus(orderId, status) {
             if (!orderId) return;
-            var s = JSON.parse(localStorage.getItem('dulce_jaleo_orders_status') || '{}');
+            var s = JSON.parse(localStorage.getItem(getUserScopedKey('dulce_jaleo_orders_status')) || '{}');
             s[orderId] = status;
-            localStorage.setItem('dulce_jaleo_orders_status', JSON.stringify(s));
+            localStorage.setItem(getUserScopedKey('dulce_jaleo_orders_status'), JSON.stringify(s));
         }
         window.toggleOrderStatus = function(orderId) {
             setOrderStatus(orderId, getOrderStatus(orderId) === 'Completado' ? 'Pendiente' : 'Completado');
@@ -7535,7 +7802,55 @@
 
 
         function saveRutaData(data) {
-            localStorage.setItem(RUTA_KEY, JSON.stringify(data));
+            localStorage.setItem(getUserScopedKey(RUTA_KEY), JSON.stringify(data));
+        }
+
+        // Helper centralizado: sync order con Airtable PEDIDOS (fire-and-forget)
+        async function syncOrderToAirtable(order, action) {
+            if (!window.DulceAPI) return;
+            
+            const userInfo = window.DulceAuth ? window.DulceAuth.getUserInfo() : null;
+            const userEmail = userInfo ? userInfo.email : '';
+
+            var fields = {
+                "Product": order.product || '',
+                "Quantity": order.quantity || 0,
+                "Unit": order.unit || 'Uds',
+                "Type": order.type || 'manual',
+                "Completed": !!order.completed,
+                "Note": order.note || '',
+                "Client": userEmail // Campo para multi-tenancy
+            };
+            if (order.schedule) fields["Schedule"] = order.schedule;
+            if (order.client) fields["Client"] = order.client; // Sobrescribe si el pedido tiene un cliente específico (ej. B2B)
+            if (order.clientPhone) fields["Phone"] = order.clientPhone;
+            if (order.completedAt) fields["Completedat"] = order.completedAt;
+
+            try {
+                if (action === 'delete') {
+                    if (order.airtableId) {
+                        await DulceAPI.deleteRecord('PEDIDOS', order.airtableId);
+                    } else if (order.id && !order.id.startsWith('man-') && !order.id.startsWith('dyn-') && !order.id.startsWith('rec-')) {
+                        await DulceAPI.deleteRecord('PEDIDOS', order.id);
+                    }
+                    return; // Importante: terminar aquí si es borrar
+                }
+
+                const recordId = order.airtableId || (order.id && !order.id.startsWith('man-') && !order.id.startsWith('dyn-') && !order.id.startsWith('rec-') ? order.id : null);
+                if (recordId) {
+                    // Actualizar registro existente
+                    await DulceAPI.updateRecord('PEDIDOS', recordId, fields);
+                } else if (action === 'create') {
+                    // Crear solo si se solicitó explícitamente
+                    var result = await DulceAPI.createRecord('PEDIDOS', fields);
+                    if (result && result.id) order.airtableId = result.id;
+                } else {
+                    // Pedido local sin ID de Airtable: no sincronizar
+                    console.log('[RUTA_SYNC] Pedido local sin ID de Airtable, omitiendo sync:', order.id);
+                }
+            } catch (err) {
+                console.error('[RUTA_SYNC] Error syncing to Airtable:', err);
+            }
         }
 
         // --- Calendario Operativo & Stats (PASO 3) ---
@@ -7549,35 +7864,35 @@
         var rutaSelectedDate = toLocalDateStr(new Date());
 
         function getRutaHistory() {
-            try { return JSON.parse(localStorage.getItem(RUTA_HISTORY_KEY) || '{}'); } catch(e) { return {}; }
+            try { return JSON.parse(localStorage.getItem(getUserScopedKey(RUTA_HISTORY_KEY)) || '{}'); } catch(e) { return {}; }
         }
         function saveRutaHistory(h) {
-            try { localStorage.setItem(RUTA_HISTORY_KEY, JSON.stringify(h)); } catch(e) {}
+            try { localStorage.setItem(getUserScopedKey(RUTA_HISTORY_KEY), JSON.stringify(h)); } catch(e) {}
         }
         async function recordCompletedOrder(order) {
             // Sincronizar finalización con Airtable
             try {
-                if (order.id && order.id.startsWith('rec')) {
-                    // Si ya existe en Airtable, lo marcamos como completado
-                    await DulceAPI.updateRecord('PEDIDOS', order.id, {
-                        status: 'Completado',
-                        fecha_entrega: toLocalDateStr(new Date())
-                    });
+                const nowStr = toLocalDateStr(new Date());
+                const fields = {
+                    "Product": order.product || order.producto || 'Desconocido',
+                    "Quantity": order.quantity || order.cantidad || 1,
+                    "Unit": order.unit || order.unidad || 'Uds',
+                    "Type": order.type || order.tipo || 'Manual',
+                    "Completed": true,
+                    "CompletedAt": new Date().toISOString(),
+                    "Fecha entrega": nowStr
+                };
+
+                if (order.id && !order.id.startsWith('rec-') && !order.id.startsWith('dyn-')) {
+                    // Si ya es un ID de Airtable (no es semilla local), lo actualizamos
+                    await DulceAPI.updateRecord('PEDIDOS', order.id, fields);
                 } else {
-                    // Si es nuevo (recurrrente o manual), creamos un registro histórico
-                    await DulceAPI.createRecord('PEDIDOS', {
-                        producto: order.product,
-                        status: 'Completado',
-                        cantidad: order.quantity || 1,
-                        unidad: order.unit || 'Uds',
-                        total: order.value || 0,
-                        fecha_entrega: toLocalDateStr(new Date()),
-                        tipo: order.type || 'Manual'
-                    });
+                    // Si es nuevo o semilla, creamos un registro histórico
+                    await DulceAPI.createRecord('PEDIDOS', fields);
                 }
                 console.log('[Dulce] Pedido completado registrado en Airtable');
                 // Forzamos refresco total para que las gráficas se actualicen al instante
-                fetchGlobalData(); 
+                if (typeof fetchGlobalData === 'function') fetchGlobalData(); 
             } catch (e) {
                 console.error('[Dulce] Error registrando fin de pedido:', e);
             }
@@ -7589,9 +7904,12 @@
             const allPedidos = (globalStats.pedidosRaw || []).map(r => ({
                 id: r.id,
                 ...r.fields,
-                total: parseFloat(r.fields.total || r.fields.Total || 0),
-                status: r.fields.status || r.fields.Status || 'Pendiente',
-                fecha: r.fields.fecha_entrega || r.fields.Fecha || ''
+                product: r.fields.Product || r.fields.producto || 'Sin nombre',
+                quantity: r.fields.Quantity || r.fields.cantidad || 0,
+                unit: r.fields.Unit || r.fields.unidad || 'Uds',
+                total: parseFloat(r.fields.Total || r.fields.total || 0),
+                status: (r.fields.Completed === true || r.fields.status === 'Completado' || r.fields.Status === 'Done') ? 'Completado' : 'Pendiente',
+                fecha: r.fields["Fecha entrega"] || r.fields.fecha_entrega || r.fields.Fecha || ''
             }));
 
             const now = new Date();
@@ -7795,7 +8113,23 @@
             renderRuta();
         };
 
-        // --- Renderizado principal ---
+        // --- Rutas Logic ---
+        var rutaFilter = 'all';
+
+        function setRutaFilter(type) {
+            rutaFilter = type;
+            // Update UI buttons
+            const pills = document.querySelectorAll('#ruta-filters .fin-pill');
+            pills.forEach(p => {
+                if (p.textContent.toLowerCase().includes(type === 'all' ? 'todos' : (type === 'recurrent' ? 'recurrentes' : 'dinámicos'))) {
+                    p.classList.add('active');
+                } else {
+                    p.classList.remove('active');
+                }
+            });
+            renderRuta();
+        }
+
         function renderRuta() {
             const data = getRutaData();
             const orders = data.orders;
@@ -7817,10 +8151,16 @@
             const done = isToday ? dayOrders.filter(function(o) { return o.completed; }) : [];
 
             renderRutaProgress(dayOrders);
-            renderRutaHornada(pending);
-            renderRutaRecurrentes(pending.filter(function(o) { return o.type === 'recurrent'; }));
-            renderRutaDinamicos(pending.filter(function(o) { return o.type === 'dynamic'; }));
-            renderRutaManuales(pending.filter(function(o) { return o.type === 'manual'; }));
+            
+            // Apply Dynamic Filter
+            let finalPending = pending;
+            if (rutaFilter === 'recurrent') finalPending = pending.filter(o => o.type === 'recurrent');
+            if (rutaFilter === 'dynamic') finalPending = pending.filter(o => o.type === 'dynamic');
+
+            renderRutaHornada(finalPending);
+            renderRutaRecurrentes(finalPending.filter(function(o) { return o.type === 'recurrent'; }));
+            renderRutaDinamicos(finalPending.filter(function(o) { return o.type === 'dynamic'; }));
+            renderRutaManuales(finalPending.filter(function(o) { return o.type === 'manual'; }));
             renderRutaFinalizadas(done);
             renderRutaStats();
 
@@ -7891,7 +8231,7 @@
                     '<span>' + k + '</span>' +
                     '<div class="ruta-hornada-qty-wrap">' +
                         '<button class="ruta-hornada-qty-btn" onclick="adjustHornadaQty(\'' + firstId + '\', -1)">−</button>' +
-                        '<span class="ruta-hornada-qty">' + g.quantity + ' ' + g.unit + '</span>' +
+                        '<span class="ruta-hornada-qty" id="hornada-qty-' + firstId + '">' + g.quantity + ' ' + g.unit + '</span>' +
                         '<button class="ruta-hornada-qty-btn" onclick="adjustHornadaQty(\'' + firstId + '\', 1)">+</button>' +
                     '</div>' +
                     '</div>';
@@ -7904,14 +8244,29 @@
                 '<div class="ruta-hornada-card">' + itemsHtml + '</div>';
         }
 
-        // Ajustar cantidad en hornada
         window.adjustHornadaQty = function(orderId, delta) {
             var data = getRutaData();
             var order = data.orders.find(function(o) { return o.id === orderId; });
             if (order) {
-                order.quantity = Math.max(1, (order.quantity || 0) + delta);
+                var newQty = Math.max(1, (order.quantity || 0) + delta);
+                // Si la cantidad sube/baja de verdad, actualizamos
+                var realDelta = newQty - (order.quantity || 0);
+                if (realDelta === 0) return;
+                
+                order.quantity = newQty;
                 saveRutaData(data);
-                renderRuta();
+                
+                // --- Actualización DOM Directa (Anti-Flicker) ---
+                var qtySpan = document.getElementById('hornada-qty-' + orderId);
+                if (qtySpan) {
+                    var currentVal = parseInt(qtySpan.textContent) || 0;
+                    qtySpan.textContent = (currentVal + realDelta) + ' ' + (order.unit || 'Uds');
+                }
+                
+                var cardSpan = document.getElementById('card-qty-' + orderId);
+                if (cardSpan) {
+                    cardSpan.textContent = 'x' + newQty + ' ' + (order.unit || 'Uds');
+                }
             }
         };
 
@@ -7936,7 +8291,7 @@
                         '<div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">' + (o.schedule || '') + '</div>' +
                     '</div>' +
                     '<div style="padding: 5px 10px; border-radius: 20px; background: rgba(16, 185, 129, 0.1); color: #10b981; font-size: 11px; font-weight: 700; white-space: nowrap;">' +
-                        'x' + o.quantity + ' ' + o.unit +
+                        '<span id="card-qty-' + o.id + '">x' + o.quantity + ' ' + o.unit + '</span>' +
                     '</div>' +
                     '<button class="ruta-btn ruta-btn-edit" onclick="openEditModal(\'' + o.id + '\')" title="Editar">' +
                         '<i data-lucide="pencil" style="width: 14px;"></i>' +
@@ -7977,8 +8332,17 @@
             }
 
             const now    = new Date();
-            // Mes actual en formato YYYY-MM, derivado de la fecha de hoy (no de globalStats)
             const mesStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+            // Meses anteriores para comparativa
+            const mes1Date = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const mes2Date = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+            const mes1Str  = mes1Date.getFullYear() + '-' + String(mes1Date.getMonth() + 1).padStart(2, '0');
+            const mes2Str  = mes2Date.getFullYear() + '-' + String(mes2Date.getMonth() + 1).padStart(2, '0');
+
+            const diasEnMes    = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            const dailyCurrent = new Array(diasEnMes).fill(0);
+            let prevMonthTotal = 0, prev2MonthTotal = 0;
 
             const trendCube    = [0, 0, 0, 0, 0, 0, 0];
             const activityCube = [0, 0, 0, 0, 0, 0, 0];
@@ -8011,9 +8375,8 @@
                     activityCube[idx] += 1;
                 }
 
-                // ── Mes actual: distribución + top proveedores ─────────
+                // ── Mes actual: distribución + top proveedores + daily ─
                 if (scanDate.startsWith(mesStr)) {
-                    // Usar origen (tabla de procedencia) para el pie chart — no la cat reclasificada
                     const origenNorm = (rec.origen || '').toUpperCase();
                     if (origenNorm === 'FACTURA' || origenNorm === 'FACTURAS')         distMap.FACTURA       += (rec.total || 0);
                     else if (origenNorm === 'ALBARAN' || origenNorm === 'ALBARANES')   distMap.ALBARAN       += (rec.total || 0);
@@ -8022,7 +8385,12 @@
                     if (prov !== 'Desconocido') {
                         provMap[prov] = (provMap[prov] || 0) + (rec.total || 0);
                     }
+                    const dayIdx = recDate.getDate() - 1;
+                    if (dayIdx >= 0 && dayIdx < diasEnMes) dailyCurrent[dayIdx] += (rec.total || 0);
                 }
+                // ── Meses anteriores ──────────────────────────────────
+                if (scanDate.startsWith(mes1Str)) prevMonthTotal  += (rec.total || 0);
+                if (scanDate.startsWith(mes2Str)) prev2MonthTotal += (rec.total || 0);
             }
 
             // Porcentajes distribución (pie)
@@ -8044,11 +8412,89 @@
                     valor: Math.round(valor)
                 }));
 
-            const result = { trend: trendCube, activity: activityCube, distribution, distRaw, topProveedores, dayLabels };
+            const mesActualTotal = distMap.FACTURA + distMap.ALBARAN + distMap.GASTOS_VARIOS;
+            const result = { trend: trendCube, activity: activityCube, distribution, distRaw, topProveedores, dayLabels, dailyCurrent, prevMonthTotal, prev2MonthTotal, mesActualTotal, diasEnMes };
             try { localStorage.setItem(CACHE_KEY, JSON.stringify(result)); } catch(e) {}
             return result;
         }
 
+
+        /* ── Carrusel: navegación con botones ‹ › ── */
+        function carouselNav(dir) {
+            const wrapper = document.getElementById('carouselWrapper');
+            if (!wrapper) return;
+            wrapper.scrollBy({ left: dir * wrapper.offsetWidth, behavior: 'smooth' });
+        }
+
+        /* ── Tarjeta 1: Proyección fin de mes ── */
+        function renderCarousel1Proyeccion(a) {
+            const el = document.getElementById('c1-actual');
+            const elP = document.getElementById('c1-proyeccion');
+            if (!el) return;
+            const total = a.mesActualTotal || 0;
+            const today = new Date().getDate();
+            const daysData = (a.dailyCurrent || []).slice(0, today);
+            const avg = daysData.length > 0 ? daysData.reduce((s,v)=>s+v,0)/daysData.length : 0;
+            const remaining = (a.diasEnMes || 30) - today;
+            const proyeccion = Math.round(total + avg * remaining);
+            el.textContent = total.toLocaleString('es-ES', { maximumFractionDigits: 0 }) + '€';
+            if (elP) elP.textContent = '~' + proyeccion.toLocaleString('es-ES', { maximumFractionDigits: 0 }) + '€';
+            renderMiniChart('miniChartTrend', daysData.length >= 2 ? daysData : a.trend, '#D4AF37', '€', 'line', { labels: [] });
+        }
+
+        /* ── Tarjeta 2: Top Proveedores (barras horizontales) ── */
+        function renderCarousel2TopProveedores(a) {
+            const container = document.getElementById('miniChartActivity');
+            if (!container) return;
+            const top = (a.topProveedores || []).slice(0, 4);
+            if (top.length === 0) {
+                container.innerHTML = '<div style="font-size:11px;color:var(--text-muted);text-align:center;padding-top:20px;">Sin datos este mes</div>';
+                return;
+            }
+            const maxVal = top[0].valor || 1;
+            container.innerHTML = top.map(p => `
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
+                    <div style="font-size:9px;color:var(--text-muted);width:54px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;flex-shrink:0;">${p.nombre}</div>
+                    <div style="flex:1;background:rgba(255,255,255,0.07);border-radius:4px;height:7px;overflow:hidden;">
+                        <div style="width:${Math.round(p.valor/maxVal*100)}%;height:100%;background:var(--gold);border-radius:4px;"></div>
+                    </div>
+                    <div style="font-size:9px;color:var(--text-muted);width:38px;text-align:right;flex-shrink:0;">${p.valor}€</div>
+                </div>`).join('');
+        }
+
+        /* ── Tarjeta 3: Mayor gasto — proveedor #1 ── */
+        function renderCarousel3ProveedorTop(a) {
+            const container = document.getElementById('miniChartDistribution');
+            if (!container) return;
+            const top = (a.topProveedores || [])[0];
+            if (!top) {
+                container.innerHTML = '<div style="font-size:11px;color:var(--text-muted);text-align:center;">Sin datos</div>';
+                return;
+            }
+            const totalProv = (a.topProveedores || []).reduce((s,p) => s + p.valor, 0) || 1;
+            const pct = Math.round(top.valor / totalProv * 100);
+            container.innerHTML = `
+                <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${top.nombre}</div>
+                <div style="font-size:22px;font-weight:800;color:var(--gold);line-height:1;">${top.valor.toLocaleString('es-ES')}€</div>
+                <div style="font-size:10px;color:var(--text-muted);margin-top:6px;">${pct}% del total de proveedores</div>
+                <div style="margin-top:8px;background:rgba(255,255,255,0.07);border-radius:4px;height:5px;overflow:hidden;">
+                    <div style="width:${pct}%;height:100%;background:var(--gold);border-radius:4px;"></div>
+                </div>`;
+        }
+
+        /* ── Tarjeta 4: Comparativa 3 meses ── */
+        function renderCarousel4Comparativa(a) {
+            const mesActual = a.mesActualTotal || 0;
+            const mes1 = a.prevMonthTotal || 0;
+            const mes2 = a.prev2MonthTotal || 0;
+            const now = new Date();
+            const labels = [
+                new Date(now.getFullYear(), now.getMonth()-2, 1).toLocaleString('es-ES',{month:'short'}),
+                new Date(now.getFullYear(), now.getMonth()-1, 1).toLocaleString('es-ES',{month:'short'}),
+                now.toLocaleString('es-ES',{month:'short'})
+            ];
+            renderMiniChart('miniChartBalance', [mes2, mes1, mesActual], '#D4AF37', '€', 'bar', { labels });
+        }
 
         /**
          * Actualiza las tendencias y charts del Dashboard v3.0
@@ -8134,14 +8580,31 @@
             }
 
             const analytics = getDetailedAnalytics();
-            const topVals = analytics.topProveedores.length > 0
-                ? analytics.topProveedores.map(p => p.valor)
-                : [0, 0, 0, 0, 0];
 
-            renderMiniChart('miniChartTrend',        analytics.trend,        '#D4AF37', '€', 'line',    { labels: analytics.dayLabels });
-            renderMiniChart('miniChartActivity',     analytics.activity,     '#10b981', 'u', 'line',    { labels: analytics.dayLabels });
-            renderMiniChart('miniChartDistribution', analytics.distribution, '#3b82f6', '%', 'pie',     { legend: ['Facturas','Albaranes','Gastos'] });
-            renderMiniChart('miniChartBalance',      topVals,                '#D4AF37', '€', 'bar',     { labels: analytics.topProveedores.map(p=>p.nombre), subtype: 'providers' });
+            // Badge dinámico vs mes anterior
+            const badgeEl = document.querySelector('.bento-trend');
+            if (badgeEl) {
+                if (analytics.mesActualTotal > 0 && analytics.prevMonthTotal > 0) {
+                    const deltaPct = ((analytics.mesActualTotal - analytics.prevMonthTotal) / analytics.prevMonthTotal * 100).toFixed(1);
+                    const isUp = deltaPct >= 0;
+                    badgeEl.className = 'bento-trend ' + (isUp ? 'trend-up' : 'trend-down');
+                    badgeEl.style.display = '';
+                    badgeEl.innerHTML = `<i data-lucide="${isUp ? 'arrow-up-right' : 'arrow-down-right'}" style="width:12px;"></i><span>${isUp ? '+' : ''}${deltaPct}% vs mes anterior</span>`;
+                } else if (analytics.mesActualTotal > 0) {
+                    badgeEl.className = 'bento-trend';
+                    badgeEl.style.display = '';
+                    badgeEl.innerHTML = `<span>Mes nuevo</span>`;
+                } else {
+                    badgeEl.style.display = 'none';
+                }
+                if (window.lucide) lucide.createIcons();
+            }
+
+            // Render 4 tarjetas KPI del carrusel
+            renderCarousel1Proyeccion(analytics);
+            renderCarousel2TopProveedores(analytics);
+            renderCarousel3ProveedorTop(analytics);
+            renderCarousel4Comparativa(analytics);
 
             initCarouselDots();
 
@@ -8154,16 +8617,21 @@
          * Sincroniza el scroll del carrusel con los puntos indicadores (dots)
          */
         function initCarouselDots() {
-            const wrapper = document.getElementById('carouselWrapper');
-            const dots = document.querySelectorAll('#carouselDots .dot');
+            const wrapper  = document.getElementById('carouselWrapper');
+            const dots     = document.querySelectorAll('#carouselDots .dot');
+            const prevBtn  = document.getElementById('carouselPrev');
+            const nextBtn  = document.getElementById('carouselNext');
             if (!wrapper || dots.length === 0) return;
 
-            wrapper.addEventListener('scroll', () => {
-                const index = Math.round(wrapper.scrollLeft / wrapper.offsetWidth);
-                dots.forEach((dot, i) => {
-                    dot.classList.toggle('active', i === index);
-                });
-            });
+            function updateState() {
+                const index = Math.round(wrapper.scrollLeft / (wrapper.offsetWidth || 1));
+                dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+                if (prevBtn) prevBtn.disabled = index === 0;
+                if (nextBtn) nextBtn.disabled = index >= dots.length - 1;
+            }
+
+            wrapper.addEventListener('scroll', updateState, { passive: true });
+            updateState();
         }
 
         // --- Pedidos Dinámicos ---
@@ -8310,11 +8778,18 @@
                 
                 var nowIso = new Date().toISOString();
                 
-                // Excluimos datos locales de prueba
-                if (!orderId.startsWith('man-') && !orderId.startsWith('dyn-') && !orderId.startsWith('rec-')) {
+                // Sincronizar con Airtable (incluye pedidos locales)
+                if (typeof globalStats !== 'undefined' && globalStats.pedidos) {
+                    var orderToSync = globalStats.pedidos.find(function(o) { return o.id === orderId; });
+                    if (orderToSync) {
+                        orderToSync.completed = true;
+                        orderToSync.completedAt = nowIso;
+                        await syncOrderToAirtable(orderToSync, 'update');
+                    }
+                } else if (!orderId.startsWith('man-') && !orderId.startsWith('dyn-') && !orderId.startsWith('rec-')) {
                     await DulceAPI.updateRecord('PEDIDOS', orderId, {
-                        "completed": true,
-                        "completedat": nowIso
+                        "Completed": true,
+                        "Completedat": nowIso
                     });
                 }
                 
@@ -8335,33 +8810,116 @@
             }
         };
 
-        window.deleteRutaTask = function(taskId) {
-            // Nota: Podríamos agregar deleteRecord a DulceAPI en el futuro
-            if (typeof globalStats !== 'undefined' && globalStats.pedidos) {
-                globalStats.pedidos = globalStats.pedidos.filter(function(o) { return o.id !== taskId; });
+        window.deleteRutaTask = async function(taskId) {
+            console.log("[RUTA_DELETE] Solicitado borrado de ID:", taskId);
+            
+            if (!taskId || String(taskId) === 'undefined') {
+                console.warn("[RUTA_DELETE] Intento de borrar pedido con ID no válido.");
+                if (typeof window.mostrarToast === 'function') window.mostrarToast('ID de pedido no válido', 3000, 'alert-triangle');
+                return;
             }
-            renderRuta();
+
+            Swal.fire({
+                title: '¿Eliminar pedido?',
+                text: '¿Seguro que quieres eliminar este pedido?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#D4AF37',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)',
+                customClass: {
+                    popup: 'glass-panel',
+                    confirmButton: 'premium-btn',
+                    cancelButton: 'premium-btn-outline'
+                }
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const api = (typeof DulceAPI !== 'undefined') ? DulceAPI : window.DulceAPI;
+                        const tables = typeof getTablesMap === 'function' ? getTablesMap() : {};
+                        const hasAirtable = api && tables.PEDIDOS;
+
+                        // 1. Intentar borrar en Airtable si el ID parece de Airtable o si está en globalStats
+                        if (hasAirtable) {
+                            var orderToDelete = (typeof globalStats !== 'undefined' && globalStats.pedidos)
+                                ? globalStats.pedidos.find(function(o) { return String(o.id) === String(taskId); })
+                                : null;
+
+                            if (orderToDelete) {
+                                await syncOrderToAirtable(orderToDelete, 'delete');
+                            } else if (typeof taskId === 'string' && !taskId.startsWith('man-') && !taskId.startsWith('dyn-') && !taskId.startsWith('rec-')) {
+                                await api.deleteRecord('PEDIDOS', taskId);
+                            }
+                        }
+                        
+                        // 2. Borrado local SIEMPRE (para que el usuario vea el cambio)
+                        if (typeof globalStats !== 'undefined' && globalStats.pedidos) {
+                            globalStats.pedidos = globalStats.pedidos.filter(function(o) { return String(o.id) !== String(taskId); });
+                        }
+                        
+                        // Reforzar borrado en localStorage si es persistente
+                        const localData = getRutaData();
+                        if (localData && localData.orders) {
+                            localData.orders = localData.orders.filter(function(o) { return String(o.id) !== String(taskId); });
+                            saveRutaData(localData);
+                        }
+
+                        renderRuta();
+                        if (typeof window.mostrarToast === 'function') window.mostrarToast('Pedido eliminado', 2000, 'check');
+                    } catch (err) {
+                        console.error("[RUTA_DELETE] Error:", err);
+                        if (typeof window.mostrarToast === 'function') window.mostrarToast('Error al eliminar', 3000, 'alert-triangle');
+                        // Forzar renderizado por si acaso
+                        renderRuta();
+                    }
+                }
+            });
         };
 
         window.restoreRutaOrder = async function(orderId) {
             try {
-                if (typeof DulceAPI !== 'undefined' && getTablesMap().PEDIDOS) {
-                    if (!orderId.startsWith('man-') && !orderId.startsWith('dyn-') && !orderId.startsWith('rec-')) {
-                        await DulceAPI.updateRecord('PEDIDOS', orderId, {
-                            "completed": false,
-                            "completedat": null
-                        });
-                    }
-                }
                 if (typeof globalStats !== 'undefined' && globalStats.pedidos) {
                     var order = globalStats.pedidos.find(function(o) { return o.id === orderId; });
-                    if (order) { order.completed = false; order.completedAt = null; }
+                    if (order) {
+                        order.completed = false;
+                        order.completedAt = null;
+                        await syncOrderToAirtable(order, 'update');
+                    }
+                } else if (typeof DulceAPI !== 'undefined' && getTablesMap().PEDIDOS) {
+                    if (!orderId.startsWith('man-') && !orderId.startsWith('dyn-') && !orderId.startsWith('rec-')) {
+                        await DulceAPI.updateRecord('PEDIDOS', orderId, {
+                            "Completed": false,
+                            "Completedat": null
+                        });
+                    }
                 }
             } catch (e) {
                 console.error("Error restaurando pedido en Airtable", e);
             } finally {
                 renderRuta();
             }
+        };
+
+        window.openNewOrderModal = function() {
+            document.getElementById('editTaskId').value = 'man-' + Date.now();
+            document.getElementById('editTaskName').value = '';
+            document.getElementById('editTaskQty').value = '';
+            document.getElementById('editTaskUnit').value = 'Uds';
+            document.getElementById('editTaskSchedule').value = '';
+            document.getElementById('editTaskClient').value = '';
+            document.getElementById('editTaskPhone').value = '';
+            document.getElementById('editTaskNotes').value = '';
+
+            // Por defecto es manual
+            document.getElementById('editTaskSchedule').style.display = 'none';
+            document.getElementById('editTaskClient').style.display = 'none';
+            document.getElementById('editTaskPhone').style.display = 'none';
+
+            var modal = document.getElementById('editTaskModal');
+            if (modal) modal.classList.add('open');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         };
 
         // --- Modal Editar Tarea ---
@@ -8399,32 +8957,63 @@
             if (modal) modal.classList.remove('open');
         };
 
-        window.saveEditTask = function() {
+        window.saveEditTask = async function() {
             var orderId = document.getElementById('editTaskId').value;
             var data = getRutaData();
-            var order = data.orders.find(function(o) { return o.id === orderId; });
+            var order = (typeof globalStats !== 'undefined' && globalStats.pedidos) 
+                ? globalStats.pedidos.find(function(o) { return o.id === orderId; })
+                : data.orders.find(function(o) { return o.id === orderId; });
+                
             if (!order) return;
-
+ 
             var newName = document.getElementById('editTaskName').value.trim();
             if (!newName) { alert('El nombre no puede estar vacío.'); return; }
-
-            order.product = newName;
-            order.quantity = parseInt(document.getElementById('editTaskQty').value) || order.quantity || 0;
-            order.unit = document.getElementById('editTaskUnit').value.trim() || order.unit || '';
-            order.note = document.getElementById('editTaskNotes').value.trim();
-
+ 
+            var fieldsToSync = {
+                "Product": newName,
+                "Quantity": parseInt(document.getElementById('editTaskQty').value) || 0,
+                "Unit": document.getElementById('editTaskUnit').value.trim(),
+                "Note": document.getElementById('editTaskNotes').value.trim()
+            };
+ 
+            // Actualización local
+            order.product = fieldsToSync.Product;
+            order.quantity = fieldsToSync.Quantity;
+            order.unit = fieldsToSync.Unit;
+            order.note = fieldsToSync.Note;
+ 
             if (order.type === 'recurrent') {
                 var newSchedule = document.getElementById('editTaskSchedule').value.trim();
-                if (newSchedule && newSchedule !== order.schedule) {
-                    order.schedule = newSchedule;
-                    order.days = parseScheduleDays(newSchedule);
-                }
+                order.schedule = newSchedule;
+                order.days = parseScheduleDays(newSchedule);
+                fieldsToSync["Schedule"] = newSchedule;
             }
             if (order.type === 'dynamic') {
                 order.client = document.getElementById('editTaskClient').value.trim();
                 order.clientPhone = document.getElementById('editTaskPhone').value.trim();
+                fieldsToSync["Client"] = order.client;
+                fieldsToSync["Phone"] = order.clientPhone;
             }
-
+ 
+            // Sincronizar con Airtable (todos los pedidos, incluyendo locales)
+            if (window.DulceAPI) {
+                try {
+                    if (typeof window.mostrarToast === 'function') window.mostrarToast('Guardando cambios...', 2000, 'loader');
+                    if (order.airtableId) {
+                        await window.DulceAPI.updateRecord('PEDIDOS', order.airtableId, fieldsToSync);
+                    } else if (!orderId.startsWith('man-') && !orderId.startsWith('dyn-') && !orderId.startsWith('rec-')) {
+                        await window.DulceAPI.updateRecord('PEDIDOS', orderId, fieldsToSync);
+                    } else {
+                        var result = await window.DulceAPI.createRecord('PEDIDOS', fieldsToSync);
+                        if (result && result.id) order.airtableId = result.id;
+                    }
+                    if (typeof window.mostrarToast === 'function') window.mostrarToast('¡Nube Actualizada!', 2000, 'check');
+                } catch (err) {
+                    console.error("Error sincronizando edición:", err);
+                    if (typeof window.mostrarToast === 'function') window.mostrarToast('Error de sincronización', 3000, 'alert-triangle');
+                }
+            }
+ 
             saveRutaData(data);
             closeEditModal();
             renderRuta();
@@ -8575,8 +9164,135 @@
                 m.style.opacity = '0';
                 setTimeout(function() {
                     m.style.display = 'none';
+                    // Reset selection
+                    const master = document.getElementById('gestorSelectAll');
+                    if(master) master.checked = false;
+                    window.updateBulkToolbar();
                 }, 300);
             }
+        };
+
+        window.toggleSelectAllGestor = function(master) {
+            const checks = document.querySelectorAll('.gestor-row-checkbox');
+            checks.forEach(c => c.checked = master.checked);
+            window.updateBulkToolbar();
+        };
+
+        window.updateBulkToolbar = function() {
+            const checks = document.querySelectorAll('.gestor-row-checkbox:checked');
+            const toolbar = document.getElementById('bulkActionsToolbar');
+            const countEl = document.getElementById('bulkSelectedCount');
+            
+            if (checks.length > 0) {
+                if(countEl) countEl.textContent = checks.length;
+                if(toolbar) toolbar.classList.add('visible');
+            } else {
+                if(toolbar) toolbar.classList.remove('visible');
+                const master = document.getElementById('gestorSelectAll');
+                if(master) master.checked = false;
+            }
+        };
+
+        window.bulkUpdateStatus = function(field, value) {
+            const checks = document.querySelectorAll('.gestor-row-checkbox:checked');
+            if (checks.length === 0) return;
+
+            const ids = Array.from(checks).map(c => c.getAttribute('data-id'));
+            
+            Swal.fire({
+                title: '¿Actualizar ' + ids.length + ' pedidos?',
+                text: 'Se marcarán como ' + (field === 'pagado' ? 'Pagados' : 'Listos'),
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#D4AF37',
+                confirmButtonText: 'Sí, actualizar'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        const pedidos = (typeof globalStats !== 'undefined' && globalStats.pedidos) ? globalStats.pedidos : [];
+                        ids.forEach(id => {
+                            const p = pedidos.find(o => (o.id === id || o._id === id));
+                            if (p) {
+                                if (field === 'pagado') {
+                                    p.estado_pago = 'pagado';
+                                    p.completed = true;
+                                    p.completedAt = new Date().toISOString();
+                                } else {
+                                    p.estado_produccion = 'listo';
+                                }
+                            }
+                        });
+                        
+                        // Sync with Airtable
+                        if (window.DulceAPI) {
+                            for (const id of ids) {
+                                const p = pedidos.find(o => (o.id === id || o._id === id));
+                                await DulceAPI.updatePedido(id, {
+                                    estado_pago: p.estado_pago,
+                                    estado_produccion: p.estado_produccion,
+                                    completed: p.completed,
+                                    completedAt: p.completedAt
+                                });
+                            }
+                        }
+
+                        renderContextGestorMaestro();
+                        if (typeof renderRuta === 'function') renderRuta();
+                        window.updateBulkToolbar();
+                        
+                        Swal.fire('¡Actualizado!', 'Los pedidos han sido actualizados.', 'success');
+                    } catch (e) {
+                        console.error('Error bulk update:', e);
+                        Swal.fire('Error', 'No se pudieron actualizar los pedidos.', 'error');
+                    }
+                }
+            });
+        };
+
+        window.bulkDeleteOrders = function() {
+            const checks = document.querySelectorAll('.gestor-row-checkbox:checked');
+            if (checks.length === 0) return;
+
+            const ids = Array.from(checks).map(c => c.getAttribute('data-id'));
+
+            Swal.fire({
+                title: '¿Eliminar ' + ids.length + ' pedidos?',
+                text: "Esta acción no se puede deshacer.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Sí, eliminar'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    try {
+                        let pedidos = (typeof globalStats !== 'undefined' && globalStats.pedidos) ? globalStats.pedidos : [];
+                        
+                        if (window.DulceAPI) {
+                            for (const id of ids) {
+                                await DulceAPI.deletePedido(id);
+                            }
+                        }
+
+                        // Local update
+                        globalStats.pedidos = globalStats.pedidos.filter(p => !ids.includes(p.id || p._id));
+
+                        renderContextGestorMaestro();
+                        if (typeof renderRuta === 'function') renderRuta();
+                        window.updateBulkToolbar();
+
+                        Swal.fire('¡Eliminado!', 'Los pedidos han sido eliminados.', 'success');
+                    } catch (e) {
+                        console.error('Error bulk delete:', e);
+                        Swal.fire('Error', 'No se pudieron eliminar los pedidos.', 'error');
+                    }
+                }
+            });
+        };
+
+        window.imprimirListaProduccion = function() {
+            const info = document.getElementById('print-date-info');
+            if(info) info.textContent = 'Fecha de reporte: ' + new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString();
+            window.print();
         };
 
         window.renderContextGestorMaestro = function() {
@@ -8644,6 +9360,9 @@
                 }
 
                 html += '<tr class="gestor-row">';
+                html += '<td class="gestor-checkbox-col" style="padding: 16px 24px;">' +
+                        '<input type="checkbox" class="gestor-checkbox gestor-row-checkbox" data-id="' + (p.id || p._id) + '" onclick="event.stopPropagation(); window.updateBulkToolbar()">' +
+                        '</td>';
                 html += '<td style="padding: 16px 24px; color: var(--text-secondary);">' + dateStr + '</td>';
                 html += '<td style="padding: 16px 24px; font-weight: 600; color: var(--text-primary);">' + (p.client || 'Sin Cliente') + '</td>';
                 html += '<td style="padding: 16px 24px; color: var(--text-secondary);">' + (p.product || '-') + '</td>';
@@ -8923,15 +9642,15 @@
 
                 var currentISOTime = new Date().toISOString();
                 var fields = {
-                    "product": name,
-                    "quantity": qty,
-                    "unit": unit,
-                    "type": "manual",
-                    "note": note,
-                    "completed": false,
-                    "fecha_entrega": window.rutaSelectedDate || currentISOTime.split('T')[0],
-                    "days": JSON.stringify(selectedDays),
-                    "createdAt": currentISOTime
+                    "Product": name,
+                    "Quantity": qty,
+                    "Unit": unit,
+                    "Type": "manual",
+                    "Note": note,
+                    "Completed": false,
+                    "Fecha entrega": window.rutaSelectedDate || currentISOTime.split('T')[0],
+                    "Days": JSON.stringify(selectedDays),
+                    "CreatedAt": currentISOTime
                 };
 
                 // Pushing to Cloud if possible
@@ -8956,8 +9675,10 @@
                         note: note,
                         completed: false,
                         completedAt: null,
-                        fecha_entrega: fields.fecha_entrega
+                        fecha_entrega: fields["Fecha entrega"]
                     });
+                    // Persistir en localStorage scoped
+                    saveRutaData({ version: 2, date: new Date().toISOString().slice(0, 10), orders: globalStats.pedidos });
                 }
             } catch (err) {
                 console.error("Error inyectando pedido:", err);
@@ -9028,10 +9749,54 @@
     <script src="public/js/agenda.js"></script>
     <script src="public/js/api.js"></script>
     <script src="public/js/dashboard.js"></script>
+    
+    <!-- Sanidad PDF Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    
+    <script src="public/js/sanidad.js"></script>
     <script>
         // ===== PUNTO ÚNICO DE INICIALIZACIÓN =====
         // Todo se ejecuta AQUÍ, cuando el DOM ya existe al 100%
         document.addEventListener('DOMContentLoaded', () => {
+            // ── Registro del Service Worker (Network-First, sin caché HTML) ──
+            if ('serviceWorker' in navigator) {
+                // Primero, eliminar registros de SW viejos para limpiar la caché
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    const oldPaths = registrations.filter(r => r.active && r.active.scriptURL.includes('/public/sw.js'));
+                    oldPaths.forEach(r => r.unregister());
+                    if (oldPaths.length > 0) {
+                        // También limpiar la caché corrupta
+                        caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+                        console.log('[SW] Eliminados', oldPaths.length, 'registros SW obsoletos. Recargando...');
+                        setTimeout(() => location.reload(), 500);
+                        return;
+                    }
+                });
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('[SW] Registrado (Network-First):', reg.scope))
+                    .catch(err => console.warn('[SW] Fallo al registrar:', err));
+            }
+
+            // ── Banner Offline ──
+            function updateOnlineBanner() {
+                let banner = document.getElementById('offlineBanner');
+                if (!navigator.onLine) {
+                    if (!banner) {
+                        banner = document.createElement('div');
+                        banner.id = 'offlineBanner';
+                        banner.style.cssText = 'position:fixed;bottom:78px;left:50%;transform:translateX(-50%);z-index:9999;background:rgba(239,68,68,0.95);color:#fff;padding:8px 20px;border-radius:50px;font-family:Outfit,sans-serif;font-weight:700;font-size:12px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,0.3);';
+                        banner.innerHTML = '🔴 Sin conexión &mdash; Usando datos en caché';
+                        document.body.appendChild(banner);
+                    }
+                } else if (banner) {
+                    banner.remove();
+                }
+            }
+            window.addEventListener('online', updateOnlineBanner);
+            window.addEventListener('offline', updateOnlineBanner);
+            updateOnlineBanner();
+
             // 1. Restaurar el tema guardado ANTES de renderizar iconos
             const savedTheme = localStorage.getItem('dulce_jaleo_theme');
             const isDark = savedTheme !== 'light'; // Dark por defecto
@@ -9111,7 +9876,23 @@
                 'box-shadow:0 8px 24px rgba(0,0,0,0.25)', 'max-width:320px', 'text-align:center',
                 'cursor:pointer', 'backdrop-filter:blur(10px)'
             ].join(';');
-            t.innerHTML = '⚠️ ' + msg + '<br><span style="font-size:11px;opacity:0.75;display:block;margin-top:4px">Toca aquí para abrir ⚙️ Ajustes</span>';
+            t.innerHTML = `
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                    <div>
+                        ⚠️ ${msg}<br>
+                        <span style="font-size:11px;opacity:0.75;display:block;margin-top:4px">Toca aquí para ir a ⚙️ Ajustes</span>
+                    </div>
+                    <div onclick="event.stopPropagation(); this.closest('#dulce-toast').remove()" style="cursor:pointer; background:rgba(0,0,0,0.15); border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                        <i data-lucide="x" style="width:16px;height:16px;"></i>
+                    </div>
+                </div>
+            `;
+            
+            // Re-renderizar iconos solo dentro del toast
+            if (typeof lucide !== 'undefined') {
+                setTimeout(() => lucide.createIcons({ root: t }), 10);
+            }
+
             t.onclick = () => {
                 const m = document.getElementById('configModal');
                 if (m) m.classList.add('open');
@@ -9157,6 +9938,11 @@
                         <option value="entregado">Entregado</option>
                         <option value="pagado">Pagado</option>
                     </select>
+                    <!-- Botón de Impresión -->
+                    <button class="gestor-btn-print" onclick="imprimirListaProduccion()" style="background: rgba(var(--bg-card-rgb), 0.1); border: 1px solid var(--border); color: var(--text-primary); padding: 10px 16px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 700; transition: all 0.2s;">
+                        <i data-lucide="printer" style="width: 16px;"></i>
+                        Imprimir
+                    </button>
                 </div>
             </div>
 
@@ -9164,6 +9950,10 @@
             <div style="flex: 1; overflow-y: auto; padding: 0;">
                 <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
                     <thead style="position: sticky; top: 0; background: var(--bg-card); z-index: 10; box-shadow: 0 1px 0 var(--border);">
+                        <tr>
+                            <th class="gestor-checkbox-col" style="padding: 16px 24px; width: 40px;">
+                                <input type="checkbox" class="gestor-checkbox" id="gestorSelectAll" onclick="toggleSelectAllGestor(this)">
+                            </th>
                             <th style="padding: 16px 24px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Fecha</th>
                             <th style="padding: 16px 24px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Cliente</th>
                             <th style="padding: 16px 24px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;">Producto</th>
@@ -9182,8 +9972,105 @@
                     <p style="font-size: 13px; margin-top: 4px;">Ajusta los filtros o la búsqueda.</p>
                 </div>
             </div>
+
+            <!-- Print Header (solo visible al imprimir) -->
+            <div class="print-header">
+                <h1>Lista de Producción DulceOS</h1>
+                <p id="print-date-info"></p>
+            </div>
+
+            <!-- Barra de Acciones en Bloque -->
+            <div id="bulkActionsToolbar" class="bulk-toolbar">
+                <div class="bulk-info">
+                    <span id="bulkSelectedCount">0</span> seleccionados
+                </div>
+                <button class="bulk-btn" onclick="bulkUpdateStatus('entregado', true)">
+                    <i data-lucide="package-check" style="width: 14px;"></i> Listo
+                </button>
+                <button class="bulk-btn" onclick="bulkUpdateStatus('pagado', true)">
+                    <i data-lucide="credit-card" style="width: 14px;"></i> Pagado
+                </button>
+                <button class="bulk-btn delete" onclick="bulkDeleteOrders()">
+                    <i data-lucide="trash-2" style="width: 14px;"></i> Eliminar
+                </button>
+            </div>
             
         </div>
     </div>
+    
+    <script src="public/js/settings.js"></script>
+    <script>
+        async function checkGlobalNotices() {
+            try {
+                const token = localStorage.getItem('auth_token');
+                if (!token) return;
+                const response = await fetch('/api/active-notices', {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!response.ok) return;
+                const data = await response.json();
+                if (data.success && data.notices && data.notices.length > 0) {
+                    const latestNotice = data.notices[0];
+                    const storageKey = 'closed_notice_' + latestNotice.id;
+                    const lastSeen = localStorage.getItem(storageKey);
+                    
+                    // Solo mostramos si no se ha visto o si ha sido actualizado después de cerrarlo
+                    if (!lastSeen || lastSeen !== String(latestNotice.created_at)) {
+                        Swal.fire({
+                            title: 'Mensaje de DulceOS',
+                            text: latestNotice.content,
+                            icon: latestNotice.type || 'info',
+                            confirmButtonText: 'Entendido',
+                            confirmButtonColor: '#e40000',
+                            backdrop: `rgba(0,0,0,0.4)`
+                        }).then(() => {
+                            localStorage.setItem(storageKey, latestNotice.created_at);
+                        });
+                    }
+                }
+            } catch (err) { console.error(err); }
+        }
+        document.addEventListener('DOMContentLoaded', () => { setTimeout(checkGlobalNotices, 1500); });
+    </script>
+    <script>
+        async function exportarTrimestre() {
+            const year = document.getElementById('exportYear').value;
+            const q = document.getElementById('exportQ').value;
+            const token = localStorage.getItem('auth_token');
+            if (!token) { alert('Debes iniciar sesión para exportar.'); return; }
+
+            const btn = document.getElementById('exportBtn');
+            const status = document.getElementById('exportStatus');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader" style="width:14px;height:14px;"></i> Generando...';
+            status.style.display = 'block';
+            status.textContent = 'Preparando archivos... Esto puede tardar unos segundos.';
+
+            try {
+                const res = await fetch(`/export/trimestre?year=${year}&q=${q}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({ error: 'Error desconocido' }));
+                    throw new Error(err.error || 'Error al generar el ZIP');
+                }
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `DulceOS_Q${q}_${year}.zip`;
+                a.click();
+                URL.revokeObjectURL(url);
+                status.textContent = `ZIP descargado: DulceOS_Q${q}_${year}.zip`;
+            } catch (e) {
+                status.textContent = 'Error: ' + e.message;
+                console.error('[EXPORT]', e);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="download" style="width:14px;height:14px;"></i> Descargar ZIP';
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+    </script>
 </body>
 </html>

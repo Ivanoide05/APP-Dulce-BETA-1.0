@@ -1,7 +1,7 @@
 {
-  "name": "Dulce Jaleo",
-  "short_name": "Dulce Jaleo",
-  "description": "Gestión inteligente de facturas y documentos para tu panadería",
+  "name": "DulceOS",
+  "short_name": "DulceOS",
+  "description": "Gestión inteligente de operaciones B2B — DulceOS",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#F5F0E1",

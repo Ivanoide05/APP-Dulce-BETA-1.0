@@ -6,6 +6,9 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../lib/authMiddleware');
+const supabase = require('../lib/supabaseClient');
+
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const AIRTABLE_API = 'https://api.airtable.com/v0';
 const FALLBACK_BASE_ID = process.env.AIRTABLE_BASE_ID || process.env.AIRTABLE_BASE_LEGACY;
@@ -13,9 +16,9 @@ const TOKEN = process.env.AIRTABLE_API_KEY;
 const GEMINI_KEY = process.env.GEMINI_API_KEY;
 
 const TABLES = {
-    FACTURAS: process.env.TABLE_FACTURAS || 'tblLC7oMOUQtRWkn7',
-    ALBARANES: process.env.TABLE_ALBARANES || 'tblX9EQUmwItNJCZI',
-    GASTOS_VARIOS: process.env.TABLE_GASTOS_VARIOS || 'tblHzVIPEde7zWnUv'
+    FACTURAS: 'FACTURAS',
+    ALBARANES: 'ALBARANES',
+    GASTOS_VARIOS: 'GASTOS VARIOS'
 };
 
 // ─────────────────────────────────────────────
@@ -39,77 +42,103 @@ router.post('/scan-invoice', async (req, res) => {
         // Usar airtable_base_id del JWT, con fallback al .env
         const baseId = user.airtable_base_id || FALLBACK_BASE_ID;
 
-        // 1. Enviar a Gemini 2.0 Flash — con JSON mode forzado
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`;
+        // 1. Llamar a Gemini via SDK oficial — gestiona modelos y rutas automáticamente
+        const GEMINI_MODELS = [
+            'gemini-flash-latest',
+            'gemini-flash-lite-latest',
+            'gemini-2.0-flash-lite',
+            'gemini-2.0-flash-001',
+            'gemini-3-flash-preview'
+        ];
 
-        const geminiPayload = {
-            contents: [{
-                parts: [
-                    {
-                        text: `Analiza exhaustivamente esta imagen de factura o ticket y extrae los datos clave. 
+        const OCR_PROMPT = `Analiza exhaustivamente esta imagen de factura, ticket o albarán y extrae los datos clave.
 INSTRUCCIONES CRÍTICAS:
-1. "PROVEDOR/TITULO": Busca el nombre de la empresa, comercio o entidad emisora. Prioriza logos, textos grandes en la parte superior o datos fiscales cerca del CIF. Si no es obvio, busca cualquier indicio comercial.
-2. "FECHA": Formato YYYY-MM-DD. Busca con rigor la fecha de emisión del documento.
-3. "TOTAL": El importe final pagado (numérico).
-4. "tabla_destino": "FACTURAS" si tiene CIF e IVA desglosado; "ALBARANES" si no tiene IVA; "GASTOS_VARIOS" para tickets menores.
+1. "PROVEDOR/TITULO": Busca el nombre comercial del emisor. Prioriza logótipos o textos destacados.
+2. "FECHA": Formato YYYY-MM-DD. Si no hay año, asume el actual.
+3. "TOTAL": Importe final (numérico). Si es un albarán sin precio, pon 0.
+4. "tabla_destino":
+   - "FACTURAS" si tiene número de factura, CIF/NIF e IVA desglosado.
+   - "ALBARANES" si es una nota de entrega o pedido sin valor fiscal de factura.
+   - "GASTOS_VARIOS" para tickets de parking, gasolina o compras menores sin CIF.
 
-Responde ÚNICAMENTE con un objeto JSON válido.
-Campos:
-- tabla_destino: string
-- "PROVEDOR/TITULO": string
-- "TOTAL": number
-- "FECHA": string (YYYY-MM-DD)
-- "NUMERO DE DOC": string
-- "BASE IMPONIBLE": number
-- "IVA": number
-- "CIF": string
-- "DETALLES DOC": string (resumen de compra)`
-                    },
-                    {
-                        inline_data: {
-                            mime_type: mimeType || 'image/jpeg',
-                            data: image
-                        }
-                    }
-                ]
-            }],
-            generationConfig: {
-                maxOutputTokens: 8192,
-                temperature: 0.1,
-                responseMimeType: 'application/json',
-                thinkingConfig: { thinkingBudget: 0 }
+Responde Únicamente con un objeto JSON válido, sin markdown, sin código adicional.
+Campos requeridos:
+{
+  "tabla_destino": "FACTURAS|ALBARANES|GASTOS_VARIOS",
+  "PROVEDOR/TITULO": "string",
+  "TOTAL": number,
+  "FECHA": "YYYY-MM-DD",
+  "NUMERO DE DOC": "string",
+  "BASE IMPONIBLE": number,
+  "IVA": number,
+  "CIF": "string",
+  "DETALLES DOC": "string"
+}`;
+
+        const genAI = new GoogleGenerativeAI(GEMINI_KEY);
+        let rawText = '';
+        let modelUsed = '';
+        let lastError = null;
+
+        for (const modelName of GEMINI_MODELS) {
+            try {
+                console.log(`[SCANNER] Probando modelo: ${modelName}`);
+                const model = genAI.getGenerativeModel({
+                    model: modelName,
+                    generationConfig: { temperature: 0.1, maxOutputTokens: 4096 }
+                });
+                const result = await model.generateContent([
+                    { text: OCR_PROMPT },
+                    { inlineData: { mimeType: mimeType || 'image/jpeg', data: image } }
+                ]);
+                rawText = result.response.text();
+                modelUsed = modelName;
+                console.log(`[SCANNER] ✅ Éxito con: ${modelName}`);
+                break; // éxito, salimos del bucle
+            } catch (err) {
+                lastError = err;
+                const status = err?.status || err?.statusCode || '';
+                const msg = (err.message || '').toLowerCase();
+                console.warn(`[SCANNER] Fallo en ${modelName}: ${status} - ${msg.substring(0, 100)}`);
+                
+                // Si es un error de autenticación crítica (p.ej. API Key inválida), no seguimos probando
+                if (msg.includes('api_key_invalid') || msg.includes('401') || msg.includes('403')) {
+                    throw new Error(`Error de autenticación: Verifica tu API Key en el panel de Google.`);
+                }
+                
+                // Continuamos probando el siguiente modelo en la lista ante casi cualquier otro error
+                // (incluyendo 429 cuota, 404 modelo no habilitado, o 500 saturación)
+                continue;
             }
-        };
-
-        const geminiRes = await fetch(geminiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(geminiPayload)
-        });
-
-        if (!geminiRes.ok) {
-            const errText = await geminiRes.text();
-            throw new Error(`Gemini error (${geminiRes.status}): ${errText.substring(0, 300)}`);
         }
 
-        const geminiData = await geminiRes.json();
-        const rawText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        if (!rawText) {
+            let errorMsg = 'Todos los modelos de Gemini fallaron.';
+            if (lastError?.message?.includes('monthly spending cap')) {
+                errorMsg = 'Límite de gasto superado en Google AI Studio. Sube el cap o espera al próximo mes.';
+            } else if (lastError?.message?.includes('429')) {
+                errorMsg = 'Cuota de peticiones agotada temporalmente (Error 429).';
+            } else {
+                errorMsg += ` Último error: ${lastError?.message?.substring(0, 100)}`;
+            }
+            throw new Error(errorMsg);
+        }
 
         // Limpieza robusta: eliminar markdown code fences y extraer JSON
         let cleanText = rawText.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
         const fb = cleanText.indexOf('{');
         const lb = cleanText.lastIndexOf('}');
         if (fb < 0 || lb <= fb) {
-            throw new Error(`Gemini no devolvió JSON válido: ${rawText.substring(0, 200)}`);
+            throw new Error(`Gemini no devolvio JSON valido: ${rawText.substring(0, 200)}`);
         }
         const cleanJson = cleanText.substring(fb, lb + 1);
-        console.log('[SCANNER] Raw Gemini response:', rawText.substring(0, 300));
         console.log('[SCANNER] Clean JSON:', cleanJson.substring(0, 300));
         const extracted = JSON.parse(cleanJson);
 
-        // 2. Determinar tabla destino
-        const destino = (extracted.tabla_destino || 'GASTOS_VARIOS').toUpperCase();
-        const tableId = TABLES[destino] || TABLES.GASTOS_VARIOS;
+        // 2. Determinar tabla destino (normalizar claves con underscore a nombre limpio)
+        const destinoKey = (extracted.tabla_destino || 'GASTOS_VARIOS').toUpperCase().replace(/ /g, '_');
+        const tableId = TABLES[destinoKey] || TABLES.GASTOS_VARIOS;
+        const destino = destinoKey;
 
         // 3. Preparar campos
         const fields = {
@@ -141,24 +170,48 @@ Campos:
             ocr_ms: ocrTime
         });
 
-        // 5. Guardar en Airtable EN BACKGROUND (no bloquea la respuesta)
-        // Usa el baseId del JWT del usuario
-        fetch(`${AIRTABLE_API}/${baseId}/${tableId}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${TOKEN}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ records: [{ fields }] })
-        }).then(airtableRes => {
-            if (!airtableRes.ok) {
-                airtableRes.text().then(t => console.error(`[SCANNER] Airtable save failed: ${t.substring(0, 200)}`));
-            } else {
-                console.log(`[SCANNER] Guardado en Airtable (${destino}) — total: ${Date.now() - startTime}ms`);
+        // 5. Background: subir imagen a Supabase Storage, luego guardar en Airtable
+        const effectiveToken = (process.env.AIRTABLE_API_KEY || '').trim();
+        (async () => {
+            let imagenStoragePath = null;
+            try {
+                const now = new Date();
+                const quarter = Math.ceil((now.getMonth() + 1) / 3);
+                const ext = (mimeType || 'image/jpeg').split('/')[1] || 'jpg';
+                const clientId = user.client_id || user.id;
+                const storagePath = `${clientId}/${now.getFullYear()}/Q${quarter}/${Date.now()}.${ext}`;
+                const imageBuffer = Buffer.from(image, 'base64');
+                const { error: uploadErr } = await supabase.storage
+                    .from('facturas-clientes')
+                    .upload(storagePath, imageBuffer, { contentType: mimeType || 'image/jpeg', upsert: false });
+                if (uploadErr) {
+                    console.error('[SCANNER] Storage upload failed:', uploadErr.message);
+                } else {
+                    imagenStoragePath = storagePath;
+                    console.log('[SCANNER] Imagen en Storage:', storagePath);
+                }
+            } catch (storageErr) {
+                console.error('[SCANNER] Storage error:', storageErr.message);
             }
-        }).catch(err => {
-            console.error(`[SCANNER] Airtable save error: ${err.message}`);
-        });
+
+            if (imagenStoragePath) fields['IMAGEN_URL'] = imagenStoragePath;
+
+            try {
+                const airtableRes = await fetch(`${AIRTABLE_API}/${baseId}/${encodeURIComponent(tableId)}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${effectiveToken}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ records: [{ fields }] })
+                });
+                if (!airtableRes.ok) {
+                    const t = await airtableRes.text();
+                    console.error(`[SCANNER] Airtable save failed: ${t.substring(0, 200)}`);
+                } else {
+                    console.log(`[SCANNER] Guardado en Airtable (${destino}) — total: ${Date.now() - startTime}ms`);
+                }
+            } catch (err) {
+                console.error(`[SCANNER] Airtable save error: ${err.message}`);
+            }
+        })();
 
     } catch (err) {
         console.error('[WEBHOOK] scan-invoice error:', err.message);
@@ -239,8 +292,15 @@ router.post('/lovable-webhook', express.raw({ type: '*/*', limit: '10mb' }), asy
             internalHeaders['Authorization'] = req.headers.authorization;
         }
 
-        // Re-usar la lógica de scan-invoice haciendo un fetch interno
-        const internalRes = await fetch(`http://localhost:${process.env.PORT || 3001}/webhook/scan-invoice`, {
+        // Re-usar la lógica de scan-invoice haciendo un fetch a la URL pública
+        // En Vercel: usar VERCEL_URL (https://xxx.vercel.app)
+        // En localhost: usar http://localhost:PORT
+        const isVercel = process.env.VERCEL === 'true';
+        const baseUrl = isVercel
+            ? `https://${process.env.VERCEL_URL}`
+            : `http://localhost:${process.env.PORT || 3002}`;
+
+        const internalRes = await fetch(`${baseUrl}/api/webhook/scan-invoice`, {
             method: 'POST',
             headers: internalHeaders,
             body: JSON.stringify({ image, mimeType })
